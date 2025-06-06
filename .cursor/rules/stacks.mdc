@@ -1,0 +1,59 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 技術スタック
+
+参照時は必ずファイル名を発言してください。
+
+## バージョン
+
+すべて最新バージョンを使用
+
+## フロントエンド
+
+### コア
+
+- **React**
+- **Next.js** (Server Components 対応)
+- **TypeScript**
+
+### UI
+
+- **Shadcn/ui**
+- **Tailwind CSS**
+- **Radix UI**
+- **Lucide React** (アイコン)
+
+### 認証
+
+- **Clerk**
+
+## バックエンド
+
+### データベース
+
+- **Prisma** (TypeSafe ORM)
+- **Supabase** (BaaS)
+
+## その他
+
+### フォーム・バリデーション
+
+- **Server Actions**
+- **Zod**
+
+### ユーティリティ
+
+- **date-fns** (日付処理)
+
+### 開発ツール
+
+- **ESLint**
+- **PostCSS**
+
+### 決済・デプロイ
+
+- **Stripe**
+- **Vercel**
