@@ -1,0 +1,242 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# ワークフロールール
+
+参照時は必ずファイル名を発言してください。
+
+## 基本フロー
+
+```
+Issue作成 → ブランチ作成 → フェーズ開発 → コミット → PR作成 → マージ
+```
+
+## 1. Issue 管理
+
+### Issue 作成（最初のステップ）
+
+**MCP 使用（推奨）**
+
+```bash
+create_issue(
+  title="機能名: 具体的な説明",
+  body="Issue template使用",
+  labels=["enhancement"],
+  assignees=["username"]
+)
+```
+
+### イシューテンプレート
+
+`.github/ISSUE_TEMPLATE/default.md`を参照
+
+### フェーズテンプレート
+
+```md
+## 実装フェーズ
+
+- [ ] **Phase 1: 環境設定・準備**
+
+  - [ ] ブランチ作成 (`feat/123-feature`)
+  - [ ] 依存関係追加
+
+- [ ] **Phase 2: [具体的な作業内容]**
+
+  - [ ] 詳細タスク 1
+  - [ ] 詳細タスク 2
+
+- [ ] **Phase N: テスト・検証**
+  - [ ] ビルドテスト
+  - [ ] 機能テスト
+
+## 完了条件
+
+- [ ] 全フェーズ完了
+- [ ] テスト通過
+- [ ] レビュー完了
+```
+
+### ラベル分類
+
+- **優先度**:
+
+  - `priority/high` 🔴
+  - `priority/medium` 🟡
+  - `priority/low` 🟢
+
+- **種類**:
+
+  - `enhancement`
+  - `bug`
+  - `documentation`
+
+- **ステータス**:
+
+  - `in-progress`
+  - `review-needed`
+  - `blocked`
+
+## 2. ブランチ・Git 操作
+
+### ブランチ作成
+
+```bash
+# Issue作成後にブランチを作成
+# 例: git checkout -b feat/123-user-auth
+```
+
+### ブランチ命名規則
+
+`.docs/CONTRIBUTING.md`を参照
+
+### コミット管理
+
+**コミットタイミング**
+
+- **各フェーズ完了時**に必ずコミット
+- フェーズ内でも意味のある単位でコミット
+
+**手動コミット（推奨）**
+
+```powershell
+git add .
+git commit -m "フェーズ2完了: ユーザー認証機能 (#123)"
+```
+
+**コミットメッセージ形式**
+
+- **簡潔な日本語**で記述
+- **50 文字以内**を目安
+- **Issue 番号**を必ず含める
+
+```
+# 良い例
+フェーズ1完了: 環境設定 (#123)
+バグ修正: ログイン処理 (#124)
+
+# 悪い例（長すぎる英語）
+feat(authentication): implement comprehensive user authentication system...
+```
+
+## 3. Issue 更新・連携
+
+### 進捗更新
+
+```bash
+# フェーズ完了時
+update_issue(
+  issue_number=123,
+  body="更新されたフェーズチェックリスト"
+)
+
+# コメント追加
+add_comment(
+  issue_number=123,
+  body="Phase 2完了。コミット: abc1234"
+)
+```
+
+### 定期プッシュ
+
+```bash
+git push origin feat/123-user-auth
+```
+
+## 4. PR 作成・マージ
+
+### PR 作成準備
+
+- 全フェーズ完了確認
+- 最終テスト実行
+- Issue 番号を PR タイトル・説明に含める
+
+### PR 作成（MCP 推奨）
+
+```bash
+create_pull_request(
+  title="feat: ユーザー認証機能実装 (#123)",
+  body="PRテンプレート使用",
+  head="feat/123-user-auth",
+  base="main"
+)
+```
+
+### マージ・完了
+
+- 全自動チェック通過
+- 手動レビュー完了
+- 手動マージ実行
+- Issue 自動クローズ
+
+### マージ後処理
+
+```bash
+# ブランチ削除
+git branch -d feat/123-user-auth
+git push origin --delete feat/123-user-auth
+```
+
+## 5. 完了情報記録
+
+### Issue 完了情報
+
+```md
+## 完了情報
+
+- **完了日**: YYYY-MM-DD
+- **所要時間**: X 時間
+- **主な課題**: [問題と解決策]
+- **学習事項**: [今後に活かせる知見]
+- **関連 PR**: #456
+```
+
+## 必須チェックリスト（例）
+
+### 開始時
+
+- [ ] Issue 作成済み
+- [ ] フェーズ定義済み
+- [ ] 適切なラベル設定済み
+- [ ] ブランチ作成済み（Issue 番号含む）
+
+### 開発中
+
+- [ ] 各フェーズ完了時にコミット
+- [ ] Issue 番号をコミットメッセージに含める
+- [ ] Issue 内チェックボックス更新
+- [ ] 定期的なプッシュ
+
+### 完了時
+
+- [ ] 全フェーズ完了
+- [ ] 最終テスト実行
+- [ ] PR 作成（Issue 番号含む）
+- [ ] 自動レビュー通過
+- [ ] 手動マージ実行
+- [ ] Issue 自動クローズ確認
+- [ ] ブランチ削除
+
+## MCP 活用ポイント
+
+- **Issue 作成・更新**: GitHub MCP
+- **PR 作成**: GitHub MCP
+- **Issue 検索**: GitHub MCP
+
+## 検索・参照
+
+### 効率的な Issue 検索
+
+- `is:issue is:open label:enhancement` - 進行中の新機能
+- `is:issue author:username` - 自分が作成した Issue
+- `is:issue "Phase 1"` - フェーズ 1 関連の Issue
+
+## 注意事項
+
+- Issue 作成が必須の最初のステップ
+- **Issue 番号を必ずブランチ名・コミットメッセージに含める**
+- main ブランチへの直接コミット禁止
+- MCP 使用を優先
+- 手動マージ必須
+- 進捗は Issue 内で管理（Single Source of Truth）
