@@ -14,7 +14,7 @@ npm install
 
 プロジェクトルートに `.env.local` ファイルを作成し、以下の環境変数を設定してください：
 
-```env
+```
 # OpenAI API Configuration
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-3.5-turbo
@@ -54,7 +54,7 @@ npm run dev
 
 ## 📁 プロジェクト構造
 
-```
+```sh
 src/
 ├── app/                 # Next.js App Router
 ├── components/          # Reactコンポーネント
@@ -86,7 +86,7 @@ src/
 
 ### API キーエラー
 
-```
+```markdown
 OpenAI API キーが設定されていません
 ```
 
@@ -94,7 +94,7 @@ OpenAI API キーが設定されていません
 
 ### 接続エラー
 
-```
+```marksown
 AI からの応答がありません
 ```
 

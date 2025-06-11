@@ -223,6 +223,15 @@ export const useAIStore = create<AIStore>()(
         settings: state.settings,
         messages: state.messages,
       }),
+      // Dateオブジェクトの復元処理
+      onRehydrateStorage: () => (state) => {
+        if (state?.messages) {
+          state.messages = state.messages.map((message) => ({
+            ...message,
+            timestamp: new Date(message.timestamp),
+          }));
+        }
+      },
     }
   )
 );

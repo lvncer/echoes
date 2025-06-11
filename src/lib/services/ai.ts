@@ -92,16 +92,19 @@ export class AIService {
       }
     } catch (error) {
       console.error("AI 応答生成エラー:", error);
+      console.error("エラーの詳細:", JSON.stringify(error, null, 2));
 
       if (this.isAIError(error)) {
         throw error;
       }
 
-      throw this.createError(
-        "GENERATION_ERROR",
-        "AI 応答の生成に失敗しました",
-        error
-      );
+      // エラーの詳細情報を取得
+      let errorMessage = "AI 応答の生成に失敗しました";
+      if (error instanceof Error) {
+        errorMessage = `${errorMessage}: ${error.message}`;
+      }
+
+      throw this.createError("GENERATION_ERROR", errorMessage, error);
     }
   }
 

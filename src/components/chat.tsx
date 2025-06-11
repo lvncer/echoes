@@ -43,7 +43,8 @@ export default function Chat() {
 
   // メッセージの表示
   const formatMessage = (message: ChatMessage) => {
-    const time = message.timestamp.toLocaleTimeString();
+    const timestamp = new Date(message.timestamp);
+    const time = timestamp.toLocaleTimeString();
     const roleLabel = message.role === "user" ? "あなた" : "AI";
 
     return (
@@ -89,6 +90,9 @@ export default function Chat() {
           <div className="mt-2 text-sm text-gray-600">
             <div>プロバイダー: {settings.currentProvider.provider}</div>
             <div>モデル: {settings.currentProvider.model}</div>
+            <div>
+              API キー: {settings.currentProvider.apiKey ? "設定済み" : "未設定"}
+            </div>
             <div>
               接続状態:{" "}
               <span
