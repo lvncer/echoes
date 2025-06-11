@@ -25,7 +25,8 @@ export class AudioAnalysisService {
     try {
       // AudioContextを作成
       this.audioContext = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext)();
 
       // AnalyserNodeを作成
       this.analyser = this.audioContext.createAnalyser();

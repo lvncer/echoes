@@ -1,4 +1,4 @@
-import { VRM, VRMSchema } from "@pixiv/three-vrm";
+import { VRM } from "@pixiv/three-vrm";
 
 /**
  * VRMブレンドシェイプ制御サービス
@@ -27,8 +27,8 @@ export class VRMBlendShapeService {
    * ブレンドシェイプのウェイトを設定
    */
   setBlendShapeWeight(name: string, weight: number): void {
-    if (!this.vrm?.blendShapeProxy) {
-      console.warn("VRM blendShapeProxy is not available");
+    if (!this.vrm?.expressionManager) {
+      console.warn("VRM expressionManager is not available");
       return;
     }
 
@@ -37,13 +37,13 @@ export class VRMBlendShapeService {
       const clampedWeight = Math.max(0, Math.min(1, weight));
 
       // ブレンドシェイプを設定
-      this.vrm.blendShapeProxy.setValue(name, clampedWeight);
+      this.vrm.expressionManager.setValue(name, clampedWeight);
 
       // 現在のウェイトを記録
       this.currentWeights[name] = clampedWeight;
 
       // 更新を適用
-      this.vrm.blendShapeProxy.update();
+      this.vrm.expressionManager.update();
     } catch (error) {
       console.warn(`Failed to set blend shape ${name}:`, error);
     }
@@ -53,13 +53,30 @@ export class VRMBlendShapeService {
    * 利用可能なブレンドシェイプ名を取得
    */
   getAvailableBlendShapes(): string[] {
-    if (!this.vrm?.blendShapeProxy) {
+    if (!this.vrm?.expressionManager) {
       return [];
     }
 
     try {
-      // VRMSchemaの標準ブレンドシェイプ名を返す
-      return Object.values(VRMSchema.BlendShapePresetName);
+      // 標準的なブレンドシェイプ名を返す
+      return [
+        "A",
+        "I",
+        "U",
+        "E",
+        "O",
+        "Joy",
+        "Angry",
+        "Sorrow",
+        "Fun",
+        "Blink",
+        "BlinkL",
+        "BlinkR",
+        "LookUp",
+        "LookDown",
+        "LookLeft",
+        "LookRight",
+      ];
     } catch (error) {
       console.warn("Failed to get available blend shapes:", error);
       return [];
@@ -84,7 +101,7 @@ export class VRMBlendShapeService {
    * すべてのブレンドシェイプをリセット
    */
   resetAllBlendShapes(): void {
-    if (!this.vrm?.blendShapeProxy) {
+    if (!this.vrm?.expressionManager) {
       return;
     }
 
@@ -92,11 +109,11 @@ export class VRMBlendShapeService {
       // 利用可能なブレンドシェイプをすべて0にリセット
       const availableShapes = this.getAvailableBlendShapes();
       availableShapes.forEach((shape) => {
-        this.vrm!.blendShapeProxy!.setValue(shape, 0);
+        this.vrm!.expressionManager!.setValue(shape, 0);
         this.currentWeights[shape] = 0;
       });
 
-      this.vrm.blendShapeProxy.update();
+      this.vrm.expressionManager.update();
     } catch (error) {
       console.warn("Failed to reset blend shapes:", error);
     }
@@ -106,18 +123,18 @@ export class VRMBlendShapeService {
    * 複数のブレンドシェイプを一度に設定
    */
   setMultipleBlendShapes(weights: Record<string, number>): void {
-    if (!this.vrm?.blendShapeProxy) {
+    if (!this.vrm?.expressionManager) {
       return;
     }
 
     try {
       Object.entries(weights).forEach(([name, weight]) => {
         const clampedWeight = Math.max(0, Math.min(1, weight));
-        this.vrm!.blendShapeProxy!.setValue(name, clampedWeight);
+        this.vrm!.expressionManager!.setValue(name, clampedWeight);
         this.currentWeights[name] = clampedWeight;
       });
 
-      this.vrm.blendShapeProxy.update();
+      this.vrm.expressionManager.update();
     } catch (error) {
       console.warn("Failed to set multiple blend shapes:", error);
     }
@@ -127,15 +144,15 @@ export class VRMBlendShapeService {
    * ブレンドシェイプが利用可能かチェック
    */
   isBlendShapeAvailable(name: string): boolean {
-    if (!this.vrm?.blendShapeProxy) {
+    if (!this.vrm?.expressionManager) {
       return false;
     }
 
     try {
       // テスト用に一時的に設定してみる
-      this.vrm.blendShapeProxy.setValue(name, 0);
+      this.vrm.expressionManager.setValue(name, 0);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -148,7 +165,7 @@ export class VRMBlendShapeService {
     availableShapesCount: number;
     currentActiveShapes: number;
   } {
-    const hasBlendShapeProxy = !!this.vrm?.blendShapeProxy;
+    const hasBlendShapeProxy = !!this.vrm?.expressionManager;
     const availableShapes = this.getAvailableBlendShapes();
     const activeShapes = Object.values(this.currentWeights).filter(
       (weight) => weight > 0

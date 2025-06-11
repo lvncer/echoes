@@ -214,7 +214,7 @@ export class LipSyncService {
    * デバッグ情報を取得
    */
   getDebugInfo(): {
-    lipSync: ReturnType<typeof this.getStatus>;
+    lipSync: ReturnType<LipSyncService["getStatus"]>;
     audioAnalysis: ReturnType<typeof audioAnalysisService.getDebugInfo>;
     blendShape: ReturnType<typeof blendShapeService.getVRMInfo>;
   } {
