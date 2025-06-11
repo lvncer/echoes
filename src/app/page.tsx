@@ -65,13 +65,13 @@ export default function Home() {
 
               {/* ブレンドシェイプ制御パネル */}
               <BlendShapePanel />
-
-              {/* リップシンク制御パネル */}
-              <div className="absolute bottom-4 left-4 space-y-4">
-                <LipSyncPanel />
-                <AdvancedLipSyncPanel />
-              </div>
             </div>
+          </div>
+
+          {/* リップシンク制御パネル - 3Dビューアーエリア外に配置 */}
+          <div className="fixed bottom-4 left-4 z-40 space-y-4">
+            <LipSyncPanel />
+            <AdvancedLipSyncPanel />
           </div>
 
           {/* 右側: チャット・設定 */}
