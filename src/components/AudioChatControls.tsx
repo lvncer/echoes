@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Volume2, VolumeX, Settings } from "lucide-react";
+
+import { Mic, MicOff, VolumeX } from "lucide-react";
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -24,75 +24,84 @@ export function AudioChatControls({
   onAIResponseReceived,
   className = "",
 }: AudioChatControlsProps) {
-  const [audioChatService, setAudioChatService] = useState<AudioChatIntegrationService | null>(null);
+  const [audioChatService, setAudioChatService] =
+    useState<AudioChatIntegrationService | null>(null);
   const [status, setStatus] = useState<AudioChatStatus>("idle");
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [availableVoices, setAvailableVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
 
-  // デフォルト設定
-  const defaultConfig: AudioChatConfig = {
-    audioInput: {
-      sampleRate: 44100,
-      channelCount: 1,
-    },
-    speechRecognition: {
-      language: "ja-JP",
-      continuous: false,
-      interimResults: true,
-    },
-    speechSynthesis: {
-      rate: 1.0,
-      pitch: 1.0,
-      volume: 1.0,
-    },
-    aiResponse: {
-      provider: "gemini",
-      model: "gemini-1.5-flash",
-      maxTokens: 1000,
-      temperature: 0.7,
-    },
-  };
+  // デフォルト設定（useMemoで最適化）
+  const defaultConfig: AudioChatConfig = useMemo(
+    () => ({
+      audioInput: {
+        sampleRate: 44100,
+        channelCount: 1,
+      },
+      speechRecognition: {
+        language: "ja-JP",
+        continuous: false,
+        interimResults: true,
+      },
+      speechSynthesis: {
+        rate: 1.0,
+        pitch: 1.0,
+        volume: 1.0,
+      },
+      aiResponse: {
+        provider: "gemini",
+        model: "gemini-1.5-flash",
+        maxTokens: 1000,
+        temperature: 0.7,
+      },
+    }),
+    []
+  );
 
-  // コールバック設定
-  const callbacks: AudioChatCallbacks = {
-    onListeningStart: () => {
-      setIsListening(true);
-      setError(null);
-    },
-    onListeningEnd: () => {
-      setIsListening(false);
-    },
-    onTranscriptReceived: (transcript: string, isFinal: boolean) => {
-      setCurrentTranscript(transcript);
-      onTranscriptReceived?.(transcript, isFinal);
-    },
-    onAIResponseReceived: (response: string) => {
-      onAIResponseReceived?.(response);
-    },
-    onSpeechStart: () => {
-      // 音声合成開始時の処理
-    },
-    onSpeechEnd: () => {
-      // 音声合成終了時の処理
-    },
-    onError: (error: AudioError) => {
-      setError(error.message);
-      console.error("音声チャットエラー:", error);
-    },
-    onStatusChange: (newStatus: AudioChatStatus) => {
-      setStatus(newStatus);
-    },
-  };
+  // コールバック設定（useMemoで最適化）
+  const callbacks: AudioChatCallbacks = useMemo(
+    () => ({
+      onListeningStart: () => {
+        setIsListening(true);
+        setError(null);
+      },
+      onListeningEnd: () => {
+        setIsListening(false);
+      },
+      onTranscriptReceived: (transcript: string, isFinal: boolean) => {
+        setCurrentTranscript(transcript);
+        onTranscriptReceived?.(transcript, isFinal);
+      },
+      onAIResponseReceived: (response: string) => {
+        onAIResponseReceived?.(response);
+      },
+      onSpeechStart: () => {
+        // 音声合成開始時の処理
+      },
+      onSpeechEnd: () => {
+        // 音声合成終了時の処理
+      },
+      onError: (error: AudioError) => {
+        setError(error.message);
+        console.error("音声チャットエラー:", error);
+      },
+      onStatusChange: (newStatus: AudioChatStatus) => {
+        setStatus(newStatus);
+      },
+    }),
+    [onTranscriptReceived, onAIResponseReceived]
+  );
 
   // 音声チャットサービス初期化
   const initializeAudioChat = useCallback(async () => {
     try {
       const service = new AudioChatIntegrationService(defaultConfig, callbacks);
       const success = await service.startAudioChat();
-      
+
       if (success) {
         setAudioChatService(service);
         setIsInitialized(true);
@@ -104,7 +113,7 @@ export function AudioChatControls({
     } catch (err) {
       setError(`初期化エラー: ${err}`);
     }
-  }, []);
+  }, [defaultConfig, callbacks]);
 
   // プッシュトゥトーク開始
   const startListening = useCallback(() => {
@@ -167,34 +176,47 @@ export function AudioChatControls({
     };
   }, [audioChatService]);
 
-  // ステータス表示用の色とテキスト
-  const getStatusDisplay = (status: AudioChatStatus) => {
+  // ステータス表示用のスタイル
+  const getStatusStyle = (status: AudioChatStatus) => {
     switch (status) {
       case "idle":
-        return { color: "secondary", text: "待機中" };
+        return "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground";
       case "listening":
-        return { color: "destructive", text: "音声入力中" };
+        return "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-destructive text-destructive-foreground";
       case "processing":
-        return { color: "default", text: "AI処理中" };
+        return "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground";
       case "speaking":
-        return { color: "default", text: "音声出力中" };
+        return "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground";
       case "error":
-        return { color: "destructive", text: "エラー" };
+        return "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-destructive text-destructive-foreground";
       default:
-        return { color: "secondary", text: "不明" };
+        return "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground";
     }
   };
 
-  const statusDisplay = getStatusDisplay(status);
+  const getStatusText = (status: AudioChatStatus) => {
+    switch (status) {
+      case "idle":
+        return "待機中";
+      case "listening":
+        return "音声入力中";
+      case "processing":
+        return "AI処理中";
+      case "speaking":
+        return "音声出力中";
+      case "error":
+        return "エラー";
+      default:
+        return "不明";
+    }
+  };
 
   return (
     <Card className={`w-full max-w-md ${className}`}>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>音声チャット</span>
-          <Badge variant={statusDisplay.color as any}>
-            {statusDisplay.text}
-          </Badge>
+          <div className={getStatusStyle(status)}>{getStatusText(status)}</div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -231,22 +253,43 @@ export function AudioChatControls({
                 onMouseDown={startListening}
                 onMouseUp={stopListening}
                 onMouseLeave={stopListening}
-                variant={isListening ? "destructive" : "default"}
+                variant={
+                  status === "listening"
+                    ? "destructive"
+                    : status === "idle"
+                    ? "default"
+                    : "secondary"
+                }
                 className="flex-1"
                 disabled={status !== "idle"}
               >
-                {isListening ? (
-                  <MicOff className="w-4 h-4 mr-2" />
-                ) : (
-                  <Mic className="w-4 h-4 mr-2" />
-                )}
-                {isListening ? "録音中" : "長押しで録音"}
+                {(() => {
+                  switch (status) {
+                    case "listening":
+                      return <MicOff className="w-4 h-4 mr-2" />;
+                    case "processing":
+                    case "speaking":
+                      return <Mic className="w-4 h-4 mr-2 opacity-50" />;
+                    case "idle":
+                    default:
+                      return <Mic className="w-4 h-4 mr-2" />;
+                  }
+                })()}
+                {(() => {
+                  switch (status) {
+                    case "listening":
+                      return "録音中";
+                    case "processing":
+                      return "AI処理中";
+                    case "speaking":
+                      return "音声再生中";
+                    case "idle":
+                    default:
+                      return "長押しで録音";
+                  }
+                })()}
               </Button>
-              <Button
-                onClick={stopAudioChat}
-                variant="outline"
-                size="icon"
-              >
+              <Button onClick={stopAudioChat} variant="outline" size="icon">
                 <VolumeX className="w-4 h-4" />
               </Button>
             </>
@@ -263,10 +306,13 @@ export function AudioChatControls({
         {/* 音声設定情報 */}
         {availableVoices.length > 0 && (
           <div className="text-xs text-gray-500">
-            <p>利用可能な音声: {availableVoices.filter(v => v.lang.startsWith('ja')).length}個</p>
+            <p>
+              利用可能な音声:{" "}
+              {availableVoices.filter((v) => v.lang.startsWith("ja")).length}個
+            </p>
           </div>
         )}
       </CardContent>
     </Card>
   );
-} 
+}

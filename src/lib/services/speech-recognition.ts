@@ -11,8 +11,7 @@ import {
 } from "@/lib/utils/audio-support";
 
 export class SpeechRecognitionService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private recognition: any = null;
+  private recognition: SpeechRecognition | null = null;
   private isSupported = false;
   private events: Partial<AudioEvents> = {};
 
@@ -78,11 +77,11 @@ export class SpeechRecognitionService {
       this.events.onSpeechEnd?.();
     };
 
-    this.recognition.onresult = (event: any) => {
+    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
       this.handleResult(event);
     };
 
-    this.recognition.onerror = (event: any) => {
+    this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       this.handleRecognitionError(event);
     };
 
@@ -106,7 +105,7 @@ export class SpeechRecognitionService {
   /**
    * 音声認識結果を処理
    */
-  private handleResult(event: any): void {
+  private handleResult(event: SpeechRecognitionEvent): void {
     if (!event.results) return;
 
     for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -128,7 +127,7 @@ export class SpeechRecognitionService {
   /**
    * 音声認識エラーを処理
    */
-  private handleRecognitionError(event: any): void {
+  private handleRecognitionError(event: SpeechRecognitionErrorEvent): void {
     let errorType = event.error || "unknown";
 
     // エラータイプを標準化
@@ -195,7 +194,7 @@ export class SpeechRecognitionService {
     try {
       this.recognition.start();
       return true;
-    } catch (error) {
+    } catch {
       this.handleError("audio-capture");
       return false;
     }
@@ -211,7 +210,7 @@ export class SpeechRecognitionService {
   }
 
   /**
-   * 音声認識を中断
+   * 音声認識を中止
    */
   public abort(): void {
     if (this.recognition && this.state.isListening) {
@@ -220,7 +219,7 @@ export class SpeechRecognitionService {
   }
 
   /**
-   * サポート状況を取得
+   * 音声認識がサポートされているかチェック
    */
   public isRecognitionSupported(): boolean {
     return this.isSupported;
@@ -241,13 +240,13 @@ export class SpeechRecognitionService {
   }
 
   /**
-   * エラーを処理
+   * エラーハンドリング
    */
   private handleError(errorType: string): void {
     const message = getLocalizedErrorMessage(errorType);
     this.state.error = message;
     this.events.onError?.(message);
-    console.error("SpeechRecognitionService Error:", message);
+    console.error("SpeechRecognition エラー:", message);
   }
 
   /**
@@ -258,17 +257,13 @@ export class SpeechRecognitionService {
   }
 
   /**
-   * リソースをクリーンアップ
+   * リソースクリーンアップ
    */
   public cleanup(): void {
-    this.stop();
-    this.recognition = null;
-    this.state = {
-      isRecording: false,
-      isListening: false,
-      isSpeaking: false,
-      audioLevel: 0,
-      error: null,
-    };
+    if (this.recognition) {
+      this.stop();
+      this.recognition = null;
+    }
+    this.events = {};
   }
-} 
+}
