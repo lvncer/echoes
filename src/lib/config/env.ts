@@ -13,7 +13,9 @@ const envSchema = z.object({
   GEMINI_MODEL: z.string().default("gemini-1.5-flash"),
   GEMINI_MAX_TOKENS: z.string().default("1000").transform(Number),
   GEMINI_TEMPERATURE: z.string().default("0.7").transform(Number),
-  AI_PROVIDER: z.enum(["openai", "anthropic", "gemini", "local"]).default("gemini"),
+  AI_PROVIDER: z
+    .enum(["openai", "anthropic", "gemini", "local"])
+    .default("gemini"),
   AI_BASE_URL: z.string().default("https://api.openai.com/v1"),
 });
 
@@ -34,30 +36,13 @@ function getEnvConfig() {
     AI_BASE_URL: process.env.AI_BASE_URL,
   };
 
-  console.log("環境変数の読み込み状況:", {
-    OPENAI_API_KEY: env.OPENAI_API_KEY ? `設定済み (${env.OPENAI_API_KEY.length}文字)` : "未設定",
-    OPENAI_MODEL: env.OPENAI_MODEL || "未設定",
-    GEMINI_API_KEY: env.GEMINI_API_KEY ? `設定済み (${env.GEMINI_API_KEY.length}文字)` : "未設定",
-    GEMINI_MODEL: env.GEMINI_MODEL || "未設定",
-    AI_PROVIDER: env.AI_PROVIDER || "未設定",
-    AI_BASE_URL: env.AI_BASE_URL || "未設定",
-  });
-
   try {
     const result = envSchema.parse(env);
-    console.log("環境変数パース結果:", {
-      ...result,
-      OPENAI_API_KEY: result.OPENAI_API_KEY ? "設定済み" : "未設定",
-    });
     return result;
   } catch (error) {
     console.error("環境変数の設定に問題があります:", error);
     // デフォルト値で続行
     const defaultResult = envSchema.parse({});
-    console.log("デフォルト値を使用:", {
-      ...defaultResult,
-      OPENAI_API_KEY: defaultResult.OPENAI_API_KEY ? "設定済み" : "未設定",
-    });
     return defaultResult;
   }
 }

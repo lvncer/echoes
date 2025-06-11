@@ -40,10 +40,8 @@ export default function Home() {
               <div className="h-[calc(100%-3rem)]">
                 <Model3DViewer
                   className="w-full h-full"
-                  onModelLoad={(result) => {
-                    if (result.success) {
-                      console.log("モデル読み込み完了:", result.model?.name);
-                    }
+                  onModelLoad={() => {
+                    // モデル読み込み完了時の処理
                   }}
                   onError={(error) => {
                     console.error("モデル読み込みエラー:", error);
