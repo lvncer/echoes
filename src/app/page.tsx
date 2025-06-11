@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Model3DViewer } from "@/components/3d/model-3d-viewer";
 import { BlendShapePanel } from "@/components/3d/blend-shape-panel";
 import { LipSyncPanel } from "@/components/3d/lipsync-panel";
+import { AdvancedLipSyncPanel } from "@/components/3d/advanced-lipsync-panel";
 import Chat from "../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import { Box, MessageCircle, Settings, Mic } from "lucide-react";
@@ -66,7 +67,10 @@ export default function Home() {
               <BlendShapePanel />
 
               {/* リップシンク制御パネル */}
-              <LipSyncPanel />
+              <div className="absolute bottom-4 right-4 space-y-4">
+                <LipSyncPanel />
+                <AdvancedLipSyncPanel />
+              </div>
             </div>
           </div>
 
