@@ -30,11 +30,17 @@ export class AdvancedLipSyncService {
   private maxHistoryLength = 10;
   private transitionDuration = 100; // ms
 
+  // VRMモデル対応
+  private availableBlendShapes: string[] = [];
+
   /**
    * 高精度リップシンクを開始
    */
   async startAdvancedLipSync(stream: MediaStream): Promise<void> {
     try {
+      // VRMモデルの利用可能なブレンドシェイプを取得
+      this.updateAvailableBlendShapes();
+
       // 音素解析を開始
       await phonemeAnalysisService.startAnalysis(
         stream,
@@ -46,10 +52,19 @@ export class AdvancedLipSyncService {
       this.startAnimationLoop();
 
       console.log("高精度リップシンク開始");
+      console.log("利用可能なブレンドシェイプ:", this.availableBlendShapes);
     } catch (error) {
       console.error("高精度リップシンク開始エラー:", error);
       throw error;
     }
+  }
+
+  /**
+   * 利用可能なブレンドシェイプを更新
+   */
+  private updateAvailableBlendShapes(): void {
+    this.availableBlendShapes = blendShapeService.getAvailableBlendShapes();
+    console.log("ブレンドシェイプ更新:", this.availableBlendShapes);
   }
 
   /**
@@ -177,19 +192,69 @@ export class AdvancedLipSyncService {
       return;
     }
 
-    // 基本ブレンドシェイプを設定
+    // 基本ブレンドシェイプを設定（利用可能なもののみ）
     const baseBlendShapes = { ...phonemeConfig.blendShapeMapping };
-
-    // 感度を適用
     const adjustedBlendShapes: Record<string, number> = {};
+
+    // 利用可能なブレンドシェイプのみを使用
     for (const [shape, weight] of Object.entries(baseBlendShapes)) {
-      adjustedBlendShapes[shape] = weight * this.sensitivity * this.confidence;
+      if (this.isBlendShapeAvailable(shape)) {
+        adjustedBlendShapes[shape] =
+          weight * this.sensitivity * this.confidence;
+      } else {
+        // 利用可能でない場合は代替ブレンドシェイプを探す
+        const alternative = this.findAlternativeBlendShape(shape);
+        if (alternative) {
+          adjustedBlendShapes[alternative] =
+            weight * this.sensitivity * this.confidence;
+        }
+      }
     }
 
-    // フォルマント情報による微調整（オプション）
+    // フォルマント情報による微調整
     this.applyFormantAdjustments(adjustedBlendShapes);
 
     this.targetBlendShapes = adjustedBlendShapes;
+
+    // デバッグログ
+    console.log(
+      `音素: ${this.currentPhoneme}, ターゲット:`,
+      this.targetBlendShapes
+    );
+  }
+
+  /**
+   * ブレンドシェイプが利用可能かチェック
+   */
+  private isBlendShapeAvailable(shape: string): boolean {
+    return this.availableBlendShapes.includes(shape);
+  }
+
+  /**
+   * 代替ブレンドシェイプを探す
+   */
+  private findAlternativeBlendShape(shape: string): string | null {
+    const alternatives: Record<string, string[]> = {
+      A: ["aa", "a"],
+      I: ["ih", "i"],
+      U: ["ou", "u"],
+      E: ["ee", "e"],
+      O: ["oh", "o"],
+      aa: ["A", "a"],
+      ih: ["I", "i"],
+      ou: ["U", "u"],
+      ee: ["E", "e"],
+      oh: ["O", "o"],
+    };
+
+    const possibleAlternatives = alternatives[shape] || [];
+    for (const alt of possibleAlternatives) {
+      if (this.isBlendShapeAvailable(alt)) {
+        return alt;
+      }
+    }
+
+    return null;
   }
 
   /**

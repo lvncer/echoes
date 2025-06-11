@@ -67,7 +67,7 @@ export default function Home() {
               <BlendShapePanel />
 
               {/* リップシンク制御パネル */}
-              <div className="absolute bottom-4 right-4 space-y-4">
+              <div className="absolute bottom-4 left-4 space-y-4">
                 <LipSyncPanel />
                 <AdvancedLipSyncPanel />
               </div>

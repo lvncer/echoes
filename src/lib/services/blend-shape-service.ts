@@ -14,6 +14,12 @@ export class VRMBlendShapeService {
   setVRM(vrm: VRM): void {
     this.vrm = vrm;
     this.resetAllBlendShapes();
+
+    // デバッグ: 利用可能なブレンドシェイプを確認
+    console.log(
+      "VRM設定完了。利用可能なブレンドシェイプ:",
+      this.getAvailableBlendShapes()
+    );
   }
 
   /**
@@ -44,6 +50,9 @@ export class VRMBlendShapeService {
 
       // 更新を適用
       this.vrm.expressionManager.update();
+
+      // デバッグログ
+      console.log(`ブレンドシェイプ設定: ${name} = ${clampedWeight}`);
     } catch (error) {
       console.warn(`Failed to set blend shape ${name}:`, error);
     }
@@ -58,28 +67,93 @@ export class VRMBlendShapeService {
     }
 
     try {
-      // 標準的なブレンドシェイプ名を返す
-      return [
-        "A",
-        "I",
-        "U",
-        "E",
-        "O",
-        "Joy",
-        "Angry",
-        "Sorrow",
-        "Fun",
-        "Blink",
-        "BlinkL",
-        "BlinkR",
-        "LookUp",
-        "LookDown",
-        "LookLeft",
-        "LookRight",
-      ];
+      // VRMモデルから実際に利用可能なブレンドシェイプを取得
+      const expressions = this.vrm.expressionManager.expressions;
+      const availableShapes: string[] = [];
+
+      // expressionsオブジェクトからキーを取得
+      if (expressions) {
+        for (const [key] of Object.entries(expressions)) {
+          availableShapes.push(key);
+        }
+      }
+
+      // 利用可能なブレンドシェイプが見つからない場合は標準的な名前を試す
+      if (availableShapes.length === 0) {
+        const standardShapes = [
+          "A",
+          "I",
+          "U",
+          "E",
+          "O",
+          "aa",
+          "ih",
+          "ou",
+          "ee",
+          "oh", // VRM 1.0形式
+          "Joy",
+          "Angry",
+          "Sorrow",
+          "Fun",
+          "happy",
+          "angry",
+          "sad",
+          "surprised", // 英語名
+          "Blink",
+          "BlinkL",
+          "BlinkR",
+          "blink",
+          "blinkLeft",
+          "blinkRight", // 英語名
+          "LookUp",
+          "LookDown",
+          "LookLeft",
+          "LookRight",
+          "lookUp",
+          "lookDown",
+          "lookLeft",
+          "lookRight", // 英語名
+        ];
+
+        // 実際に設定可能かテストして追加
+        for (const shape of standardShapes) {
+          if (this.testBlendShapeAvailability(shape)) {
+            availableShapes.push(shape);
+          }
+        }
+      }
+
+      console.log("利用可能なブレンドシェイプ:", availableShapes);
+      return availableShapes;
     } catch (error) {
       console.warn("Failed to get available blend shapes:", error);
       return [];
+    }
+  }
+
+  /**
+   * ブレンドシェイプが設定可能かテスト
+   */
+  private testBlendShapeAvailability(name: string): boolean {
+    if (!this.vrm?.expressionManager) {
+      return false;
+    }
+
+    try {
+      // 現在の値を保存
+      const currentValue = this.vrm.expressionManager.getValue(name) || 0;
+
+      // テスト用に設定
+      this.vrm.expressionManager.setValue(name, 0.1);
+      const testValue = this.vrm.expressionManager.getValue(name) || 0;
+
+      // 元の値に戻す
+      this.vrm.expressionManager.setValue(name, currentValue);
+
+      // 設定が反映されたかチェック
+      return Math.abs(testValue - 0.1) < 0.01;
+    } catch {
+      return false;
     }
   }
 
