@@ -1,7 +1,7 @@
 /**
  * AI プロバイダーの種類
  */
-export type AIProvider = "openai" | "anthropic" | "local";
+export type AIProvider = "openai" | "anthropic" | "gemini" | "local";
 
 /**
  * AI プロバイダー設定
@@ -29,6 +29,7 @@ export interface AISettings {
   currentProvider: AIProviderConfig;
   /** 各プロバイダーの設定 */
   providers: {
+    gemini: AIProviderConfig;
     openai: AIProviderConfig;
     anthropic: AIProviderConfig;
     local: AIProviderConfig;

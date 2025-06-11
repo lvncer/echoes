@@ -6,7 +6,7 @@ import type {
   ChatMessage,
 } from "../lib/types/ai";
 import { createAIConfigFromEnv } from "../lib/config/env";
-import { AIService } from "../lib/services/ai";
+import { ClientAIService } from "../lib/services/client-ai";
 
 /**
  * AI ストアの状態
@@ -16,7 +16,7 @@ interface AIStore {
   settings: AISettings;
 
   // サービス
-  aiService: AIService | null;
+  aiService: ClientAIService | null;
 
   // チャット
   messages: ChatMessage[];
@@ -32,7 +32,6 @@ interface AIStore {
   sendMessage: (content: string) => Promise<void>;
   clearMessages: () => void;
   testConnection: () => Promise<boolean>;
-  getAvailableModels: () => Promise<string[]>;
 }
 
 /**
@@ -44,8 +43,13 @@ const createDefaultSettings = (): AISettings => {
   return {
     currentProvider: envConfig,
     providers: {
+      gemini: {
+        provider: "gemini",
+        model: "gemini-1.5-flash",
+        maxTokens: 1000,
+        temperature: 0.7,
+      },
       openai: {
-        ...envConfig,
         provider: "openai",
         baseUrl: "https://api.openai.com/v1",
         model: "gpt-3.5-turbo",
@@ -103,7 +107,7 @@ export const useAIStore = create<AIStore>()(
 
           return {
             settings: newSettings,
-            aiService: new AIService(newSettings.currentProvider),
+            aiService: new ClientAIService(),
           };
         });
       },
@@ -119,7 +123,7 @@ export const useAIStore = create<AIStore>()(
 
           return {
             settings: newSettings,
-            aiService: new AIService(newCurrentProvider),
+            aiService: new ClientAIService(),
           };
         });
       },
@@ -130,7 +134,7 @@ export const useAIStore = create<AIStore>()(
           const settings = createDefaultSettings();
           return {
             settings,
-            aiService: new AIService(settings.currentProvider),
+            aiService: new ClientAIService(),
           };
         });
       },
@@ -159,9 +163,10 @@ export const useAIStore = create<AIStore>()(
 
         try {
           // AI 応答を生成
-          const response = await aiService.generateResponse({
-            messages: [...messages, userMessage],
-          });
+          const response = await aiService.generateResponse([
+            ...messages,
+            userMessage,
+          ]);
 
           // AI メッセージを追加
           set((state) => ({
@@ -171,11 +176,33 @@ export const useAIStore = create<AIStore>()(
         } catch (error) {
           console.error("AI 応答生成エラー:", error);
 
+          // エラーの種類に応じてメッセージを変更
+          let errorContent = "エラーが発生しました。設定を確認してください。";
+
+          if (error instanceof Error) {
+            if (error.message.includes("クォータ制限")) {
+              errorContent =
+                "⚠️ OpenAI APIのクォータ制限に達しました。\n\n" +
+                "解決方法:\n" +
+                "1. https://platform.openai.com/usage でクォータ状況を確認\n" +
+                "2. 支払い情報を設定または追加クレジットを購入\n" +
+                "3. 一時的にデモモードを使用する場合は環境変数 AI_DEMO_MODE=true を設定";
+            } else if (error.message.includes("API キー")) {
+              errorContent =
+                "⚠️ OpenAI API キーが設定されていません。\n\n" +
+                "解決方法:\n" +
+                "1. .env.local ファイルに OPENAI_API_KEY を設定\n" +
+                "2. https://platform.openai.com/api-keys でAPIキーを取得";
+            } else {
+              errorContent = `❌ エラー: ${error.message}`;
+            }
+          }
+
           // エラーメッセージを追加
           const errorMessage: ChatMessage = {
             id: `error_${Date.now()}`,
             role: "assistant",
-            content: "エラーが発生しました。設定を確認してください。",
+            content: errorContent,
             timestamp: new Date(),
           };
 
@@ -201,19 +228,6 @@ export const useAIStore = create<AIStore>()(
         } catch (error) {
           console.error("接続テストエラー:", error);
           return false;
-        }
-      },
-
-      // 利用可能なモデル一覧を取得
-      getAvailableModels: async () => {
-        const { aiService } = get();
-        if (!aiService) return [];
-
-        try {
-          return await aiService.getAvailableModels();
-        } catch (error) {
-          console.error("モデル一覧取得エラー:", error);
-          return [];
         }
       },
     }),

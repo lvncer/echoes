@@ -55,10 +55,10 @@ export default function Chat() {
         }`}
       >
         <div className="flex justify-between items-center mb-1">
-          <span className="font-semibold text-sm">{roleLabel}</span>
+          <span className="font-semibold text-sm text-gray-800">{roleLabel}</span>
           <span className="text-xs text-gray-500">{time}</span>
         </div>
-        <div className="whitespace-pre-wrap">{message.content}</div>
+        <div className="whitespace-pre-wrap text-gray-900">{message.content}</div>
       </div>
     );
   };
@@ -87,21 +87,21 @@ export default function Chat() {
           </div>
 
           {/* 設定情報 */}
-          <div className="mt-2 text-sm text-gray-600">
-            <div>プロバイダー: {settings.currentProvider.provider}</div>
-            <div>モデル: {settings.currentProvider.model}</div>
+          <div className="mt-2 text-sm text-gray-700">
+            <div>プロバイダー: <span className="font-medium text-gray-900">{settings.currentProvider.provider}</span></div>
+            <div>モデル: <span className="font-medium text-gray-900">{settings.currentProvider.model}</span></div>
             <div>
-              API キー: {settings.currentProvider.apiKey ? "設定済み" : "未設定"}
+              API キー: <span className="font-medium">{settings.currentProvider.apiKey ? "設定済み" : "未設定"}</span>
             </div>
             <div>
               接続状態:{" "}
               <span
                 className={
                   connectionStatus === "connected"
-                    ? "text-green-600"
+                    ? "text-green-600 font-medium"
                     : connectionStatus === "disconnected"
-                    ? "text-red-600"
-                    : "text-gray-600"
+                    ? "text-red-600 font-medium"
+                    : "text-gray-600 font-medium"
                 }
               >
                 {connectionStatus === "connected"
@@ -117,10 +117,10 @@ export default function Chat() {
         {/* メッセージ一覧 */}
         <div className="h-96 overflow-y-auto p-4">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 mt-8">
-              <p>メッセージを送信してAIとの会話を開始してください。</p>
-              <p className="text-sm mt-2">
-                ※ OpenAI API キーが設定されている必要があります
+            <div className="text-center text-gray-600 mt-8">
+              <p className="text-gray-800 text-lg mb-2">メッセージを送信してAIとの会話を開始してください。</p>
+              <p className="text-sm text-gray-600">
+                ※ Gemini または OpenAI API キーが設定されている必要があります
               </p>
             </div>
           ) : (
@@ -130,8 +130,8 @@ export default function Chat() {
           {isLoading && (
             <div className="bg-gray-100 mr-8 p-3 rounded-lg mb-4">
               <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                <span className="text-sm text-gray-600">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                <span className="text-sm text-gray-800">
                   AI が応答を生成中...
                 </span>
               </div>

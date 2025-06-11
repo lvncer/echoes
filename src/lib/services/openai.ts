@@ -40,7 +40,6 @@ export class OpenAIService {
       this.client = new OpenAI({
         apiKey: this.config.apiKey,
         baseURL: this.config.baseUrl,
-        dangerouslyAllowBrowser: true, // ブラウザでの使用を許可
       });
       console.log("OpenAI クライアント初期化成功");
     } catch (error) {

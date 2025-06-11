@@ -15,15 +15,23 @@ npm install
 プロジェクトルートに `.env.local` ファイルを作成し、以下の環境変数を設定してください：
 
 ```
+# Gemini API Configuration (推奨)
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_MAX_TOKENS=1000
+GEMINI_TEMPERATURE=0.7
+
 # OpenAI API Configuration
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-3.5-turbo
 OPENAI_MAX_TOKENS=1000
 OPENAI_TEMPERATURE=0.7
 
-# AI Provider Settings
-AI_PROVIDER=openai
-AI_BASE_URL=https://api.openai.com/v1
+# AI Provider Settings (gemini | openai)
+AI_PROVIDER=gemini
+
+# Demo Mode (APIキーなしでテスト可能)
+AI_DEMO_MODE=false
 ```
 
 ### 3. 開発サーバーの起動
@@ -38,6 +46,7 @@ npm run dev
 
 ### 現在サポートされているプロバイダー
 
+- **Google Gemini** (gemini-1.5-flash, gemini-1.5-pro) - **推奨**
 - **OpenAI** (gpt-3.5-turbo, gpt-4, gpt-4-turbo)
 
 ### 将来サポート予定
@@ -46,6 +55,15 @@ npm run dev
 - **ローカル LLM** (Ollama 等)
 
 ### API キーの取得方法
+
+#### Gemini API (推奨)
+
+1. [Google AI Studio](https://aistudio.google.com/app/apikey) にアクセス
+2. Google アカウントでログイン
+3. "Create API Key" をクリック
+4. 生成されたキーを `.env.local` の `GEMINI_API_KEY` に設定
+
+#### OpenAI API
 
 1. [OpenAI Platform](https://platform.openai.com/) にアクセス
 2. アカウントを作成またはログイン
@@ -87,10 +105,35 @@ src/
 ### API キーエラー
 
 ```markdown
+Gemini API キーが設定されていません
+```
+
+→ `.env.local` ファイルに正しい `GEMINI_API_KEY` が設定されているか確認してください。
+
+```markdown
 OpenAI API キーが設定されていません
 ```
 
 → `.env.local` ファイルに正しい `OPENAI_API_KEY` が設定されているか確認してください。
+
+### クォータ制限エラー
+
+```markdown
+OpenAI API のクォータ制限に達しました
+```
+
+→ [OpenAI Usage](https://platform.openai.com/usage) でクォータ状況を確認し、必要に応じて支払い情報を設定してください。
+
+### デモモード
+
+API キーなしでアプリケーションをテストしたい場合：
+
+```bash
+# .env.local に追加
+AI_DEMO_MODE=true
+```
+
+デモモードでは、実際の AI 応答の代わりにモックレスポンスが返されます。
 
 ### 接続エラー
 
