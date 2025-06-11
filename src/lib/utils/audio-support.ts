@@ -13,8 +13,10 @@ export function detectBrowserSupport(): BrowserSupport {
 
   // SpeechRecognition API サポート検出
   if (typeof window !== "undefined") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const win = window as any;
     support.speechRecognition = !!(
-      window.SpeechRecognition || (window as any).webkitSpeechRecognition
+      win.SpeechRecognition || win.webkitSpeechRecognition
     );
 
     // SpeechSynthesis API サポート検出
@@ -49,6 +51,7 @@ export function getAudioCapabilities(): AudioCapabilities {
     mediaRecorder: support.mediaRecorder && support.getUserMedia,
     audioContext:
       typeof window !== "undefined" &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       !!(window.AudioContext || (window as any).webkitAudioContext),
   };
 }
@@ -56,12 +59,13 @@ export function getAudioCapabilities(): AudioCapabilities {
 /**
  * SpeechRecognition コンストラクタを取得
  */
-export function getSpeechRecognition(): typeof SpeechRecognition | null {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getSpeechRecognition(): any {
   if (typeof window === "undefined") return null;
 
-  return (
-    window.SpeechRecognition || (window as any).webkitSpeechRecognition || null
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const win = window as any;
+  return win.SpeechRecognition || win.webkitSpeechRecognition || null;
 }
 
 /**
@@ -70,6 +74,7 @@ export function getSpeechRecognition(): typeof SpeechRecognition | null {
 export function getAudioContext(): typeof AudioContext | null {
   if (typeof window === "undefined") return null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return window.AudioContext || (window as any).webkitAudioContext || null;
 }
 
