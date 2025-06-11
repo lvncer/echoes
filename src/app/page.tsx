@@ -4,11 +4,19 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Model3DViewer } from "@/components/3d/model-3d-viewer";
 import Chat from "../components/chat";
-import { Box, MessageCircle, Settings } from "lucide-react";
+import { AudioChatControls } from "@/components/AudioChatControls";
+import { Box, MessageCircle, Settings, Mic } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
+  const [chatMessages, setChatMessages] = useState<
+    Array<{
+      role: "user" | "assistant";
+      content: string;
+      timestamp: Date;
+    }>
+  >([]);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -61,10 +69,14 @@ export default function Home() {
               onValueChange={setActiveTab}
               className="h-full flex flex-col"
             >
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="chat" className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4" />
                   チャット
+                </TabsTrigger>
+                <TabsTrigger value="voice" className="flex items-center gap-2">
+                  <Mic className="w-4 h-4" />
+                  音声
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
@@ -80,6 +92,74 @@ export default function Home() {
                   <ErrorBoundary>
                     <Chat />
                   </ErrorBoundary>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="voice" className="flex-1 mt-4">
+                <div className="h-full space-y-4">
+                  <ErrorBoundary>
+                    <AudioChatControls
+                      onTranscriptReceived={(transcript, isFinal) => {
+                        if (isFinal) {
+                          setChatMessages((prev) => [
+                            ...prev,
+                            {
+                              role: "user",
+                              content: transcript,
+                              timestamp: new Date(),
+                            },
+                          ]);
+                        }
+                      }}
+                      onAIResponseReceived={(response) => {
+                        setChatMessages((prev) => [
+                          ...prev,
+                          {
+                            role: "assistant",
+                            content: response,
+                            timestamp: new Date(),
+                          },
+                        ]);
+                      }}
+                    />
+                  </ErrorBoundary>
+
+                  {/* 音声チャット履歴 */}
+                  <div className="bg-white rounded-lg shadow-lg p-4 flex-1 overflow-y-auto">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      音声チャット履歴
+                    </h3>
+                    <div className="space-y-3">
+                      {chatMessages.length === 0 ? (
+                        <p className="text-gray-500 text-sm">
+                          音声チャットを開始すると、会話履歴がここに表示されます。
+                        </p>
+                      ) : (
+                        chatMessages.map((message, index) => (
+                          <div
+                            key={index}
+                            className={`p-3 rounded-lg ${
+                              message.role === "user"
+                                ? "bg-blue-50 border-l-4 border-blue-400"
+                                : "bg-green-50 border-l-4 border-green-400"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="font-medium text-sm">
+                                {message.role === "user" ? "あなた" : "AI"}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {message.timestamp.toLocaleTimeString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">
+                              {message.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 
