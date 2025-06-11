@@ -244,7 +244,52 @@ sequenceDiagram
 | OpenAI Whisper | 音声認識    | Google Cloud Speech, Web Speech API |
 | OpenAI TTS     | 音声合成    | Google Cloud TTS, VOICEVOX          |
 
-### 5.3. ディレクトリ構成
+### 5.3. AI実装アプローチ
+
+#### 段階的実装戦略
+
+```mermaid
+graph LR
+    A["Phase 1<br/>.env設定"] --> B["Phase 2<br/>Web UI設定"]
+    B --> C["Phase 3<br/>ローカルLLM対応"]
+    
+    A1["OpenAI API<br/>基本実装"] --> A
+    B1["プロバイダー<br/>切り替え機能"] --> B
+    C1["Ollama等<br/>ローカル対応"] --> C
+```
+
+#### AI プロバイダー設定構造
+
+```typescript
+interface AIProviderConfig {
+  provider: 'openai' | 'anthropic' | 'local';
+  apiKey?: string;
+  baseUrl?: string;
+  model: string;
+  maxTokens?: number;
+  temperature?: number;
+}
+
+interface AISettings {
+  currentProvider: AIProviderConfig;
+  providers: {
+    openai: AIProviderConfig;
+    anthropic: AIProviderConfig;
+    local: AIProviderConfig;
+  };
+}
+```
+
+#### 実装優先順位
+
+| フェーズ | 機能                     | 優先度 | 実装方法           |
+| -------- | ------------------------ | ------ | ------------------ |
+| Phase 1  | OpenAI API基本実装       | 高     | .env設定           |
+| Phase 2  | Web UI設定画面           | 中     | 設定コンポーネント |
+| Phase 3  | ローカルLLM対応          | 低     | Ollama連携         |
+| Phase 4  | 複数プロバイダー同時対応 | 低     | 拡張アーキテクチャ |
+
+### 5.4. ディレクトリ構成
 
 ```sh
 echoes/
