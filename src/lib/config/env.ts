@@ -7,8 +7,8 @@ import type { AIProviderConfig } from "../types/ai";
 const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-3.5-turbo"),
-  OPENAI_MAX_TOKENS: z.string().transform(Number).default(1000),
-  OPENAI_TEMPERATURE: z.string().transform(Number).default(0.7),
+  OPENAI_MAX_TOKENS: z.string().default("1000").transform(Number),
+  OPENAI_TEMPERATURE: z.string().default("0.7").transform(Number),
   AI_PROVIDER: z.enum(["openai", "anthropic", "local"]).default("openai"),
   AI_BASE_URL: z.string().default("https://api.openai.com/v1"),
 });

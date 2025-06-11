@@ -1,11 +1,11 @@
-import type { 
-  AIProviderConfig, 
-  AIRequest, 
-  AIResponse, 
+import type {
+  AIProviderConfig,
+  AIRequest,
+  AIResponse,
   AIError,
-  AIProvider 
-} from '../types/ai';
-import { OpenAIService } from './openai';
+  AIProvider,
+} from "../types/ai";
+import { OpenAIService } from "./openai";
 
 /**
  * AI サービス統合管理クラス
@@ -24,19 +24,21 @@ export class AIService {
    */
   private initializeService(): void {
     switch (this.currentConfig.provider) {
-      case 'openai':
+      case "openai":
         this.openaiService = new OpenAIService(this.currentConfig);
         break;
-      case 'anthropic':
+      case "anthropic":
         // 将来実装
-        console.warn('Anthropic はまだ実装されていません');
+        console.warn("Anthropic はまだ実装されていません");
         break;
-      case 'local':
+      case "local":
         // 将来実装
-        console.warn('ローカル LLM はまだ実装されていません');
+        console.warn("ローカル LLM はまだ実装されていません");
         break;
       default:
-        throw new Error(`サポートされていないプロバイダー: ${this.currentConfig.provider}`);
+        throw new Error(
+          `サポートされていないプロバイダー: ${this.currentConfig.provider}`
+        );
     }
   }
 
@@ -61,52 +63,82 @@ export class AIService {
   public async generateResponse(request: AIRequest): Promise<AIResponse> {
     try {
       switch (this.currentConfig.provider) {
-        case 'openai':
+        case "openai":
           if (!this.openaiService) {
-            throw this.createError('SERVICE_NOT_INITIALIZED', 'OpenAI サービスが初期化されていません');
+            throw this.createError(
+              "SERVICE_NOT_INITIALIZED",
+              "OpenAI サービスが初期化されていません"
+            );
           }
           return await this.openaiService.generateResponse(request);
 
-        case 'anthropic':
-          throw this.createError('NOT_IMPLEMENTED', 'Anthropic はまだ実装されていません');
+        case "anthropic":
+          throw this.createError(
+            "NOT_IMPLEMENTED",
+            "Anthropic はまだ実装されていません"
+          );
 
-        case 'local':
-          throw this.createError('NOT_IMPLEMENTED', 'ローカル LLM はまだ実装されていません');
+        case "local":
+          throw this.createError(
+            "NOT_IMPLEMENTED",
+            "ローカル LLM はまだ実装されていません"
+          );
 
         default:
-          throw this.createError('INVALID_PROVIDER', `無効なプロバイダー: ${this.currentConfig.provider}`);
+          throw this.createError(
+            "INVALID_PROVIDER",
+            `無効なプロバイダー: ${this.currentConfig.provider}`
+          );
       }
     } catch (error) {
-      console.error('AI 応答生成エラー:', error);
-      
+      console.error("AI 応答生成エラー:", error);
+
       if (this.isAIError(error)) {
         throw error;
       }
-      
-      throw this.createError('GENERATION_ERROR', 'AI 応答の生成に失敗しました', error);
+
+      throw this.createError(
+        "GENERATION_ERROR",
+        "AI 応答の生成に失敗しました",
+        error
+      );
     }
   }
 
   /**
    * ストリーミング応答を生成
    */
-  public async *generateStreamResponse(request: AIRequest): AsyncGenerator<string, void, unknown> {
+  public async *generateStreamResponse(
+    request: AIRequest
+  ): AsyncGenerator<string, void, unknown> {
     switch (this.currentConfig.provider) {
-      case 'openai':
+      case "openai":
         if (!this.openaiService) {
-          throw this.createError('SERVICE_NOT_INITIALIZED', 'OpenAI サービスが初期化されていません');
+          throw this.createError(
+            "SERVICE_NOT_INITIALIZED",
+            "OpenAI サービスが初期化されていません"
+          );
         }
         yield* this.openaiService.generateStreamResponse(request);
         break;
 
-      case 'anthropic':
-        throw this.createError('NOT_IMPLEMENTED', 'Anthropic ストリーミングはまだ実装されていません');
+      case "anthropic":
+        throw this.createError(
+          "NOT_IMPLEMENTED",
+          "Anthropic ストリーミングはまだ実装されていません"
+        );
 
-      case 'local':
-        throw this.createError('NOT_IMPLEMENTED', 'ローカル LLM ストリーミングはまだ実装されていません');
+      case "local":
+        throw this.createError(
+          "NOT_IMPLEMENTED",
+          "ローカル LLM ストリーミングはまだ実装されていません"
+        );
 
       default:
-        throw this.createError('INVALID_PROVIDER', `無効なプロバイダー: ${this.currentConfig.provider}`);
+        throw this.createError(
+          "INVALID_PROVIDER",
+          `無効なプロバイダー: ${this.currentConfig.provider}`
+        );
     }
   }
 
@@ -116,14 +148,14 @@ export class AIService {
   public async testConnection(): Promise<boolean> {
     try {
       switch (this.currentConfig.provider) {
-        case 'openai':
+        case "openai":
           return this.openaiService?.testConnection() ?? false;
 
-        case 'anthropic':
+        case "anthropic":
           // 将来実装
           return false;
 
-        case 'local':
+        case "local":
           // 将来実装
           return false;
 
@@ -131,7 +163,7 @@ export class AIService {
           return false;
       }
     } catch (error) {
-      console.error('接続テストエラー:', error);
+      console.error("接続テストエラー:", error);
       return false;
     }
   }
@@ -142,22 +174,22 @@ export class AIService {
   public async getAvailableModels(): Promise<string[]> {
     try {
       switch (this.currentConfig.provider) {
-        case 'openai':
+        case "openai":
           return this.openaiService?.getAvailableModels() ?? [];
 
-        case 'anthropic':
+        case "anthropic":
           // 将来実装
-          return ['claude-3-haiku', 'claude-3-sonnet', 'claude-3-opus'];
+          return ["claude-3-haiku", "claude-3-sonnet", "claude-3-opus"];
 
-        case 'local':
+        case "local":
           // 将来実装
-          return ['llama2', 'codellama', 'mistral'];
+          return ["llama2", "codellama", "mistral"];
 
         default:
           return [];
       }
     } catch (error) {
-      console.error('モデル一覧取得エラー:', error);
+      console.error("モデル一覧取得エラー:", error);
       return [];
     }
   }
@@ -167,10 +199,10 @@ export class AIService {
    */
   public static isProviderAvailable(provider: AIProvider): boolean {
     switch (provider) {
-      case 'openai':
+      case "openai":
         return true;
-      case 'anthropic':
-      case 'local':
+      case "anthropic":
+      case "local":
         return false; // 将来実装
       default:
         return false;
@@ -181,13 +213,17 @@ export class AIService {
    * サポートされているプロバイダー一覧を取得
    */
   public static getSupportedProviders(): AIProvider[] {
-    return ['openai']; // 将来的に 'anthropic', 'local' を追加
+    return ["openai"]; // 将来的に 'anthropic', 'local' を追加
   }
 
   /**
    * エラーオブジェクトを作成
    */
-  private createError(code: string, message: string, details?: unknown): AIError {
+  private createError(
+    code: string,
+    message: string,
+    details?: unknown
+  ): AIError {
     return {
       code,
       message,
@@ -200,10 +236,10 @@ export class AIService {
    */
   private isAIError(error: unknown): error is AIError {
     return (
-      typeof error === 'object' &&
+      typeof error === "object" &&
       error !== null &&
-      'code' in error &&
-      'message' in error
+      "code" in error &&
+      "message" in error
     );
   }
-} 
+}
