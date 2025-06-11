@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Model3DViewer } from "@/components/3d/model-3d-viewer";
+import { BlendShapePanel } from "@/components/3d/blend-shape-panel";
 import Chat from "../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import { Box, MessageCircle, Settings, Mic } from "lucide-react";
@@ -38,7 +39,7 @@ export default function Home() {
         <div className="flex-1 flex gap-4 min-h-0">
           {/* 左側: 3Dビューアー */}
           <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-lg shadow-lg h-full p-4">
+            <div className="bg-white rounded-lg shadow-lg h-full p-4 relative">
               <div className="flex items-center gap-2 mb-4">
                 <Box className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-800">
@@ -59,6 +60,9 @@ export default function Home() {
                   />
                 </ErrorBoundary>
               </div>
+
+              {/* ブレンドシェイプ制御パネル */}
+              <BlendShapePanel />
             </div>
           </div>
 
