@@ -30,7 +30,6 @@ export async function loadVRMModel(
     const arrayBuffer = await file.arrayBuffer();
 
     // GLTFとしてロード（VRMはglTFベース）
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const gltf = await new Promise<any>((resolve, reject) => {
       gltfLoader.parse(
         arrayBuffer,

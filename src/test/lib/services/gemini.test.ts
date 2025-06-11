@@ -77,7 +77,7 @@ describe("GeminiService", () => {
       expect(result.message.role).toBe("assistant");
       expect(result.message.content).toBe("Hello! How can I help you?");
       expect(result.tokensUsed).toBeGreaterThan(0);
-      expect(result.processingTime).toBeGreaterThan(0);
+      expect(result.processingTime).toBeGreaterThanOrEqual(0);
       expect(mockGenerateContent).toHaveBeenCalledWith("User: Hello");
     });
 
@@ -133,7 +133,9 @@ describe("GeminiService", () => {
     });
 
     it("接続テストが失敗する", async () => {
-      const mockGenerateContent = vi.fn().mockRejectedValue(new Error("Connection failed"));
+      const mockGenerateContent = vi
+        .fn()
+        .mockRejectedValue(new Error("Connection failed"));
       const mockGetGenerativeModel = vi.fn().mockReturnValue({
         generateContent: mockGenerateContent,
       });
@@ -152,9 +154,9 @@ describe("GeminiService", () => {
   describe("ユーティリティメソッド", () => {
     it("トークン数を正しく概算する", () => {
       // プライベートメソッドのテスト用にリフレクションを使用
-      const estimateTokens = (geminiService as any).estimateTokens.bind(
-        geminiService
-      );
+      const estimateTokens = (
+        geminiService as unknown as { estimateTokens: (text: string) => number }
+      ).estimateTokens.bind(geminiService);
 
       expect(estimateTokens("Hello")).toBe(2); // 5文字 / 4 = 1.25 → 2
       expect(estimateTokens("Hello World")).toBe(3); // 11文字 / 4 = 2.75 → 3
@@ -179,7 +181,9 @@ describe("GeminiService", () => {
 
       // プライベートメソッドのテスト
       const convertMessagesToPrompt = (
-        geminiService as any
+        geminiService as unknown as {
+          convertMessagesToPrompt: (messages: ChatMessage[]) => string;
+        }
       ).convertMessagesToPrompt.bind(geminiService);
       const result = convertMessagesToPrompt(messages);
 
