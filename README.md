@@ -93,12 +93,14 @@ src/
 
 ## 📋 開発ロードマップ
 
-- [x] **Phase 1**: OpenAI API 基本実装
-- [ ] **Phase 2**: Web UI 設定画面
-- [ ] **Phase 3**: 3D モデル表示
-- [ ] **Phase 4**: 音声処理機能
-- [ ] **Phase 5**: リップシンク
+- [x] **Phase 1**: 3D モデル表示・AI チャット機能・リファクタリング
+- [ ] **Phase 2**: 音声処理基盤（Web Speech API）
+- [ ] **Phase 3**: リップシンク・アニメーション
+- [ ] **Phase 4**: 音声処理拡張（OpenAI Whisper/TTS、VOICEVOX）
+- [ ] **Phase 5**: 高度機能・設定画面
 - [ ] **Phase 6**: ローカル LLM 対応
+
+**詳細**: [GitHub Issue #10 - Phase 2: 音声処理基盤の実装](https://github.com/lvncer/echoes/issues/10)
 
 ## 🔧 トラブルシューティング
 
