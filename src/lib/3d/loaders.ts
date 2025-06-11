@@ -81,10 +81,27 @@ export async function loadVRMModel(
     return { success: true, model: modelInfo };
   } catch (error) {
     console.error("VRM読み込みエラー:", error);
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "VRMファイルの読み込みに失敗しました";
+
+    let errorMessage = "VRMファイルの読み込みに失敗しました";
+
+    if (error instanceof Error) {
+      if (error.message.includes("Invalid file")) {
+        errorMessage =
+          "❌ 無効なVRMファイルです。\n\n解決方法:\n• 正しいVRMファイルを選択してください\n• ファイルが破損していないか確認してください";
+      } else if (error.message.includes("parse")) {
+        errorMessage =
+          "❌ VRMファイルの解析に失敗しました。\n\n解決方法:\n• ファイル形式が正しいか確認してください\n• 別のVRMファイルをお試しください";
+      } else if (
+        error.message.includes("memory") ||
+        error.message.includes("size")
+      ) {
+        errorMessage =
+          "❌ ファイルサイズが大きすぎます。\n\n解決方法:\n• より小さなVRMファイルをお試しください\n• ブラウザを再起動してメモリを解放してください";
+      } else {
+        errorMessage = `❌ VRM読み込みエラー: ${error.message}\n\n解決方法:\n• ファイルが正しいVRM形式か確認してください\n• ブラウザを再読み込みしてお試しください`;
+      }
+    }
+
     return { success: false, error: errorMessage };
   }
 }
@@ -154,10 +171,27 @@ export async function loadGLTFModel(
     return { success: true, model: modelInfo };
   } catch (error) {
     console.error("glTF読み込みエラー:", error);
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "glTF/GLBファイルの読み込みに失敗しました";
+
+    let errorMessage = "glTF/GLBファイルの読み込みに失敗しました";
+
+    if (error instanceof Error) {
+      if (error.message.includes("Invalid file")) {
+        errorMessage =
+          "❌ 無効なglTF/GLBファイルです。\n\n解決方法:\n• 正しいglTF/GLBファイルを選択してください\n• ファイルが破損していないか確認してください";
+      } else if (error.message.includes("parse")) {
+        errorMessage =
+          "❌ glTF/GLBファイルの解析に失敗しました。\n\n解決方法:\n• ファイル形式が正しいか確認してください\n• 別のglTF/GLBファイルをお試しください";
+      } else if (
+        error.message.includes("memory") ||
+        error.message.includes("size")
+      ) {
+        errorMessage =
+          "❌ ファイルサイズが大きすぎます。\n\n解決方法:\n• より小さなglTF/GLBファイルをお試しください\n• ブラウザを再起動してメモリを解放してください";
+      } else {
+        errorMessage = `❌ glTF/GLB読み込みエラー: ${error.message}\n\n解決方法:\n• ファイルが正しいglTF/GLB形式か確認してください\n• ブラウザを再読み込みしてお試しください`;
+      }
+    }
+
     return { success: false, error: errorMessage };
   }
 }
