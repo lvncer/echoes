@@ -18,8 +18,10 @@ export class ClientAIService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "API リクエストに失敗しました");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage =
+          errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -33,13 +35,31 @@ export class ClientAIService {
         processingTime: data.processingTime,
       };
     } catch (error) {
-      console.error("Client AI Service エラー:", error);
+      console.error("AI応答生成エラー:", error);
+
+      // ユーザーフレンドリーなエラーメッセージ
+      let userMessage = "AI応答の生成に失敗しました。";
 
       if (error instanceof Error) {
-        throw error;
+        if (error.message.includes("クォータ制限")) {
+          userMessage =
+            "⚠️ APIのクォータ制限に達しました。しばらく時間をおいてからお試しください。";
+        } else if (error.message.includes("API キー")) {
+          userMessage =
+            "⚠️ APIキーが設定されていません。設定を確認してください。";
+        } else if (error.message.includes("HTTP 5")) {
+          userMessage =
+            "⚠️ サーバーエラーが発生しました。しばらく時間をおいてからお試しください。";
+        } else if (
+          error.message.includes("NetworkError") ||
+          error.message.includes("fetch")
+        ) {
+          userMessage =
+            "⚠️ ネットワークエラーが発生しました。接続を確認してください。";
+        }
       }
 
-      throw new Error("AI 応答の生成に失敗しました");
+      throw new Error(userMessage);
     }
   }
 

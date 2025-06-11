@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { useAIStore } from "../stores/ai-store";
 import type { ChatMessage } from "../lib/types/ai";
 
-export default function Chat() {
+const Chat = memo(function Chat() {
   const [input, setInput] = useState("");
   const {
     messages,
@@ -26,20 +26,23 @@ export default function Chat() {
   }, [initializeFromEnv]);
 
   // 接続テスト
-  const handleTestConnection = async () => {
+  const handleTestConnection = useCallback(async () => {
     const isConnected = await testConnection();
     setConnectionStatus(isConnected ? "connected" : "disconnected");
-  };
+  }, [testConnection]);
 
   // メッセージ送信
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleSendMessage = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!input.trim() || isLoading) return;
 
-    const message = input.trim();
-    setInput("");
-    await sendMessage(message);
-  };
+      const message = input.trim();
+      setInput("");
+      await sendMessage(message);
+    },
+    [input, isLoading, sendMessage]
+  );
 
   // メッセージの表示
   const formatMessage = (message: ChatMessage) => {
@@ -55,10 +58,14 @@ export default function Chat() {
         }`}
       >
         <div className="flex justify-between items-center mb-1">
-          <span className="font-semibold text-sm text-gray-800">{roleLabel}</span>
+          <span className="font-semibold text-sm text-gray-800">
+            {roleLabel}
+          </span>
           <span className="text-xs text-gray-500">{time}</span>
         </div>
-        <div className="whitespace-pre-wrap text-gray-900">{message.content}</div>
+        <div className="whitespace-pre-wrap text-gray-900">
+          {message.content}
+        </div>
       </div>
     );
   };
@@ -88,10 +95,23 @@ export default function Chat() {
 
           {/* 設定情報 */}
           <div className="mt-2 text-sm text-gray-700">
-            <div>プロバイダー: <span className="font-medium text-gray-900">{settings.currentProvider.provider}</span></div>
-            <div>モデル: <span className="font-medium text-gray-900">{settings.currentProvider.model}</span></div>
             <div>
-              API キー: <span className="font-medium">{settings.currentProvider.apiKey ? "設定済み" : "未設定"}</span>
+              プロバイダー:{" "}
+              <span className="font-medium text-gray-900">
+                {settings.currentProvider.provider}
+              </span>
+            </div>
+            <div>
+              モデル:{" "}
+              <span className="font-medium text-gray-900">
+                {settings.currentProvider.model}
+              </span>
+            </div>
+            <div>
+              API キー:{" "}
+              <span className="font-medium">
+                {settings.currentProvider.apiKey ? "設定済み" : "未設定"}
+              </span>
             </div>
             <div>
               接続状態:{" "}
@@ -118,7 +138,9 @@ export default function Chat() {
         <div className="h-96 overflow-y-auto p-4">
           {messages.length === 0 ? (
             <div className="text-center text-gray-600 mt-8">
-              <p className="text-gray-800 text-lg mb-2">メッセージを送信してAIとの会話を開始してください。</p>
+              <p className="text-gray-800 text-lg mb-2">
+                メッセージを送信してAIとの会話を開始してください。
+              </p>
               <p className="text-sm text-gray-600">
                 ※ Gemini または OpenAI API キーが設定されている必要があります
               </p>
@@ -162,4 +184,6 @@ export default function Chat() {
       </div>
     </div>
   );
-}
+});
+
+export default Chat;

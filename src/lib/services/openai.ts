@@ -23,16 +23,7 @@ export class OpenAIService {
    * クライアントを初期化
    */
   private initializeClient(): void {
-    console.log("OpenAI クライアント初期化開始");
-    console.log("設定:", {
-      hasApiKey: !!this.config.apiKey,
-      apiKeyLength: this.config.apiKey?.length || 0,
-      baseUrl: this.config.baseUrl,
-      model: this.config.model,
-    });
-
     if (!this.config.apiKey) {
-      console.warn("OpenAI API キーが設定されていません");
       return;
     }
 
@@ -41,7 +32,6 @@ export class OpenAIService {
         apiKey: this.config.apiKey,
         baseURL: this.config.baseUrl,
       });
-      console.log("OpenAI クライアント初期化成功");
     } catch (error) {
       console.error("OpenAI クライアントの初期化に失敗しました:", error);
     }

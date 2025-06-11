@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo, useMemo } from "react";
 import { useModelStore } from "@/stores/model-store";
 import { loadModel } from "@/lib/3d/loaders";
 import { Scene, Ground } from "./scene";
@@ -11,7 +11,7 @@ import { Model3DViewerProps } from "@/lib/types/3d";
 /**
  * 統合3Dモデルビューアー
  */
-export function Model3DViewer({
+export const Model3DViewer = memo(function Model3DViewer({
   model,
   sceneConfig,
   cameraConfig,
@@ -40,11 +40,11 @@ export function Model3DViewer({
   const [loadingProgress, setLoadingProgress] = useState<number>();
 
   // 使用する設定（propsが優先、なければストアの設定）
-  const finalSceneConfig = { ...storeSceneConfig, ...sceneConfig };
-  const finalCameraConfig = { ...storeCameraConfig, ...cameraConfig };
+  const finalSceneConfig = useMemo(() => ({ ...storeSceneConfig, ...sceneConfig }), [storeSceneConfig, sceneConfig]);
+  const finalCameraConfig = useMemo(() => ({ ...storeCameraConfig, ...cameraConfig }), [storeCameraConfig, cameraConfig]);
 
   // 表示するモデル（propsが優先、なければストアの現在のモデル）
-  const displayModel = model || currentModel;
+  const displayModel = useMemo(() => model || currentModel, [model, currentModel]);
 
   // モデルアップロードハンドラー
   const handleModelUpload = useCallback(
@@ -168,7 +168,7 @@ export function Model3DViewer({
       </div>
     </div>
   );
-}
+});
 
 /**
  * シンプルな3Dビューアー（サイドパネルなし）

@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Model3DViewer } from "@/components/3d/model-3d-viewer";
 import Chat from "../components/chat";
 import { Box, MessageCircle, Settings } from "lucide-react";
+import { ErrorBoundary } from "@/components/error/error-boundary";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
@@ -38,17 +39,17 @@ export default function Home() {
               </div>
 
               <div className="h-[calc(100%-3rem)]">
-                <Model3DViewer
-                  className="w-full h-full"
-                  onModelLoad={(result) => {
-                    if (result.success) {
-                      console.log("モデル読み込み完了:", result.model?.name);
-                    }
-                  }}
-                  onError={(error) => {
-                    console.error("モデル読み込みエラー:", error);
-                  }}
-                />
+                <ErrorBoundary>
+                  <Model3DViewer
+                    className="w-full h-full"
+                    onModelLoad={() => {
+                      // モデル読み込み完了時の処理
+                    }}
+                    onError={(error) => {
+                      console.error("モデル読み込みエラー:", error);
+                    }}
+                  />
+                </ErrorBoundary>
               </div>
             </div>
           </div>
@@ -76,7 +77,9 @@ export default function Home() {
 
               <TabsContent value="chat" className="flex-1 mt-4">
                 <div className="h-full">
-                  <Chat />
+                  <ErrorBoundary>
+                    <Chat />
+                  </ErrorBoundary>
                 </div>
               </TabsContent>
 

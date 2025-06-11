@@ -16,7 +16,6 @@ export class GeminiService {
     }
 
     this.genAI = new GoogleGenerativeAI(config.apiKey);
-    console.log("Gemini クライアント初期化成功");
   }
 
   /**
@@ -43,24 +42,12 @@ export class GeminiService {
         },
       });
 
-      console.log("Gemini API リクエスト開始:", {
-        model: config.model,
-        promptLength: prompt.length,
-        maxTokens: config.maxTokens,
-        temperature: config.temperature,
-      });
-
       // 応答を生成
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
 
       const processingTime = Date.now() - startTime;
-
-      console.log("Gemini API レスポンス受信:", {
-        responseLength: text.length,
-        processingTime,
-      });
 
       // レスポンスを構築
       const aiMessage: ChatMessage = {
