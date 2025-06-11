@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Model3DViewer } from "@/components/3d/model-3d-viewer";
 import { BlendShapePanel } from "@/components/3d/blend-shape-panel";
+import { LipSyncPanel } from "@/components/3d/lipsync-panel";
 import Chat from "../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import { Box, MessageCircle, Settings, Mic } from "lucide-react";
@@ -63,6 +64,9 @@ export default function Home() {
 
               {/* ブレンドシェイプ制御パネル */}
               <BlendShapePanel />
+
+              {/* リップシンク制御パネル */}
+              <LipSyncPanel />
             </div>
           </div>
 
