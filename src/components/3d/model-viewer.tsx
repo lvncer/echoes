@@ -15,14 +15,7 @@ interface ModelViewerProps {
 /**
  * 3Dモデル表示コンポーネント
  */
-export function ModelViewer({
-  model,
-  animationSpeed = 1,
-  enableAnimation = true,
-}: ModelViewerProps) {
-  const groupRef = useRef<Group>(null);
-  const vrmRef = useRef<VRM | null>(null);
-
+export function ModelViewer({ model, animationSpeed = 1 }: ModelViewerProps) {
   // VRMモデルの場合
   if (model.format === "vrm") {
     return (
@@ -34,12 +27,7 @@ export function ModelViewer({
   }
 
   // glTF/GLBモデルの場合
-  return (
-    <GLTFViewer
-      model={model as GLTFModelInfo}
-      animationSpeed={animationSpeed}
-    />
-  );
+  return <GLTFViewer model={model as GLTFModelInfo} />;
 }
 
 /**
@@ -86,17 +74,11 @@ function VRMViewer({
 /**
  * glTF/GLBモデル表示
  */
-function GLTFViewer({
-  model,
-  animationSpeed,
-}: {
-  model: GLTFModelInfo;
-  animationSpeed: number;
-}) {
+function GLTFViewer({ model }: { model: GLTFModelInfo }) {
   const groupRef = useRef<Group>(null);
 
   // アニメーションループ
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const group = groupRef.current;
     if (group) {
       // 簡単な待機アニメーション（上下に軽く動く）

@@ -33,15 +33,15 @@ export function Model3DViewer({
     removeModel,
     setLoading,
     setError,
-    loadModelFromFile,
+
     switchToModel,
   } = useModelStore();
 
   const [loadingProgress, setLoadingProgress] = useState<number>();
 
   // 使用する設定（propsが優先、なければストアの設定）
-  const finalSceneConfig = sceneConfig || storeSceneConfig;
-  const finalCameraConfig = cameraConfig || storeCameraConfig;
+  const finalSceneConfig = { ...storeSceneConfig, ...sceneConfig };
+  const finalCameraConfig = { ...storeCameraConfig, ...cameraConfig };
 
   // 表示するモデル（propsが優先、なければストアの現在のモデル）
   const displayModel = model || currentModel;
@@ -185,8 +185,8 @@ export function Simple3DViewer({
   const { sceneConfig: storeSceneConfig, cameraConfig: storeCameraConfig } =
     useModelStore();
 
-  const finalSceneConfig = sceneConfig || storeSceneConfig;
-  const finalCameraConfig = cameraConfig || storeCameraConfig;
+  const finalSceneConfig = { ...storeSceneConfig, ...sceneConfig };
+  const finalCameraConfig = { ...storeCameraConfig, ...cameraConfig };
 
   return (
     <div className={className}>

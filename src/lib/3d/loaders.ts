@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { VRM, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Group, LoadingManager } from "three";
@@ -28,6 +30,7 @@ export async function loadVRMModel(
     const arrayBuffer = await file.arrayBuffer();
 
     // GLTFとしてロード（VRMはglTFベース）
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const gltf = await new Promise<any>((resolve, reject) => {
       gltfLoader.parse(
         arrayBuffer,
@@ -67,12 +70,12 @@ export async function loadVRMModel(
       createdAt: new Date(),
       vrm,
       meta: {
-        title: vrm.meta?.title,
-        author: vrm.meta?.author,
-        version: vrm.meta?.version,
-        description: vrm.meta?.description,
-        licenseUrl: vrm.meta?.licenseUrl,
-        contactInformation: vrm.meta?.contactInformation,
+        title: (vrm.meta as any)?.title,
+        author: (vrm.meta as any)?.author,
+        version: (vrm.meta as any)?.version,
+        description: (vrm.meta as any)?.description,
+        licenseUrl: (vrm.meta as any)?.licenseUrl,
+        contactInformation: (vrm.meta as any)?.contactInformation,
       },
     };
 
