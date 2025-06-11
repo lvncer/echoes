@@ -15,6 +15,9 @@ export interface AudioInputConfig {
   autoGainControl?: boolean;
 }
 
+// AudioConfigエイリアス（後方互換性のため）
+export type AudioConfig = AudioInputConfig;
+
 export interface SpeechRecognitionConfig {
   language: string;
   continuous: boolean;
@@ -49,6 +52,21 @@ export interface AudioCapabilities {
   speechSynthesis: boolean;
   mediaRecorder: boolean;
   audioContext: boolean;
+}
+
+// エラー型定義
+export interface AudioError {
+  type:
+    | "permission-denied"
+    | "not-supported"
+    | "network-error"
+    | "audio-capture"
+    | "speech-recognition-failed"
+    | "speech-synthesis-failed"
+    | "initialization-failed"
+    | "ai-response-failed";
+  message: string;
+  originalError?: Error;
 }
 
 // イベント型定義

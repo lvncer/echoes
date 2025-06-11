@@ -6,7 +6,11 @@
 import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
 import { SpeechSynthesisService } from "./speech-synthesis";
-import type { AudioConfig, AudioError } from "../types/audio";
+import type {
+  AudioConfig,
+  AudioError,
+  SpeechRecognitionResult,
+} from "../types/audio";
 
 export interface AudioChatConfig {
   // 音声入力設定
@@ -64,21 +68,35 @@ export class AudioChatIntegrationService {
     this.config = config;
     this.callbacks = callbacks;
 
-    // サービス初期化
-    this.audioInput = new AudioInputService(config.audioInput);
-    this.speechRecognition = new SpeechRecognitionService({
-      language: config.speechRecognition.language,
-      continuous: config.speechRecognition.continuous,
-      interimResults: config.speechRecognition.interimResults,
-    });
-    this.speechSynthesis = new SpeechSynthesisService({
-      voice: config.speechSynthesis.voice,
-      rate: config.speechSynthesis.rate,
-      pitch: config.speechSynthesis.pitch,
-      volume: config.speechSynthesis.volume,
-    });
+    // サービス初期化（引数なしで初期化）
+    this.audioInput = new AudioInputService();
+    this.speechRecognition = new SpeechRecognitionService();
+    this.speechSynthesis = new SpeechSynthesisService();
 
     this.setupEventHandlers();
+    this.updateServiceConfigs();
+  }
+
+  /**
+   * サービス設定を更新
+   */
+  private updateServiceConfigs(): void {
+    // 音声認識設定を更新
+    this.speechRecognition.updateConfig({
+      language: this.config.speechRecognition.language,
+      continuous: this.config.speechRecognition.continuous,
+      interimResults: this.config.speechRecognition.interimResults,
+      maxAlternatives: 1,
+    });
+
+    // 音声合成設定を更新
+    this.speechSynthesis.updateConfig({
+      voice: this.config.speechSynthesis.voice,
+      rate: this.config.speechSynthesis.rate,
+      pitch: this.config.speechSynthesis.pitch,
+      volume: this.config.speechSynthesis.volume,
+      language: this.config.speechRecognition.language,
+    });
   }
 
   /**
@@ -86,47 +104,52 @@ export class AudioChatIntegrationService {
    */
   private setupEventHandlers(): void {
     // 音声認識イベント
-    this.speechRecognition.onResult = (
-      transcript: string,
-      isFinal: boolean
-    ) => {
-      this.callbacks.onTranscriptReceived?.(transcript, isFinal);
+    this.speechRecognition.setEventListeners({
+      onResult: (result: SpeechRecognitionResult) => {
+        this.callbacks.onTranscriptReceived?.(
+          result.transcript,
+          result.isFinal
+        );
 
-      if (isFinal && transcript.trim()) {
-        this.handleFinalTranscript(transcript);
-      }
-    };
-
-    this.speechRecognition.onStart = () => {
-      this.setStatus("listening");
-      this.callbacks.onListeningStart?.();
-    };
-
-    this.speechRecognition.onEnd = () => {
-      if (this.status === "listening") {
-        this.setStatus("idle");
-        this.callbacks.onListeningEnd?.();
-      }
-    };
-
-    this.speechRecognition.onError = (error: AudioError) => {
-      this.handleError(error);
-    };
+        if (result.isFinal && result.transcript.trim()) {
+          this.handleFinalTranscript(result.transcript);
+        }
+      },
+      onSpeechStart: () => {
+        this.setStatus("listening");
+        this.callbacks.onListeningStart?.();
+      },
+      onSpeechEnd: () => {
+        if (this.status === "listening") {
+          this.setStatus("idle");
+          this.callbacks.onListeningEnd?.();
+        }
+      },
+      onError: (error: string) => {
+        this.handleError({
+          type: "speech-recognition-failed",
+          message: error,
+        });
+      },
+    });
 
     // 音声合成イベント
-    this.speechSynthesis.onStart = () => {
-      this.setStatus("speaking");
-      this.callbacks.onSpeechStart?.();
-    };
-
-    this.speechSynthesis.onEnd = () => {
-      this.setStatus("idle");
-      this.callbacks.onSpeechEnd?.();
-    };
-
-    this.speechSynthesis.onError = (error: AudioError) => {
-      this.handleError(error);
-    };
+    this.speechSynthesis.setEventListeners({
+      onSpeechStart: () => {
+        this.setStatus("speaking");
+        this.callbacks.onSpeechStart?.();
+      },
+      onSpeechEnd: () => {
+        this.setStatus("idle");
+        this.callbacks.onSpeechEnd?.();
+      },
+      onError: (error: string) => {
+        this.handleError({
+          type: "speech-synthesis-failed",
+          message: error,
+        });
+      },
+    });
   }
 
   /**
@@ -140,7 +163,9 @@ export class AudioChatIntegrationService {
       }
 
       // マイクアクセス許可を取得
-      const hasPermission = await this.audioInput.requestMicrophoneAccess();
+      const hasPermission = await this.audioInput.requestMicrophoneAccess(
+        this.config.audioInput
+      );
       if (!hasPermission) {
         this.handleError({
           type: "permission-denied",
@@ -220,29 +245,43 @@ export class AudioChatIntegrationService {
    * AI応答の取得
    */
   private async getAIResponse(userMessage: string): Promise<string> {
-    const { provider, model, maxTokens, temperature } = this.config.aiResponse;
+    // 既存のchat APIエンドポイントと互換性のある形式でリクエスト
+    const messages = [
+      {
+        id: `user_${Date.now()}`,
+        role: "user" as const,
+        content: userMessage,
+        timestamp: new Date(),
+      },
+    ];
 
-    // 実際のAI APIコールはここで実装
-    // 現在は仮の実装
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        provider,
-        model,
-        message: userMessage,
-        maxTokens,
-        temperature,
+        messages,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`AI API エラー: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        `AI API エラー: ${response.status} - ${
+          errorData.error || "Unknown error"
+        }`
+      );
     }
 
     const data = await response.json();
+
+    // APIレスポンスから適切にメッセージを取得
+    if (data.message && data.message.content) {
+      return data.message.content;
+    }
+
+    // フォールバック
     return data.response || "申し訳ありませんが、応答を生成できませんでした。";
   }
 
@@ -250,7 +289,7 @@ export class AudioChatIntegrationService {
    * AI応答の音声合成
    */
   private async speakResponse(text: string): Promise<void> {
-    const success = await this.speechSynthesis.speak(text);
+    const success = this.speechSynthesis.speak(text);
     if (!success) {
       this.handleError({
         type: "speech-synthesis-failed",
@@ -286,10 +325,21 @@ export class AudioChatIntegrationService {
 
     // 各サービスの設定も更新
     if (newConfig.speechRecognition) {
-      this.speechRecognition.updateConfig(newConfig.speechRecognition);
+      this.speechRecognition.updateConfig({
+        language: newConfig.speechRecognition.language,
+        continuous: newConfig.speechRecognition.continuous,
+        interimResults: newConfig.speechRecognition.interimResults,
+        maxAlternatives: 1,
+      });
     }
     if (newConfig.speechSynthesis) {
-      this.speechSynthesis.updateConfig(newConfig.speechSynthesis);
+      this.speechSynthesis.updateConfig({
+        voice: newConfig.speechSynthesis.voice,
+        rate: newConfig.speechSynthesis.rate,
+        pitch: newConfig.speechSynthesis.pitch,
+        volume: newConfig.speechSynthesis.volume,
+        language: this.config.speechRecognition.language,
+      });
     }
   }
 

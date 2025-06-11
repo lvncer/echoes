@@ -179,7 +179,12 @@ function ModelItem({
           <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
             <span>{(model.size / 1024 / 1024).toFixed(2)} MB</span>
             {model.lastUsed && (
-              <span>最終使用: {model.lastUsed.toLocaleDateString()}</span>
+              <span>
+                最終使用:
+                {model.lastUsed instanceof Date
+                  ? model.lastUsed.toLocaleDateString()
+                  : new Date(model.lastUsed).toLocaleDateString()}
+              </span>
             )}
           </div>
         </div>
@@ -213,7 +218,12 @@ function ModelItem({
       {showInfo && (
         <div className="mt-3 pt-3 border-t border-gray-200 text-sm">
           <div className="grid grid-cols-2 gap-2 text-gray-600">
-            <div>作成日: {model.createdAt.toLocaleDateString()}</div>
+            <div>
+              作成日:{" "}
+              {model.createdAt instanceof Date
+                ? model.createdAt.toLocaleDateString()
+                : new Date(model.createdAt).toLocaleDateString()}
+            </div>
             <div>ID: {model.id.slice(-8)}</div>
 
             {model.format === "vrm" && "meta" in model && model.meta && (

@@ -238,6 +238,19 @@ export const useModelStore = create<ModelStore>()(
           // アニメーション状態をリセット
           state.animationState.isPlaying = false;
           state.animationState.currentAnimation = undefined;
+
+          // Date型の復元処理
+          state.availableModels = state.availableModels.map((model) => ({
+            ...model,
+            createdAt:
+              typeof model.createdAt === "string"
+                ? new Date(model.createdAt)
+                : model.createdAt,
+            lastUsed:
+              model.lastUsed && typeof model.lastUsed === "string"
+                ? new Date(model.lastUsed)
+                : model.lastUsed,
+          }));
         }
       },
     }
