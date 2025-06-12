@@ -117,6 +117,29 @@ export class AnimationController {
       const expressionNames = Object.keys(expressions);
       console.log("🎭 利用可能なブレンドシェイプ:", expressionNames);
 
+      // 各ブレンドシェイプの詳細を確認
+      console.log(`🎭 ブレンドシェイプ総数: ${expressionNames.length}`);
+
+      // VRMExpressionManagerの詳細情報を取得
+      const manager = model.expressionManager as unknown as {
+        expressionMap?: Record<string, unknown>;
+      };
+      if (manager.expressionMap) {
+        console.log("🎭 ExpressionMap:", Object.keys(manager.expressionMap));
+        Object.entries(manager.expressionMap).forEach(([key, value]) => {
+          const expr = value as {
+            expressionName?: string;
+            isBinary?: boolean;
+            weight?: number;
+          };
+          console.log(`🎭 Expression [${key}]:`, {
+            expressionName: expr.expressionName,
+            isBinary: expr.isBinary,
+            weight: expr.weight,
+          });
+        });
+      }
+
       // 瞬き関連のブレンドシェイプを特に確認
       const blinkExpressions = expressionNames.filter(
         (name) =>
@@ -124,6 +147,27 @@ export class AnimationController {
           name.toLowerCase().includes("eye")
       );
       console.log("👁️ 瞬き関連ブレンドシェイプ:", blinkExpressions);
+
+      // 標準的なVRMブレンドシェイプ名をテスト
+      const standardBlendShapes = [
+        "blink",
+        "blinkLeft",
+        "blinkRight",
+        "Blink_L",
+        "Blink_R",
+        "eye_close_L",
+        "eye_close_R",
+      ];
+      standardBlendShapes.forEach((name) => {
+        try {
+          const value = model.expressionManager!.getValue(name);
+          if (value !== undefined) {
+            console.log(`✅ 標準ブレンドシェイプ発見: ${name} = ${value}`);
+          }
+        } catch {
+          // 存在しない場合は無視
+        }
+      });
     }
 
     // 自動アニメーションを開始
@@ -591,20 +635,42 @@ export class AnimationController {
       intensity: this.settings.autoBlinking.intensity,
     });
 
+    // VRMモデルで利用可能な瞬きブレンドシェイプを検出
+    const blinkShapes = this.detectBlinkBlendShapes();
+    console.log("👁️ 検出された瞬きブレンドシェイプ:", blinkShapes);
+
+    if (blinkShapes.length === 0) {
+      console.warn("⚠️ 瞬きブレンドシェイプが見つかりません");
+      return;
+    }
+
+    // 検出されたブレンドシェイプを使用してアニメーション定義を作成
     const blinkAnimation: AnimationSequence = {
       name: "auto-blink",
       duration: 1000, // テスト用に1秒に延長
       loop: false,
       keyframes: [
-        { time: 0, blendShapes: { Blink_L: 0, Blink_R: 0 } },
+        {
+          time: 0,
+          blendShapes: Object.fromEntries(
+            blinkShapes.map((shape) => [shape, 0])
+          ),
+        },
         {
           time: 500, // 中間点を500msに
-          blendShapes: {
-            Blink_L: this.settings.autoBlinking.intensity,
-            Blink_R: this.settings.autoBlinking.intensity,
-          },
+          blendShapes: Object.fromEntries(
+            blinkShapes.map((shape) => [
+              shape,
+              this.settings.autoBlinking.intensity,
+            ])
+          ),
         },
-        { time: 1000, blendShapes: { Blink_L: 0, Blink_R: 0 } },
+        {
+          time: 1000,
+          blendShapes: Object.fromEntries(
+            blinkShapes.map((shape) => [shape, 0])
+          ),
+        },
       ],
       easing: "ease-in-out",
     };
@@ -621,6 +687,81 @@ export class AnimationController {
       AnimationPriority.NORMAL
     );
     console.log("👁️ 瞬きアニメーションID:", animationId);
+  }
+
+  /**
+   * VRMモデルで利用可能な瞬きブレンドシェイプを検出
+   */
+  private detectBlinkBlendShapes(): string[] {
+    if (!this.vrmModel?.expressionManager) {
+      return [];
+    }
+
+    const expressions = this.vrmModel.expressionManager.expressions;
+    const expressionNames = Object.keys(expressions);
+
+    // 一般的な瞬きブレンドシェイプ名のパターン
+    const blinkPatterns = [
+      "blink",
+      "Blink",
+      "BLINK",
+      "blinkLeft",
+      "BlinkLeft",
+      "blink_left",
+      "Blink_L",
+      "blinkRight",
+      "BlinkRight",
+      "blink_right",
+      "Blink_R",
+      "eye_close",
+      "eyeClose",
+      "EyeClose",
+      "eye_close_L",
+      "eye_close_R",
+      "eyeCloseLeft",
+      "eyeCloseRight",
+    ];
+
+    const detectedShapes: string[] = [];
+
+    // パターンマッチングで瞬きブレンドシェイプを検出
+    blinkPatterns.forEach((pattern) => {
+      if (expressionNames.includes(pattern)) {
+        detectedShapes.push(pattern);
+        console.log(`✅ 瞬きブレンドシェイプ発見: ${pattern}`);
+      }
+    });
+
+    // パターンマッチングで見つからない場合、名前に'blink'や'eye'を含むものを検索
+    if (detectedShapes.length === 0) {
+      expressionNames.forEach((name) => {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes("blink") || lowerName.includes("eye")) {
+          detectedShapes.push(name);
+          console.log(`✅ 部分マッチで瞬きブレンドシェイプ発見: ${name}`);
+        }
+      });
+    }
+
+    // それでも見つからない場合、数字のブレンドシェイプから推測
+    if (
+      detectedShapes.length === 0 &&
+      expressionNames.some((name) => /^\d+$/.test(name))
+    ) {
+      console.log("🔍 数字ブレンドシェイプから瞬き用を推測中...");
+      // 一般的にVRMでは最初の数個が基本表情（瞬きを含む）の場合が多い
+      // とりあえず'0'と'1'を試してみる
+      if (expressionNames.includes("0")) {
+        detectedShapes.push("0");
+        console.log("✅ 推測で瞬きブレンドシェイプ設定: 0");
+      }
+      if (expressionNames.includes("1")) {
+        detectedShapes.push("1");
+        console.log("✅ 推測で瞬きブレンドシェイプ設定: 1");
+      }
+    }
+
+    return detectedShapes;
   }
 
   /**
@@ -899,13 +1040,30 @@ export class AnimationController {
         const expressionManager = this.vrmModel!.expressionManager;
         if (expressionManager) {
           const currentValue = expressionManager.getValue(shapeName) || 0;
+
+          // ブレンドシェイプが存在するかチェック
+          const expressions = expressionManager.expressions;
+          const expressionNames = Object.keys(expressions);
+
+          if (!expressionNames.includes(shapeName)) {
+            console.warn(`⚠️ ブレンドシェイプが存在しません: ${shapeName}`);
+            console.log(
+              `📋 利用可能なブレンドシェイプ: ${expressionNames.join(", ")}`
+            );
+            return;
+          }
+
           expressionManager.setValue(shapeName, value);
+
+          // 設定後の値を確認
+          const newValue = expressionManager.getValue(shapeName) || 0;
+
           // 値が変更された場合、または値が0でない場合はログ出力
           if (Math.abs(currentValue - value) > 0.01 || value > 0) {
             console.log(
               `🎭 ブレンドシェイプ適用: ${shapeName} = ${value} (前回: ${currentValue.toFixed(
                 2
-              )})`
+              )}, 設定後: ${newValue.toFixed(2)})`
             );
           }
         } else {
