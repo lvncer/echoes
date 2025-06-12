@@ -6,6 +6,7 @@ import type { ChatMessage } from "../lib/types/ai";
 
 const Chat = memo(function Chat() {
   const [input, setInput] = useState("");
+  const [isHydrated, setIsHydrated] = useState(false);
   const {
     messages,
     isLoading,
@@ -19,6 +20,11 @@ const Chat = memo(function Chat() {
   const [connectionStatus, setConnectionStatus] = useState<
     "unknown" | "connected" | "disconnected"
   >("unknown");
+
+  // ハイドレーション完了を検知
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   // 初期化
   useEffect(() => {
@@ -61,7 +67,8 @@ const Chat = memo(function Chat() {
           <span className="font-semibold text-sm text-gray-800">
             {roleLabel}
           </span>
-          <span className="text-xs text-gray-500">{time}</span>
+          {/* 時刻表示 - ハイドレーション後にのみ表示 */}
+          {isHydrated && <span className="text-xs text-gray-500">{time}</span>}
         </div>
         <div className="whitespace-pre-wrap text-gray-900">
           {message.content}
@@ -93,45 +100,47 @@ const Chat = memo(function Chat() {
             </div>
           </div>
 
-          {/* 設定情報 */}
-          <div className="mt-2 text-sm text-gray-700">
-            <div>
-              プロバイダー:{" "}
-              <span className="font-medium text-gray-900">
-                {settings.currentProvider.provider}
-              </span>
-            </div>
-            <div>
-              モデル:{" "}
-              <span className="font-medium text-gray-900">
-                {settings.currentProvider.model}
-              </span>
-            </div>
-            <div>
-              API キー:{" "}
-              <span className="font-medium">
-                {settings.currentProvider.apiKey ? "設定済み" : "未設定"}
-              </span>
-            </div>
-            <div>
-              接続状態:{" "}
-              <span
-                className={
-                  connectionStatus === "connected"
-                    ? "text-green-600 font-medium"
+          {/* 設定情報 - ハイドレーション後にのみ表示 */}
+          {isHydrated && (
+            <div className="mt-2 text-sm text-gray-700">
+              <div>
+                プロバイダー:{" "}
+                <span className="font-medium text-gray-900">
+                  {settings.currentProvider.provider}
+                </span>
+              </div>
+              <div>
+                モデル:{" "}
+                <span className="font-medium text-gray-900">
+                  {settings.currentProvider.model}
+                </span>
+              </div>
+              <div>
+                API キー:{" "}
+                <span className="font-medium">
+                  {settings.currentProvider.apiKey ? "設定済み" : "未設定"}
+                </span>
+              </div>
+              <div>
+                接続状態:{" "}
+                <span
+                  className={
+                    connectionStatus === "connected"
+                      ? "text-green-600 font-medium"
+                      : connectionStatus === "disconnected"
+                      ? "text-red-600 font-medium"
+                      : "text-gray-600 font-medium"
+                  }
+                >
+                  {connectionStatus === "connected"
+                    ? "接続済み"
                     : connectionStatus === "disconnected"
-                    ? "text-red-600 font-medium"
-                    : "text-gray-600 font-medium"
-                }
-              >
-                {connectionStatus === "connected"
-                  ? "接続済み"
-                  : connectionStatus === "disconnected"
-                  ? "未接続"
-                  : "不明"}
-              </span>
+                    ? "未接続"
+                    : "不明"}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* メッセージ一覧 */}

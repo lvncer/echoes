@@ -6,6 +6,7 @@
 import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
 import { SpeechSynthesisService } from "./speech-synthesis";
+import { integratedLipSyncService } from "./integrated-lipsync-service";
 import type {
   AudioConfig,
   AudioError,
@@ -63,6 +64,7 @@ export class AudioChatIntegrationService {
   private callbacks: AudioChatCallbacks;
   private status: AudioChatStatus = "idle";
   private isActive = false;
+  private lastStatusLogTime = 0;
 
   constructor(config: AudioChatConfig, callbacks: AudioChatCallbacks = {}) {
     this.config = config;
@@ -225,19 +227,30 @@ export class AudioChatIntegrationService {
    */
   private async handleFinalTranscript(transcript: string): Promise<void> {
     try {
+      console.log(`📝 音声認識完了: "${transcript}"`);
       this.setStatus("processing");
 
       // AI応答を取得
+      console.log("🤖 AI応答取得開始");
       const aiResponse = await this.getAIResponse(transcript);
+      console.log(`🤖 AI応答取得完了: "${aiResponse.substring(0, 50)}..."`);
       this.callbacks.onAIResponseReceived?.(aiResponse);
 
       // 音声合成で応答を再生
+      console.log("🔊 音声合成開始");
       await this.speakResponse(aiResponse);
+      console.log("🔊 音声合成完了 - 処理終了");
+
+      // 確実にアイドル状態に戻す
+      this.setStatus("idle");
     } catch (error) {
+      console.error("❌ AI応答処理エラー:", error);
       this.handleError({
         type: "ai-response-failed",
         message: `AI応答の取得に失敗しました: ${error}`,
       });
+      // エラー時も確実にアイドル状態に戻す
+      this.setStatus("idle");
     }
   }
 
@@ -289,13 +302,78 @@ export class AudioChatIntegrationService {
    * AI応答の音声合成
    */
   private async speakResponse(text: string): Promise<void> {
-    const success = this.speechSynthesis.speak(text);
-    if (!success) {
+    try {
+      // 統合リップシンクサービスでAI応答リップシンクを開始
+      await integratedLipSyncService.startAIResponseLipSync(text);
+
+      // 音声合成の完了を監視するためのPromiseを作成
+      await this.waitForSpeechCompletion(text);
+    } catch (error) {
       this.handleError({
         type: "speech-synthesis-failed",
-        message: "音声合成に失敗しました",
+        message: `音声合成に失敗しました: ${error}`,
       });
     }
+  }
+
+  /**
+   * 音声合成の完了を待機
+   */
+  private waitForSpeechCompletion(text: string): Promise<void> {
+    return new Promise((resolve) => {
+      console.log(`音声合成完了待機開始: "${text.substring(0, 30)}..."`);
+
+      // タイムアウト設定（テキストの長さに基づいて動的に設定）
+      const estimatedDuration = Math.max(5000, text.length * 150); // 最低5秒、文字数×150ms
+      console.log(`推定音声時間: ${estimatedDuration}ms`);
+
+      const timeout = setTimeout(() => {
+        console.warn("⚠️ 音声合成のタイムアウト - 強制的に完了とみなします");
+        this.setStatus("idle"); // 強制的にアイドル状態に戻す
+        resolve();
+      }, estimatedDuration);
+
+      let checkCount = 0;
+      const maxChecks = Math.floor(estimatedDuration / 100); // 最大チェック回数
+
+      // 音声合成の完了を監視
+      const checkCompletion = () => {
+        checkCount++;
+        const status = integratedLipSyncService.getStatus();
+        const isSpeaking = this.speechSynthesis.isSpeaking();
+
+        // 詳細ログ（最初の5回と最後の5回、その後は10回に1回）
+        if (
+          checkCount <= 5 ||
+          checkCount >= maxChecks - 5 ||
+          checkCount % 10 === 0
+        ) {
+          console.log(
+            `🔍 音声状態チェック[${checkCount}/${maxChecks}]: TTS=${status.isTTSSpeaking}, Speech=${isSpeaking}, Status=${this.status}`
+          );
+        }
+
+        if (!status.isTTSSpeaking && !isSpeaking) {
+          // 音声合成が完了した
+          clearTimeout(timeout);
+          console.log("✅ 音声合成完了を検知 - アイドル状態に移行");
+          this.setStatus("idle");
+          resolve();
+        } else if (checkCount >= maxChecks) {
+          // 最大チェック回数に達した
+          clearTimeout(timeout);
+          console.warn("⚠️ 最大チェック回数に達しました - 強制完了");
+          this.setStatus("idle");
+          resolve();
+        } else {
+          // まだ話している場合は100ms後に再チェック
+          setTimeout(checkCompletion, 100);
+        }
+      };
+
+      // 少し遅延してからチェック開始（音声合成の開始を待つ）
+      setTimeout(checkCompletion, 500);
+    });
   }
 
   /**
@@ -303,7 +381,9 @@ export class AudioChatIntegrationService {
    */
   private setStatus(newStatus: AudioChatStatus): void {
     if (this.status !== newStatus) {
+      const oldStatus = this.status;
       this.status = newStatus;
+      console.log(`音声チャット状態変更: ${oldStatus} → ${newStatus}`);
       this.callbacks.onStatusChange?.(newStatus);
     }
   }

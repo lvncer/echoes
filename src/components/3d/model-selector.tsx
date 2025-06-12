@@ -272,7 +272,11 @@ export function ModelLoadingStatus({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-blue-800">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="font-medium">モデル読み込み中...</span>
+          <span className="font-medium">
+            {progress === undefined
+              ? "デフォルトモデル読み込み中..."
+              : "モデル読み込み中..."}
+          </span>
         </div>
         {progress !== undefined && (
           <div className="mt-2">
@@ -286,6 +290,11 @@ export function ModelLoadingStatus({
               {Math.round(progress * 100)}%
             </p>
           </div>
+        )}
+        {progress === undefined && (
+          <p className="text-blue-700 text-sm mt-1">
+            ニコニ立体ちゃんを読み込んでいます...
+          </p>
         )}
       </div>
     );

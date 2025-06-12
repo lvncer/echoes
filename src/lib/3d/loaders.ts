@@ -10,6 +10,7 @@ import {
   ModelLoadResult,
   LoadOptions,
 } from "@/lib/types/3d";
+import { blendShapeService } from "@/lib/services/blend-shape-service";
 
 // ローディングマネージャー
 const loadingManager = new LoadingManager();
@@ -48,6 +49,9 @@ export async function loadVRMModel(
       );
     }
 
+    // VRMモデルが後ろ向きになる問題を修正（Y軸で180度回転）
+    vrm.scene.rotation.y = Math.PI;
+
     // スケール・位置・回転の適用
     if (options.scale) {
       vrm.scene.scale.setScalar(options.scale);
@@ -57,6 +61,37 @@ export async function loadVRMModel(
     }
     if (options.rotation) {
       vrm.scene.rotation.set(...options.rotation);
+    }
+
+    // ブレンドシェイプサービスにVRMを設定
+    blendShapeService.setVRM(vrm);
+
+    // ブレンドシェイプ情報をログ出力（デバッグ用）
+    const vrmInfo = blendShapeService.getVRMInfo();
+    console.log("VRM ブレンドシェイプ情報:", vrmInfo);
+
+    if (vrmInfo.hasBlendShapeProxy) {
+      const availableShapes = blendShapeService.getAvailableBlendShapes();
+      console.log("利用可能なブレンドシェイプ:", availableShapes);
+
+      // 基本的なブレンドシェイプの対応状況をテスト
+      const basicShapes = [
+        "A",
+        "I",
+        "U",
+        "E",
+        "O",
+        "Joy",
+        "Angry",
+        "Sorrow",
+        "Fun",
+      ];
+      const supportedShapes = basicShapes.filter((shape) =>
+        blendShapeService.isBlendShapeAvailable(shape)
+      );
+      console.log("対応済みブレンドシェイプ:", supportedShapes);
+    } else {
+      console.warn("このVRMモデルはブレンドシェイプに対応していません");
     }
 
     // VRMモデル情報を作成

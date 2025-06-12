@@ -40,11 +40,20 @@ export const Model3DViewer = memo(function Model3DViewer({
   const [loadingProgress, setLoadingProgress] = useState<number>();
 
   // 使用する設定（propsが優先、なければストアの設定）
-  const finalSceneConfig = useMemo(() => ({ ...storeSceneConfig, ...sceneConfig }), [storeSceneConfig, sceneConfig]);
-  const finalCameraConfig = useMemo(() => ({ ...storeCameraConfig, ...cameraConfig }), [storeCameraConfig, cameraConfig]);
+  const finalSceneConfig = useMemo(
+    () => ({ ...storeSceneConfig, ...sceneConfig }),
+    [storeSceneConfig, sceneConfig]
+  );
+  const finalCameraConfig = useMemo(
+    () => ({ ...storeCameraConfig, ...cameraConfig }),
+    [storeCameraConfig, cameraConfig]
+  );
 
   // 表示するモデル（propsが優先、なければストアの現在のモデル）
-  const displayModel = useMemo(() => model || currentModel, [model, currentModel]);
+  const displayModel = useMemo(
+    () => model || currentModel,
+    [model, currentModel]
+  );
 
   // モデルアップロードハンドラー
   const handleModelUpload = useCallback(
@@ -136,7 +145,8 @@ export const Model3DViewer = memo(function Model3DViewer({
                 animationSpeed={1}
                 enableAnimation={true}
               />
-            ) : (
+            ) : isLoading ? // ローディング中は何も表示しない（ローディング状況は下部に表示）
+            null : (
               <ModelPlaceholder />
             )}
           </Scene>
