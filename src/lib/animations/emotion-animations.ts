@@ -22,23 +22,19 @@ const neutralAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            Joy: 0,
-            Sorrow: 0,
-            Angry: 0,
-            Surprised: 0,
-            Brow_Down: 0,
-            Brow_Up: 0,
+            happy: 0,
+            sad: 0,
+            angry: 0,
+            neutral: 1,
           },
         },
         {
           time: 1000,
           blendShapes: {
-            Joy: 0,
-            Sorrow: 0,
-            Angry: 0,
-            Surprised: 0,
-            Brow_Down: 0,
-            Brow_Up: 0,
+            happy: 0,
+            sad: 0,
+            angry: 0,
+            neutral: 1,
           },
         },
       ],
@@ -102,33 +98,33 @@ const happyAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            Joy: 0,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0,
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
         {
           time: 300,
           blendShapes: {
-            Joy: 0.7,
-            Blink_L: 0.3,
-            Blink_R: 0.3,
+            happy: 0.7,
+            blinkLeft: 0.3,
+            blinkRight: 0.3,
           },
         },
         {
           time: 800,
           blendShapes: {
-            Joy: 0.8,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0.8,
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
         {
           time: 1500,
           blendShapes: {
-            Joy: 0.6,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0.6,
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
       ],
@@ -214,22 +210,22 @@ const sadAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            Sorrow: 0,
-            Brow_Down: 0,
+            sad: 0,
+            lookDown: 0,
           },
         },
         {
           time: 800,
           blendShapes: {
-            Sorrow: 0.6,
-            Brow_Down: 0.4,
+            sad: 0.6,
+            lookDown: 0.4,
           },
         },
         {
           time: 2000,
           blendShapes: {
-            Sorrow: 0.7,
-            Brow_Down: 0.5,
+            sad: 0.7,
+            lookDown: 0.5,
           },
         },
       ],
@@ -310,22 +306,22 @@ const angryAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            Angry: 0,
-            Brow_Up: 0,
+            angry: 0,
+            lookUp: 0,
           },
         },
         {
           time: 400,
           blendShapes: {
-            Angry: 0.8,
-            Brow_Up: 0.6,
+            angry: 0.8,
+            lookUp: 0.6,
           },
         },
         {
           time: 1200,
           blendShapes: {
-            Angry: 0.7,
-            Brow_Up: 0.5,
+            angry: 0.7,
+            lookUp: 0.5,
           },
         },
       ],
@@ -415,41 +411,41 @@ const surprisedAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            Surprised: 0,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0, // VRMモデルには'surprised'がないため、代替として'happy'を使用
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
         {
           time: 200,
           blendShapes: {
-            Surprised: 0.9,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0.5, // 軽い表情変化
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
         {
           time: 600,
           blendShapes: {
-            Surprised: 0.7,
-            Blink_L: 0.8, // 驚きの瞬き
-            Blink_R: 0.8,
+            happy: 0.3,
+            blinkLeft: 0.8, // 驚きの瞬き
+            blinkRight: 0.8,
           },
         },
         {
           time: 750,
           blendShapes: {
-            Surprised: 0.6,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0.2,
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
         {
           time: 1000,
           blendShapes: {
-            Surprised: 0.3,
-            Blink_L: 0,
-            Blink_R: 0,
+            happy: 0,
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
       ],

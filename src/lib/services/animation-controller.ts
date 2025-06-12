@@ -462,9 +462,23 @@ export class AnimationController {
     emotion: "neutral" | "happy" | "sad" | "angry" | "surprised",
     intensity: number = 1.0
   ): void {
-    if (!this.isEnabled) return;
+    console.log(
+      `🎭 感情アニメーション実行開始: ${emotion} (強度: ${intensity})`
+    );
+
+    if (!this.isEnabled) {
+      console.warn("🎭 AnimationController: 無効化されています");
+      return;
+    }
+
+    if (!this.vrmModel) {
+      console.warn("🎭 AnimationController: VRMモデルが設定されていません");
+      return;
+    }
 
     const emotionAnimation = getEmotionAnimation(emotion, intensity);
+    console.log(`🎭 感情アニメーション取得結果:`, emotionAnimation);
+
     if (!emotionAnimation) {
       console.warn(
         `🎭 AnimationController: 感情アニメーションが見つかりません: ${emotion}`
@@ -480,23 +494,31 @@ export class AnimationController {
       return;
     }
 
+    console.log(`🎭 表情アニメーション:`, emotionAnimation.animations.facial);
+    console.log(
+      `🎭 ジェスチャーアニメーション:`,
+      emotionAnimation.animations.gesture
+    );
+
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
       AnimationPriority.HIGH
     );
+    console.log(`🎭 表情アニメーションID: ${facialAnimationId}`);
 
     // ジェスチャーアニメーションを実行
-    this.playAnimation(
+    const gestureAnimationId = this.playAnimation(
       emotionAnimation.animations.gesture,
       AnimationPriority.NORMAL
     );
+    console.log(`🎭 ジェスチャーアニメーションID: ${gestureAnimationId}`);
 
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
 
     console.log(
-      `🎭 AnimationController: 手動感情アニメーション実行 - ${emotion} (強度: ${intensity.toFixed(
+      `🎭 AnimationController: 手動感情アニメーション実行完了 - ${emotion} (強度: ${intensity.toFixed(
         2
       )})`
     );
@@ -516,12 +538,23 @@ export class AnimationController {
     gestureType: GestureType,
     intensity: number = 1.0
   ): void {
+    console.log(
+      `🤲 ジェスチャーアニメーション実行開始: ${gestureType} (強度: ${intensity})`
+    );
+
     if (!this.vrmModel) {
       console.warn("🎭 AnimationController: VRMモデルが設定されていません");
       return;
     }
 
+    if (!this.isEnabled) {
+      console.warn("🎭 AnimationController: 無効化されています");
+      return;
+    }
+
     const gestureAnimation = getGestureAnimation(gestureType);
+    console.log(`🤲 ジェスチャーアニメーション取得結果:`, gestureAnimation);
+
     if (!gestureAnimation) {
       console.warn(
         `🎭 AnimationController: ジェスチャーアニメーションが見つかりません: ${gestureType}`
@@ -531,6 +564,9 @@ export class AnimationController {
 
     // 現在のジェスチャーアニメーションを停止
     if (this.currentGestureAnimationId) {
+      console.log(
+        `🤲 現在のジェスチャーアニメーションを停止: ${this.currentGestureAnimationId}`
+      );
       this.stopAnimation(this.currentGestureAnimationId);
     }
 
@@ -539,6 +575,7 @@ export class AnimationController {
       gestureAnimation,
       intensity
     );
+    console.log(`🤲 強度調整後のアニメーション:`, adjustedAnimation);
 
     // ジェスチャーアニメーションを実行
     const gestureAnimationId = this.playAnimation(
@@ -548,9 +585,9 @@ export class AnimationController {
     this.currentGestureAnimationId = gestureAnimationId;
 
     console.log(
-      `🎭 AnimationController: ジェスチャーアニメーション実行 - ${gestureType} (強度: ${intensity.toFixed(
+      `🎭 AnimationController: ジェスチャーアニメーション実行完了 - ${gestureType} (強度: ${intensity.toFixed(
         2
-      )})`
+      )}, ID: ${gestureAnimationId})`
     );
 
     // イベント通知
@@ -629,15 +666,8 @@ export class AnimationController {
    * 瞬きアニメーションを実行
    */
   private playBlinkAnimation(): void {
-    console.log("👁️ 瞬きアニメーション実行中...", {
-      hasVRM: !!this.vrmModel,
-      isEnabled: this.isEnabled,
-      intensity: this.settings.autoBlinking.intensity,
-    });
-
     // VRMモデルで利用可能な瞬きブレンドシェイプを検出
     const blinkShapes = this.detectBlinkBlendShapes();
-    console.log("👁️ 検出された瞬きブレンドシェイプ:", blinkShapes);
 
     if (blinkShapes.length === 0) {
       console.warn("⚠️ 瞬きブレンドシェイプが見つかりません");
@@ -647,7 +677,7 @@ export class AnimationController {
     // 検出されたブレンドシェイプを使用してアニメーション定義を作成
     const blinkAnimation: AnimationSequence = {
       name: "auto-blink",
-      duration: 1000, // テスト用に1秒に延長
+      duration: 250, // 通常の瞬き時間に戻す
       loop: false,
       keyframes: [
         {
@@ -657,7 +687,7 @@ export class AnimationController {
           ),
         },
         {
-          time: 500, // 中間点を500msに
+          time: 125, // 中間点
           blendShapes: Object.fromEntries(
             blinkShapes.map((shape) => [
               shape,
@@ -666,7 +696,7 @@ export class AnimationController {
           ),
         },
         {
-          time: 1000,
+          time: 250,
           blendShapes: Object.fromEntries(
             blinkShapes.map((shape) => [shape, 0])
           ),
@@ -675,18 +705,7 @@ export class AnimationController {
       easing: "ease-in-out",
     };
 
-    console.log("👁️ 瞬きアニメーション定義:", {
-      duration: blinkAnimation.duration,
-      keyframeCount: blinkAnimation.keyframes.length,
-      intensity: this.settings.autoBlinking.intensity,
-      keyframes: blinkAnimation.keyframes,
-    });
-
-    const animationId = this.playAnimation(
-      blinkAnimation,
-      AnimationPriority.NORMAL
-    );
-    console.log("👁️ 瞬きアニメーションID:", animationId);
+    this.playAnimation(blinkAnimation, AnimationPriority.NORMAL);
   }
 
   /**
@@ -704,11 +723,6 @@ export class AnimationController {
     const availableExpressions = manager.expressionMap
       ? Object.keys(manager.expressionMap)
       : [];
-
-    console.log(
-      "🔍 ExpressionMapから瞬きブレンドシェイプを検索:",
-      availableExpressions
-    );
 
     // 一般的な瞬きブレンドシェイプ名のパターン
     const blinkPatterns = [
@@ -738,7 +752,6 @@ export class AnimationController {
     blinkPatterns.forEach((pattern) => {
       if (availableExpressions.includes(pattern)) {
         detectedShapes.push(pattern);
-        console.log(`✅ 瞬きブレンドシェイプ発見: ${pattern}`);
       }
     });
 
@@ -748,7 +761,6 @@ export class AnimationController {
         const lowerName = name.toLowerCase();
         if (lowerName.includes("blink") || lowerName.includes("eye")) {
           detectedShapes.push(name);
-          console.log(`✅ 部分マッチで瞬きブレンドシェイプ発見: ${name}`);
         }
       });
     }
@@ -759,15 +771,12 @@ export class AnimationController {
       const expressionNames = Object.keys(expressions);
 
       if (expressionNames.some((name) => /^\d+$/.test(name))) {
-        console.log("🔍 数字ブレンドシェイプから瞬き用を推測中...");
         // 一般的にVRMでは最初の数個が基本表情（瞬きを含む）の場合が多い
         if (expressionNames.includes("0")) {
           detectedShapes.push("0");
-          console.log("✅ 推測で瞬きブレンドシェイプ設定: 0");
         }
         if (expressionNames.includes("1")) {
           detectedShapes.push("1");
-          console.log("✅ 推測で瞬きブレンドシェイプ設定: 1");
         }
       }
     }
