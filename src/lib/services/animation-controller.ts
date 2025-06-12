@@ -477,7 +477,6 @@ export class AnimationController {
     }
 
     const emotionAnimation = getEmotionAnimation(emotion, intensity);
-    console.log(`🎭 感情アニメーション取得結果:`, emotionAnimation);
 
     if (!emotionAnimation) {
       console.warn(
@@ -490,43 +489,31 @@ export class AnimationController {
     this.stopCurrentEmotionAnimation();
 
     if (emotion === "neutral") {
-      console.log("🎭 AnimationController: ニュートラル状態に戻しました");
+      console.log("🎭 ニュートラル状態に戻しました");
       return;
     }
-
-    console.log(`🎭 表情アニメーション:`, emotionAnimation.animations.facial);
-    console.log(
-      `🎭 ジェスチャーアニメーション:`,
-      emotionAnimation.animations.gesture
-    );
-
-    // 表情アニメーションのキーフレームをログ出力
-    console.log(
-      `🎭 表情アニメーションキーフレーム:`,
-      emotionAnimation.animations.facial.keyframes
-    );
 
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
       AnimationPriority.HIGH
     );
-    console.log(`🎭 表情アニメーションID: ${facialAnimationId}`);
 
     // ジェスチャーアニメーションを実行
-    const gestureAnimationId = this.playAnimation(
+    this.playAnimation(
       emotionAnimation.animations.gesture,
       AnimationPriority.NORMAL
     );
-    console.log(`🎭 ジェスチャーアニメーションID: ${gestureAnimationId}`);
 
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
 
     console.log(
-      `🎭 AnimationController: 手動感情アニメーション実行完了 - ${emotion} (強度: ${intensity.toFixed(
-        2
-      )})`
+      `🎭 ${emotion}感情アニメーション実行 (表情: ${
+        emotionAnimation.animations.facial.duration
+      }ms, ジェスチャー: ${
+        emotionAnimation.animations.gesture.duration
+      }ms, 強度: ${intensity.toFixed(1)})`
     );
   }
 
@@ -559,7 +546,6 @@ export class AnimationController {
     }
 
     const gestureAnimation = getGestureAnimation(gestureType);
-    console.log(`🤲 ジェスチャーアニメーション取得結果:`, gestureAnimation);
 
     if (!gestureAnimation) {
       console.warn(
@@ -570,9 +556,6 @@ export class AnimationController {
 
     // 現在のジェスチャーアニメーションを停止
     if (this.currentGestureAnimationId) {
-      console.log(
-        `🤲 現在のジェスチャーアニメーションを停止: ${this.currentGestureAnimationId}`
-      );
       this.stopAnimation(this.currentGestureAnimationId);
     }
 
@@ -581,7 +564,6 @@ export class AnimationController {
       gestureAnimation,
       intensity
     );
-    console.log(`🤲 強度調整後のアニメーション:`, adjustedAnimation);
 
     // ジェスチャーアニメーションを実行
     const gestureAnimationId = this.playAnimation(
@@ -591,9 +573,9 @@ export class AnimationController {
     this.currentGestureAnimationId = gestureAnimationId;
 
     console.log(
-      `🎭 AnimationController: ジェスチャーアニメーション実行完了 - ${gestureType} (強度: ${intensity.toFixed(
-        2
-      )}, ID: ${gestureAnimationId})`
+      `🤲 ${gestureType}ジェスチャー実行 (${
+        gestureAnimation.duration
+      }ms, 強度: ${intensity.toFixed(1)})`
     );
 
     // イベント通知
@@ -1081,22 +1063,12 @@ export class AnimationController {
 
           expressionManager.setValue(shapeName, value);
 
-          // 設定後の値を確認
-          const newValue = expressionManager.getValue(shapeName) || 0;
-
-          // 感情アニメーション実行時は詳細ログ、それ以外は値が変更された場合のみ
-          const isEmotionAnimation = this.currentEmotionAnimationId !== null;
-          if (
-            isEmotionAnimation ||
-            Math.abs(currentValue - value) > 0.01 ||
-            value > 0
-          ) {
+          // 重要な変更のみログ出力（値が大きく変わった場合のみ）
+          if (Math.abs(currentValue - value) > 0.1) {
             console.log(
-              `🎭 ブレンドシェイプ適用: ${shapeName} = ${value.toFixed(
-                3
-              )} (前回: ${currentValue.toFixed(3)}, 設定後: ${newValue.toFixed(
-                3
-              )}) ${isEmotionAnimation ? "[感情アニメーション]" : ""}`
+              `🎭 ブレンドシェイプ変更: ${shapeName} ${currentValue.toFixed(
+                2
+              )} → ${value.toFixed(2)}`
             );
           }
         } else {
