@@ -18,6 +18,12 @@ import { lipSyncService } from "@/lib/services/lipsync-service";
 import { advancedLipSyncService } from "@/lib/services/advanced-lipsync-service";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
+import { AnimationController } from "@/lib/services/animation-controller";
+import {
+  getAllGestures,
+  getGesturesByCategory,
+} from "@/lib/animations/gesture-animations";
+import { getAvailableEmotions } from "@/lib/animations/emotion-animations";
 
 interface SimpleDebugPanelProps {
   className?: string;
@@ -40,6 +46,31 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
     blendShapeService.getVRMInfo()
   );
 
+  // アニメーション制御サービスの状態
+  const [animationController, setAnimationController] =
+    useState<AnimationController | null>(null);
+  const [animationState, setAnimationState] = useState({
+    activeAnimationCount: 0,
+    frameRate: 0,
+    calculationTime: 0,
+    memoryUsage: 0,
+    runningAnimations: {
+      idle: null as string | null,
+      emotion: null as string | null,
+      gesture: null as string | null,
+    },
+  });
+
+  /**
+   * アニメーション制御サービスを取得
+   */
+  const getAnimationController = useCallback(() => {
+    if (typeof window !== "undefined" && window.__animationController) {
+      return window.__animationController;
+    }
+    return null;
+  }, []);
+
   /**
    * 全ステータスを更新
    */
@@ -49,10 +80,17 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
       setAdvancedStatus(advancedLipSyncService.getStatus());
       setIntegratedStatus(integratedLipSyncService.getStatus());
       setBlendShapeInfo(blendShapeService.getVRMInfo());
+
+      // アニメーション制御サービスの状態更新
+      const controller = getAnimationController();
+      if (controller) {
+        setAnimationController(controller);
+        setAnimationState(controller.getState());
+      }
     } catch (error) {
       console.error("デバッグパネル更新エラー:", error);
     }
-  }, []);
+  }, [getAnimationController]);
 
   /**
    * 定期更新（高頻度でリアルタイム表示）
@@ -316,6 +354,117 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
   };
 
   /**
+   * アニメーションテスト実行
+   */
+  const runAnimationTest = async () => {
+    setIsTestRunning(true);
+    setTestResults([]);
+
+    try {
+      console.log("🎭 アニメーションテスト開始");
+      setTestResults((prev) => [...prev, "アニメーションテスト開始..."]);
+
+      const controller = getAnimationController();
+      if (!controller) {
+        setTestResults((prev) => [
+          ...prev,
+          "❌ アニメーション制御サービスが利用できません",
+        ]);
+        return;
+      }
+
+      setTestResults((prev) => [...prev, "✅ アニメーション制御サービス確認"]);
+
+      // 感情アニメーションテスト
+      setTestResults((prev) => [...prev, "🎭 感情アニメーションテスト開始"]);
+      const emotions = getAvailableEmotions();
+      for (let i = 0; i < Math.min(emotions.length, 3); i++) {
+        const emotion = emotions[i];
+        setTestResults((prev) => [...prev, `😊 ${emotion} アニメーション実行`]);
+
+        controller.playEmotionAnimation(
+          emotion as "neutral" | "happy" | "sad" | "angry" | "surprised",
+          0.8
+        );
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        controller.stopCurrentEmotionAnimation();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // ジェスチャーアニメーションテスト
+      setTestResults((prev) => [
+        ...prev,
+        "🤲 ジェスチャーアニメーションテスト開始",
+      ]);
+      const gestures = getAllGestures();
+      for (let i = 0; i < Math.min(gestures.length, 3); i++) {
+        const gesture = gestures[i];
+        setTestResults((prev) => [...prev, `👋 ${gesture} ジェスチャー実行`]);
+
+        controller.playGestureAnimation(gesture, 0.8);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        controller.stopCurrentGestureAnimation();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      setTestResults((prev) => [...prev, "🎉 アニメーションテスト完了"]);
+    } catch (error) {
+      setTestResults((prev) => [
+        ...prev,
+        `❌ アニメーションテストエラー: ${error}`,
+      ]);
+    } finally {
+      setIsTestRunning(false);
+    }
+  };
+
+  /**
+   * 個別ジェスチャーテスト
+   */
+  const testGestureByCategory = async (category: "hand" | "head" | "body") => {
+    setIsTestRunning(true);
+
+    try {
+      const controller = getAnimationController();
+      if (!controller) {
+        setTestResults((prev) => [
+          ...prev,
+          "❌ アニメーション制御サービスが利用できません",
+        ]);
+        return;
+      }
+
+      const gestures = getGesturesByCategory(category);
+      setTestResults((prev) => [
+        ...prev,
+        `🎭 ${category}ジェスチャーテスト開始 (${gestures.length}個)`,
+      ]);
+
+      for (const gesture of gestures) {
+        setTestResults((prev) => [...prev, `👋 ${gesture} 実行中...`]);
+        controller.playGestureAnimation(gesture, 1.0);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        controller.stopCurrentGestureAnimation();
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
+      setTestResults((prev) => [
+        ...prev,
+        `✅ ${category}ジェスチャーテスト完了`,
+      ]);
+    } catch (error) {
+      setTestResults((prev) => [
+        ...prev,
+        `❌ ${category}ジェスチャーテストエラー: ${error}`,
+      ]);
+    } finally {
+      setIsTestRunning(false);
+    }
+  };
+
+  /**
    * システムリセット
    */
   const resetSystem = () => {
@@ -323,6 +472,14 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
     advancedLipSyncService.stopAdvancedLipSync();
     integratedLipSyncService.stopLipSync();
     blendShapeService.resetAllBlendShapes();
+
+    // アニメーション制御サービスもリセット
+    const controller = getAnimationController();
+    if (controller) {
+      controller.stopCurrentEmotionAnimation();
+      controller.stopCurrentGestureAnimation();
+    }
+
     setTestResults((prev) => [...prev, "🔄 システムリセット完了"]);
     console.log("システムリセット完了");
   };
@@ -350,7 +507,7 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Bug className="w-4 h-4" />
-              リップシンクデバッグ
+              システムデバッグ
             </CardTitle>
             <div className="flex gap-1">
               <Button
@@ -388,6 +545,24 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
                 disabled={isTestRunning}
               >
                 🎭
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={runAnimationTest}
+                title="アニメーションテスト"
+                disabled={isTestRunning}
+              >
+                🎬
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => testGestureByCategory("hand")}
+                title="手ジェスチャーテスト"
+                disabled={isTestRunning}
+              >
+                👋
               </Button>
               <Button
                 variant="ghost"
@@ -465,6 +640,12 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
                   {integratedStatus.isActive ? "ON" : "OFF"}
                 </Badge>
               </div>
+              <div className="flex items-center justify-between text-xs">
+                <span>アニメーション制御</span>
+                <Badge variant={animationController ? "default" : "secondary"}>
+                  {animationController ? "ON" : "OFF"}
+                </Badge>
+              </div>
             </div>
           </div>
 
@@ -508,6 +689,22 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
                 <span>アクティブ形状:</span>
                 <span>{blendShapeInfo.currentActiveShapes}個</span>
               </div>
+              {animationController && (
+                <>
+                  <div className="flex justify-between">
+                    <span>アニメーション数:</span>
+                    <span>{animationState.activeAnimationCount}個</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>フレームレート:</span>
+                    <span>{animationState.frameRate.toFixed(0)} fps</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>計算時間:</span>
+                    <span>{animationState.calculationTime.toFixed(1)} ms</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -524,6 +721,42 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
               </div>
             </div>
           )}
+
+          {/* 実行中のアニメーション */}
+          {animationController &&
+            Object.values(animationState.runningAnimations).some(Boolean) && (
+              <div className="space-y-2">
+                <div className="text-sm font-medium">
+                  実行中のアニメーション
+                </div>
+                <div className="space-y-1 text-xs">
+                  {animationState.runningAnimations.idle && (
+                    <div className="flex justify-between">
+                      <span>アイドル:</span>
+                      <span className="font-mono">
+                        {animationState.runningAnimations.idle}
+                      </span>
+                    </div>
+                  )}
+                  {animationState.runningAnimations.emotion && (
+                    <div className="flex justify-between">
+                      <span>感情:</span>
+                      <span className="font-mono">
+                        {animationState.runningAnimations.emotion}
+                      </span>
+                    </div>
+                  )}
+                  {animationState.runningAnimations.gesture && (
+                    <div className="flex justify-between">
+                      <span>ジェスチャー:</span>
+                      <span className="font-mono">
+                        {animationState.runningAnimations.gesture}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
           {/* アクティブなブレンドシェイプ */}
           {Object.entries(blendShapeInfo.currentWeights).filter(

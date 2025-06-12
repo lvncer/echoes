@@ -17,6 +17,7 @@ import {
   Pause,
   RotateCcw,
   Monitor,
+  Bug,
 } from "lucide-react";
 import { AnimationController } from "@/lib/services/animation-controller";
 import type {
@@ -472,6 +473,75 @@ export function AnimationControlPanel({
               </div>
             </div>
           </div>
+
+          {/* デバッグ情報 */}
+          {showAdvanced && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Bug className="w-4 h-4" />
+                  <span className="text-sm font-medium">デバッグ情報</span>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span>アクティブアニメーション:</span>
+                    <span>
+                      {
+                        Object.values(animationState.runningAnimations).filter(
+                          Boolean
+                        ).length
+                      }
+                      個
+                    </span>
+                  </div>
+                  {animationState.runningAnimations.idle && (
+                    <div className="flex justify-between">
+                      <span>アイドル:</span>
+                      <span className="font-mono">
+                        {animationState.runningAnimations.idle}
+                      </span>
+                    </div>
+                  )}
+                  {animationState.runningAnimations.emotion && (
+                    <div className="flex justify-between">
+                      <span>感情:</span>
+                      <span className="font-mono">
+                        {animationState.runningAnimations.emotion}
+                      </span>
+                    </div>
+                  )}
+                  {animationState.runningAnimations.gesture && (
+                    <div className="flex justify-between">
+                      <span>ジェスチャー:</span>
+                      <span className="font-mono">
+                        {animationState.runningAnimations.gesture}
+                      </span>
+                    </div>
+                  )}
+                  {(() => {
+                    const lastEmotion = getLastEmotionAnalysis();
+                    return lastEmotion ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span>最後の感情:</span>
+                          <span className="font-mono">
+                            {lastEmotion.emotion}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>信頼度:</span>
+                          <span>
+                            {(lastEmotion.confidence * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </>
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* 高度な設定 */}
           {showAdvanced && (
