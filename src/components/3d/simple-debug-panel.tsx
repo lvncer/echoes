@@ -24,6 +24,10 @@ import {
   getGesturesByCategory,
 } from "@/lib/animations/gesture-animations";
 import { getAvailableEmotions } from "@/lib/animations/emotion-animations";
+import {
+  AnimationPerformanceTester,
+  type PerformanceTestSuite,
+} from "@/lib/services/animation-performance-tester";
 
 interface SimpleDebugPanelProps {
   className?: string;
@@ -61,6 +65,14 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
     },
   });
 
+  // パフォーマンステスト関連の状態
+  const [performanceTester, setPerformanceTester] =
+    useState<AnimationPerformanceTester | null>(null);
+  const [performanceTestResults, setPerformanceTestResults] =
+    useState<PerformanceTestSuite | null>(null);
+  const [isPerformanceTestRunning, setIsPerformanceTestRunning] =
+    useState(false);
+
   /**
    * アニメーション制御サービスを取得
    */
@@ -86,11 +98,16 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
       if (controller) {
         setAnimationController(controller);
         setAnimationState(controller.getState());
+
+        // パフォーマンステスターの初期化
+        if (!performanceTester) {
+          setPerformanceTester(new AnimationPerformanceTester(controller));
+        }
       }
     } catch (error) {
       console.error("デバッグパネル更新エラー:", error);
     }
-  }, [getAnimationController]);
+  }, [getAnimationController, performanceTester]);
 
   /**
    * 定期更新（高頻度でリアルタイム表示）
@@ -465,6 +482,68 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
   };
 
   /**
+   * パフォーマンステスト実行
+   */
+  const runPerformanceTest = async () => {
+    if (!performanceTester) {
+      setTestResults((prev) => [...prev, "❌ パフォーマンステスター未初期化"]);
+      return;
+    }
+
+    setIsPerformanceTestRunning(true);
+    setTestResults([]);
+
+    try {
+      console.log("🧪 パフォーマンステスト開始");
+      setTestResults((prev) => [...prev, "🧪 パフォーマンステスト開始..."]);
+
+      const results = await performanceTester.runFullTestSuite();
+      setPerformanceTestResults(results);
+
+      // 結果表示
+      setTestResults((prev) => [
+        ...prev,
+        `📊 テスト結果: ${results.summary.passedTests}/${results.summary.totalTests} 成功`,
+        `📈 平均フレームレート: ${results.summary.averageFrameRate.toFixed(
+          1
+        )}fps`,
+        `⏱️ 最大計算時間: ${results.summary.maxCalculationTime.toFixed(1)}ms`,
+        `💾 最大メモリ使用量: ${results.summary.maxMemoryUsage.toFixed(1)}MB`,
+      ]);
+
+      // 個別テスト結果
+      results.testResults.forEach((result) => {
+        const status = result.success ? "✅" : "❌";
+        setTestResults((prev) => [
+          ...prev,
+          `${status} ${result.testName}: ${result.averageFrameRate.toFixed(
+            1
+          )}fps`,
+        ]);
+
+        if (!result.success) {
+          result.issues.forEach((issue) => {
+            setTestResults((prev) => [...prev, `  ⚠️ ${issue}`]);
+          });
+        }
+      });
+
+      if (results.overallSuccess) {
+        setTestResults((prev) => [...prev, "🎉 全パフォーマンステスト成功！"]);
+      } else {
+        setTestResults((prev) => [...prev, "⚠️ 一部テストが失敗しました"]);
+      }
+    } catch (error) {
+      setTestResults((prev) => [
+        ...prev,
+        `❌ パフォーマンステストエラー: ${error}`,
+      ]);
+    } finally {
+      setIsPerformanceTestRunning(false);
+    }
+  };
+
+  /**
    * システムリセット
    */
   const resetSystem = () => {
@@ -563,6 +642,15 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
                 disabled={isTestRunning}
               >
                 👋
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={runPerformanceTest}
+                title="パフォーマンステスト"
+                disabled={isTestRunning || isPerformanceTestRunning}
+              >
+                📊
               </Button>
               <Button
                 variant="ghost"
@@ -707,6 +795,57 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
               )}
             </div>
           </div>
+
+          {/* パフォーマンステスト結果 */}
+          {performanceTestResults && (
+            <div className="space-y-2">
+              <div className="text-sm font-medium">
+                パフォーマンステスト結果
+              </div>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span>総合結果:</span>
+                  <Badge
+                    variant={
+                      performanceTestResults.overallSuccess
+                        ? "default"
+                        : "destructive"
+                    }
+                  >
+                    {performanceTestResults.overallSuccess ? "成功" : "失敗"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>成功率:</span>
+                  <span>
+                    {performanceTestResults.summary.passedTests}/
+                    {performanceTestResults.summary.totalTests}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>平均FPS:</span>
+                  <span>
+                    {performanceTestResults.summary.averageFrameRate.toFixed(1)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>最大計算時間:</span>
+                  <span>
+                    {performanceTestResults.summary.maxCalculationTime.toFixed(
+                      1
+                    )}
+                    ms
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>最大メモリ:</span>
+                  <span>
+                    {performanceTestResults.summary.maxMemoryUsage.toFixed(1)}MB
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* テスト結果 */}
           {testResults.length > 0 && (

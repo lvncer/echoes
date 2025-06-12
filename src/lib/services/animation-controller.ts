@@ -50,6 +50,15 @@ export class AnimationController {
   private calculationStartTime = 0;
   private calculationTime = 0;
   private memoryUsage = 0;
+  private maxCalculationTime = 10; // ms - CPU負荷制限
+  private performanceHistory: Array<{
+    timestamp: number;
+    frameRate: number;
+    calculationTime: number;
+    memoryUsage: number;
+    activeAnimations: number;
+  }> = [];
+  private maxHistorySize = 100; // 最大100フレーム分の履歴
 
   // 設定
   private settings: AnimationControlSettings = {
@@ -604,14 +613,44 @@ export class AnimationController {
         this.frameRate = this.frameCount;
         this.frameCount = 0;
         this.lastFrameTime = currentTime;
+
+        // メモリ使用量監視（概算）
+        if (typeof window !== "undefined" && "memory" in performance) {
+          const memory = (
+            performance as { memory?: { usedJSHeapSize: number } }
+          ).memory;
+          if (memory) {
+            this.memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // MB
+          }
+        }
       }
       this.frameCount++;
+
+      // CPU負荷制限チェック
+      if (this.activeAnimations.size > 3) {
+        console.warn(
+          `🚨 AnimationController: 同時実行アニメーション数制限超過 (${this.activeAnimations.size}/3)`
+        );
+        this.enforceAnimationLimit();
+      }
 
       // アニメーション更新
       this.updateAnimations(currentTime);
 
       // パフォーマンス計算
       this.calculationTime = performance.now() - this.calculationStartTime;
+
+      // パフォーマンス履歴記録
+      this.recordPerformanceMetrics(currentTime);
+
+      // CPU負荷制限チェック
+      if (this.calculationTime > this.maxCalculationTime) {
+        console.warn(
+          `🚨 AnimationController: CPU負荷制限超過 (${this.calculationTime.toFixed(
+            1
+          )}ms > ${this.maxCalculationTime}ms)`
+        );
+      }
 
       this.animationFrame = requestAnimationFrame(animate);
     };
@@ -873,6 +912,96 @@ export class AnimationController {
 
     // 直接検索
     return this.vrmModel.scene.getObjectByName(boneName) || null;
+  }
+
+  /**
+   * アニメーション数制限を強制
+   */
+  private enforceAnimationLimit(): void {
+    if (this.activeAnimations.size <= 3) return;
+
+    // 優先度の低いアニメーションを停止
+    const animations = Array.from(this.activeAnimations.entries()).sort(
+      ([, a], [, b]) => a.priority - b.priority
+    );
+
+    const toRemove = animations.slice(0, this.activeAnimations.size - 3);
+    toRemove.forEach(([id]) => {
+      this.stopAnimation(id);
+    });
+
+    console.log(
+      `🔧 AnimationController: ${toRemove.length}個のアニメーションを停止しました`
+    );
+  }
+
+  /**
+   * パフォーマンス指標を記録
+   */
+  private recordPerformanceMetrics(currentTime: number): void {
+    this.performanceHistory.push({
+      timestamp: currentTime,
+      frameRate: this.frameRate,
+      calculationTime: this.calculationTime,
+      memoryUsage: this.memoryUsage,
+      activeAnimations: this.activeAnimations.size,
+    });
+
+    // 履歴サイズ制限
+    if (this.performanceHistory.length > this.maxHistorySize) {
+      this.performanceHistory.shift();
+    }
+  }
+
+  /**
+   * パフォーマンス履歴を取得
+   */
+  public getPerformanceHistory(): Array<{
+    timestamp: number;
+    frameRate: number;
+    calculationTime: number;
+    memoryUsage: number;
+    activeAnimations: number;
+  }> {
+    return [...this.performanceHistory];
+  }
+
+  /**
+   * パフォーマンス統計を取得
+   */
+  public getPerformanceStats(): {
+    averageFrameRate: number;
+    averageCalculationTime: number;
+    maxCalculationTime: number;
+    averageMemoryUsage: number;
+    maxMemoryUsage: number;
+    averageActiveAnimations: number;
+  } {
+    if (this.performanceHistory.length === 0) {
+      return {
+        averageFrameRate: 0,
+        averageCalculationTime: 0,
+        maxCalculationTime: 0,
+        averageMemoryUsage: 0,
+        maxMemoryUsage: 0,
+        averageActiveAnimations: 0,
+      };
+    }
+
+    const history = this.performanceHistory;
+    return {
+      averageFrameRate:
+        history.reduce((sum, h) => sum + h.frameRate, 0) / history.length,
+      averageCalculationTime:
+        history.reduce((sum, h) => sum + h.calculationTime, 0) / history.length,
+      maxCalculationTime: Math.max(...history.map((h) => h.calculationTime)),
+      averageMemoryUsage:
+        history.reduce((sum, h) => sum + h.memoryUsage, 0) / history.length,
+      maxMemoryUsage: Math.max(...history.map((h) => h.memoryUsage)),
+      averageActiveAnimations:
+        history.reduce((sum, h) => sum + h.activeAnimations, 0) /
+        history.length,
+    };
   }
 
   /**
