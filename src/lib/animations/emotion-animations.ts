@@ -306,22 +306,28 @@ const angryAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            angry: 0,
-            lookUp: 0,
+            neutral: 1,
+            lookDown: 0,
+            blinkLeft: 0,
+            blinkRight: 0,
           },
         },
         {
           time: 400,
           blendShapes: {
-            angry: 0.8,
-            lookUp: 0.6,
+            neutral: 0.3,
+            lookDown: 0.8, // 眉間にしわを寄せる表現
+            blinkLeft: 0.3, // 目を細める
+            blinkRight: 0.3,
           },
         },
         {
           time: 1200,
           blendShapes: {
-            angry: 0.7,
-            lookUp: 0.5,
+            neutral: 0.4,
+            lookDown: 0.7,
+            blinkLeft: 0.2,
+            blinkRight: 0.2,
           },
         },
       ],
@@ -411,7 +417,8 @@ const surprisedAnimation: EmotionAnimation = {
         {
           time: 0,
           blendShapes: {
-            happy: 0, // VRMモデルには'surprised'がないため、代替として'happy'を使用
+            neutral: 1,
+            lookUp: 0,
             blinkLeft: 0,
             blinkRight: 0,
           },
@@ -419,7 +426,8 @@ const surprisedAnimation: EmotionAnimation = {
         {
           time: 200,
           blendShapes: {
-            happy: 0.5, // 軽い表情変化
+            neutral: 0.5,
+            lookUp: 0.7, // 目を見開く表現
             blinkLeft: 0,
             blinkRight: 0,
           },
@@ -427,7 +435,8 @@ const surprisedAnimation: EmotionAnimation = {
         {
           time: 600,
           blendShapes: {
-            happy: 0.3,
+            neutral: 0.7,
+            lookUp: 0.5,
             blinkLeft: 0.8, // 驚きの瞬き
             blinkRight: 0.8,
           },
@@ -435,7 +444,8 @@ const surprisedAnimation: EmotionAnimation = {
         {
           time: 750,
           blendShapes: {
-            happy: 0.2,
+            neutral: 0.8,
+            lookUp: 0.3,
             blinkLeft: 0,
             blinkRight: 0,
           },
@@ -443,7 +453,8 @@ const surprisedAnimation: EmotionAnimation = {
         {
           time: 1000,
           blendShapes: {
-            happy: 0,
+            neutral: 1,
+            lookUp: 0,
             blinkLeft: 0,
             blinkRight: 0,
           },

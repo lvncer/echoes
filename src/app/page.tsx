@@ -134,8 +134,15 @@ export default function Home() {
 
         {/* メインコンテンツ */}
         <div className="flex gap-6 h-[calc(100vh-200px)]">
-          {/* 左側: リップシンク制御パネル */}
+          {/* 左側: 制御パネル */}
           <div className="w-80 flex-shrink-0 space-y-4">
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                アニメーション制御
+              </h2>
+              <AnimationControlPanel />
+            </div>
+
             <div className="bg-white rounded-lg shadow-lg p-4">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 リップシンク制御
@@ -152,13 +159,6 @@ export default function Home() {
                 ブレンドシェイプ制御
               </h2>
               <BlendShapePanel />
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                アニメーション制御
-              </h2>
-              <AnimationControlPanel />
             </div>
           </div>
 

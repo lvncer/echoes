@@ -500,6 +500,12 @@ export class AnimationController {
       emotionAnimation.animations.gesture
     );
 
+    // 表情アニメーションのキーフレームをログ出力
+    console.log(
+      `🎭 表情アニメーションキーフレーム:`,
+      emotionAnimation.animations.facial.keyframes
+    );
+
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
@@ -1078,12 +1084,19 @@ export class AnimationController {
           // 設定後の値を確認
           const newValue = expressionManager.getValue(shapeName) || 0;
 
-          // 値が変更された場合、または値が0でない場合はログ出力
-          if (Math.abs(currentValue - value) > 0.01 || value > 0) {
+          // 感情アニメーション実行時は詳細ログ、それ以外は値が変更された場合のみ
+          const isEmotionAnimation = this.currentEmotionAnimationId !== null;
+          if (
+            isEmotionAnimation ||
+            Math.abs(currentValue - value) > 0.01 ||
+            value > 0
+          ) {
             console.log(
-              `🎭 ブレンドシェイプ適用: ${shapeName} = ${value} (前回: ${currentValue.toFixed(
-                2
-              )}, 設定後: ${newValue.toFixed(2)})`
+              `🎭 ブレンドシェイプ適用: ${shapeName} = ${value.toFixed(
+                3
+              )} (前回: ${currentValue.toFixed(3)}, 設定後: ${newValue.toFixed(
+                3
+              )}) ${isEmotionAnimation ? "[感情アニメーション]" : ""}`
             );
           }
         } else {
