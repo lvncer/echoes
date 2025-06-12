@@ -594,6 +594,13 @@ export class AnimationController {
       easing: "ease-in-out",
     };
 
+    console.log("👁️ 瞬きアニメーション定義:", {
+      duration: blinkAnimation.duration,
+      keyframeCount: blinkAnimation.keyframes.length,
+      intensity: this.settings.autoBlinking.intensity,
+      keyframes: blinkAnimation.keyframes,
+    });
+
     const animationId = this.playAnimation(
       blinkAnimation,
       AnimationPriority.NORMAL
@@ -731,7 +738,23 @@ export class AnimationController {
    * アニメーションを更新
    */
   private updateAnimations(currentTime: number): void {
-    if (!this.vrmModel || !this.isEnabled) return;
+    if (!this.vrmModel || !this.isEnabled) {
+      if (this.activeAnimations.size > 0) {
+        console.log("⚠️ アニメーション更新スキップ:", {
+          hasVRM: !!this.vrmModel,
+          isEnabled: this.isEnabled,
+          activeCount: this.activeAnimations.size,
+        });
+      }
+      return;
+    }
+
+    if (this.activeAnimations.size > 0) {
+      console.log("🎭 アニメーション更新中:", {
+        activeCount: this.activeAnimations.size,
+        currentTime: currentTime.toFixed(0),
+      });
+    }
 
     const completedAnimations: string[] = [];
 
@@ -755,6 +778,11 @@ export class AnimationController {
         : Math.min(instance.currentTime, instance.sequence.duration);
 
       // キーフレーム補間とVRMモデル更新
+      console.log(
+        `🎭 キーフレーム補間: ${
+          instance.sequence.name
+        }, 時間: ${animationTime.toFixed(0)}ms`
+      );
       this.applyKeyFrameInterpolation(instance.sequence, animationTime);
     });
 
@@ -784,7 +812,18 @@ export class AnimationController {
     sequence: AnimationSequence,
     time: number
   ): void {
-    if (!this.vrmModel || sequence.keyframes.length === 0) return;
+    if (!this.vrmModel || sequence.keyframes.length === 0) {
+      console.log("⚠️ キーフレーム補間スキップ:", {
+        hasVRM: !!this.vrmModel,
+        keyframeCount: sequence.keyframes.length,
+        sequenceName: sequence.name,
+      });
+      return;
+    }
+
+    console.log(
+      `🎭 キーフレーム補間実行: ${sequence.name}, キーフレーム数: ${sequence.keyframes.length}`
+    );
 
     // 現在時間に対応するキーフレームを見つける
     let prevFrame: KeyFrame | null = null;
