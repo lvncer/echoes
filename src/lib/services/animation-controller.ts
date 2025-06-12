@@ -697,8 +697,18 @@ export class AnimationController {
       return [];
     }
 
-    const expressions = this.vrmModel.expressionManager.expressions;
-    const expressionNames = Object.keys(expressions);
+    // ExpressionMapから実際のブレンドシェイプ名を取得
+    const manager = this.vrmModel.expressionManager as unknown as {
+      expressionMap?: Record<string, unknown>;
+    };
+    const availableExpressions = manager.expressionMap
+      ? Object.keys(manager.expressionMap)
+      : [];
+
+    console.log(
+      "🔍 ExpressionMapから瞬きブレンドシェイプを検索:",
+      availableExpressions
+    );
 
     // 一般的な瞬きブレンドシェイプ名のパターン
     const blinkPatterns = [
@@ -726,7 +736,7 @@ export class AnimationController {
 
     // パターンマッチングで瞬きブレンドシェイプを検出
     blinkPatterns.forEach((pattern) => {
-      if (expressionNames.includes(pattern)) {
+      if (availableExpressions.includes(pattern)) {
         detectedShapes.push(pattern);
         console.log(`✅ 瞬きブレンドシェイプ発見: ${pattern}`);
       }
@@ -734,7 +744,7 @@ export class AnimationController {
 
     // パターンマッチングで見つからない場合、名前に'blink'や'eye'を含むものを検索
     if (detectedShapes.length === 0) {
-      expressionNames.forEach((name) => {
+      availableExpressions.forEach((name) => {
         const lowerName = name.toLowerCase();
         if (lowerName.includes("blink") || lowerName.includes("eye")) {
           detectedShapes.push(name);
@@ -743,21 +753,22 @@ export class AnimationController {
       });
     }
 
-    // それでも見つからない場合、数字のブレンドシェイプから推測
-    if (
-      detectedShapes.length === 0 &&
-      expressionNames.some((name) => /^\d+$/.test(name))
-    ) {
-      console.log("🔍 数字ブレンドシェイプから瞬き用を推測中...");
-      // 一般的にVRMでは最初の数個が基本表情（瞬きを含む）の場合が多い
-      // とりあえず'0'と'1'を試してみる
-      if (expressionNames.includes("0")) {
-        detectedShapes.push("0");
-        console.log("✅ 推測で瞬きブレンドシェイプ設定: 0");
-      }
-      if (expressionNames.includes("1")) {
-        detectedShapes.push("1");
-        console.log("✅ 推測で瞬きブレンドシェイプ設定: 1");
+    // フォールバック: 数字のブレンドシェイプから推測（最後の手段）
+    if (detectedShapes.length === 0) {
+      const expressions = this.vrmModel.expressionManager.expressions;
+      const expressionNames = Object.keys(expressions);
+
+      if (expressionNames.some((name) => /^\d+$/.test(name))) {
+        console.log("🔍 数字ブレンドシェイプから瞬き用を推測中...");
+        // 一般的にVRMでは最初の数個が基本表情（瞬きを含む）の場合が多い
+        if (expressionNames.includes("0")) {
+          detectedShapes.push("0");
+          console.log("✅ 推測で瞬きブレンドシェイプ設定: 0");
+        }
+        if (expressionNames.includes("1")) {
+          detectedShapes.push("1");
+          console.log("✅ 推測で瞬きブレンドシェイプ設定: 1");
+        }
       }
     }
 
