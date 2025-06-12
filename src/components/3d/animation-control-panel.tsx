@@ -24,6 +24,11 @@ import type {
   AnimationControlSettings,
 } from "@/lib/types/animation";
 import { getAvailableEmotions } from "@/lib/animations/emotion-animations";
+import {
+  getGesturesByCategory,
+  getGestureDescription,
+  type GestureType,
+} from "@/lib/animations/gesture-animations";
 
 interface AnimationControlPanelProps {
   className?: string;
@@ -194,6 +199,12 @@ export function AnimationControlPanel({
       emotion as "neutral" | "happy" | "sad" | "angry" | "surprised",
       settings.emotionAnimations.intensity
     );
+  };
+
+  // ジェスチャーアニメーションテスト
+  const handleTestGestureAnimation = (gestureType: GestureType) => {
+    const controller = getAnimationController();
+    controller.playGestureAnimation(gestureType, settings.gestures.intensity);
   };
 
   // 感情ラベルの取得
@@ -595,6 +606,91 @@ export function AnimationControlPanel({
                         {getEmotionLabel(emotion)}
                       </Button>
                     ))}
+                  </div>
+                </div>
+
+                {/* ジェスチャーアニメーションテスト */}
+                <div className="space-y-2">
+                  <span className="text-xs font-medium">
+                    ジェスチャーアニメーションテスト
+                  </span>
+
+                  {/* 手のジェスチャー */}
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground">
+                      手の動き
+                    </span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {getGesturesByCategory("hand").map((gesture) => (
+                        <Button
+                          key={gesture}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTestGestureAnimation(gesture)}
+                          disabled={
+                            !isEnabled || !settings.gestures.handMovements
+                          }
+                          className="text-xs"
+                          title={getGestureDescription(gesture)}
+                        >
+                          {gesture === "pointRight" && "指差し"}
+                          {gesture === "wave" && "手振り"}
+                          {gesture === "clap" && "拍手"}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 頭のジェスチャー */}
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground">
+                      頭の動き
+                    </span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {getGesturesByCategory("head").map((gesture) => (
+                        <Button
+                          key={gesture}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTestGestureAnimation(gesture)}
+                          disabled={
+                            !isEnabled || !settings.gestures.headMovements
+                          }
+                          className="text-xs"
+                          title={getGestureDescription(gesture)}
+                        >
+                          {gesture === "nod" && "うなずき"}
+                          {gesture === "shake" && "首振り"}
+                          {gesture === "tilt" && "傾き"}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 体のジェスチャー */}
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground">
+                      体の動き
+                    </span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {getGesturesByCategory("body").map((gesture) => (
+                        <Button
+                          key={gesture}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTestGestureAnimation(gesture)}
+                          disabled={
+                            !isEnabled || !settings.gestures.bodyMovements
+                          }
+                          className="text-xs"
+                          title={getGestureDescription(gesture)}
+                        >
+                          {gesture === "leanForward" && "前傾"}
+                          {gesture === "leanBack" && "後退"}
+                          {gesture === "shrug" && "肩すくめ"}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

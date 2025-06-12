@@ -11,6 +11,14 @@ import type {
 import { AnimationPriority } from "@/lib/types/animation";
 import { getEmotionAnimation } from "@/lib/animations/emotion-animations";
 import {
+  getGestureAnimation,
+  type GestureType,
+  type GestureCategory,
+  getAllGestures,
+  getGesturesByCategory as getGesturesByCategoryFromAnimations,
+  getGestureDescription as getGestureDescriptionFromAnimations,
+} from "@/lib/animations/gesture-animations";
+import {
   emotionAnalyzer,
   type EmotionAnalysisResult,
 } from "@/lib/services/emotion-analyzer";
@@ -73,6 +81,7 @@ export class AnimationController {
   private autoBlinkTimer: NodeJS.Timeout | null = null;
   private breathingAnimationId: string | null = null;
   private currentEmotionAnimationId: string | null = null;
+  private currentGestureAnimationId: string | null = null;
   private lastEmotionAnalysis: EmotionAnalysisResult | null = null;
 
   constructor() {
@@ -421,6 +430,122 @@ export class AnimationController {
    */
   public getLastEmotionAnalysis(): EmotionAnalysisResult | null {
     return this.lastEmotionAnalysis;
+  }
+
+  /**
+   * ジェスチャーアニメーションを再生
+   */
+  public playGestureAnimation(
+    gestureType: GestureType,
+    intensity: number = 1.0
+  ): void {
+    if (!this.vrmModel) {
+      console.warn("🎭 AnimationController: VRMモデルが設定されていません");
+      return;
+    }
+
+    const gestureAnimation = getGestureAnimation(gestureType);
+    if (!gestureAnimation) {
+      console.warn(
+        `🎭 AnimationController: ジェスチャーアニメーションが見つかりません: ${gestureType}`
+      );
+      return;
+    }
+
+    // 現在のジェスチャーアニメーションを停止
+    if (this.currentGestureAnimationId) {
+      this.stopAnimation(this.currentGestureAnimationId);
+    }
+
+    // 強度を適用したアニメーションを作成
+    const adjustedAnimation = this.adjustGestureIntensity(
+      gestureAnimation,
+      intensity
+    );
+
+    // ジェスチャーアニメーションを実行
+    const gestureAnimationId = this.playAnimation(
+      adjustedAnimation,
+      AnimationPriority.HIGH
+    );
+    this.currentGestureAnimationId = gestureAnimationId;
+
+    console.log(
+      `🎭 AnimationController: ジェスチャーアニメーション実行 - ${gestureType} (強度: ${intensity.toFixed(
+        2
+      )})`
+    );
+
+    // イベント通知
+    this.events.onGestureAnimationStart?.(gestureType, intensity);
+  }
+
+  /**
+   * 現在のジェスチャーアニメーションを停止
+   */
+  public stopCurrentGestureAnimation(): void {
+    if (this.currentGestureAnimationId) {
+      this.stopAnimation(this.currentGestureAnimationId);
+      this.currentGestureAnimationId = null;
+    }
+  }
+
+  /**
+   * 利用可能なジェスチャー一覧を取得
+   */
+  public getAvailableGestures(): GestureType[] {
+    return getAllGestures();
+  }
+
+  /**
+   * カテゴリ別のジェスチャー一覧を取得
+   */
+  public getGesturesByCategory(category: GestureCategory): GestureType[] {
+    return getGesturesByCategoryFromAnimations(category);
+  }
+
+  /**
+   * ジェスチャーの説明を取得
+   */
+  public getGestureDescription(gestureType: GestureType): string {
+    return getGestureDescriptionFromAnimations(gestureType);
+  }
+
+  /**
+   * ジェスチャーアニメーションの強度を調整
+   */
+  private adjustGestureIntensity(
+    animation: AnimationSequence,
+    intensity: number
+  ): AnimationSequence {
+    return {
+      ...animation,
+      keyframes: animation.keyframes.map((keyframe) => ({
+        ...keyframe,
+        bones: keyframe.bones
+          ? Object.fromEntries(
+              Object.entries(keyframe.bones).map(([boneName, transform]) => [
+                boneName,
+                {
+                  position: transform.position?.map((v) => v * intensity) as [
+                    number,
+                    number,
+                    number
+                  ],
+                  rotation: transform.rotation?.map((v) => v * intensity) as [
+                    number,
+                    number,
+                    number
+                  ],
+                  scale: transform.scale?.map(
+                    (v) => 1 + (v - 1) * intensity
+                  ) as [number, number, number],
+                },
+              ])
+            )
+          : undefined,
+      })),
+    };
   }
 
   /**
@@ -819,5 +944,36 @@ export class AnimationController {
     this.vrmModel = null;
 
     console.log("🧹 AnimationController: クリーンアップ完了");
+  }
+}
+
+// グローバルインスタンス管理
+declare global {
+  interface Window {
+    __animationController?: AnimationController;
+  }
+}
+
+// ヘルパー関数のエクスポート
+export function getAvailableGestures(): GestureType[] {
+  return getAllGestures();
+}
+
+export function getGesturesByCategory(
+  category: GestureCategory
+): GestureType[] {
+  return getGesturesByCategoryFromAnimations(category);
+}
+
+export function getGestureDescription(gestureType: GestureType): string {
+  return getGestureDescriptionFromAnimations(gestureType);
+}
+
+export function playGestureAnimation(
+  gestureType: GestureType,
+  intensity: number = 1.0
+): void {
+  if (typeof window !== "undefined" && window.__animationController) {
+    window.__animationController.playGestureAnimation(gestureType, intensity);
   }
 }

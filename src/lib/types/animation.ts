@@ -156,4 +156,6 @@ export interface AnimationEvents {
   onAnimationResume?: (animationId: string) => void;
   onAnimationError?: (animationId: string, error: string) => void;
   onEmotionAnimationStart?: (emotion: string, intensity: number) => void;
+  onGestureAnimationStart?: (gestureType: string, intensity: number) => void;
+  onGestureAnimationEnd?: (gestureType: string) => void;
 }
