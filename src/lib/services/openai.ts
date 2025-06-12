@@ -65,12 +65,28 @@ export class OpenAIService {
         content: msg.content,
       }));
 
+      // システムプロンプトを先頭に追加（マークダウンなしの普通の文章で応答するよう指示）
+      const systemMessage = {
+        role: "system" as const,
+        content: `
+        あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
+
+        1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
+        2. 普通の文章のみで応答する
+        3. 改行は自然な文章の区切りでのみ使用する
+        4. 親しみやすく、自然な日本語で会話する
+        5. 簡潔で分かりやすい回答を心がける`,
+      };
+
+      // システムメッセージを先頭に追加
+      const finalMessages = [systemMessage, ...messages];
+
       // 設定をマージ
       const config = { ...this.config, ...request.config };
 
       const completion = await this.client.chat.completions.create({
         model: config.model,
-        messages,
+        messages: finalMessages,
         max_tokens: config.maxTokens,
         temperature: config.temperature,
       });
@@ -132,11 +148,25 @@ export class OpenAIService {
         content: msg.content,
       }));
 
+      // システムプロンプトを先頭に追加
+      const systemMessage = {
+        role: "system" as const,
+        content: `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください：
+
+1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
+2. 普通の文章のみで応答する
+3. 改行は自然な文章の区切りでのみ使用する
+4. 親しみやすく、自然な日本語で会話する
+5. 簡潔で分かりやすい回答を心がける`,
+      };
+
+      const finalMessages = [systemMessage, ...messages];
+
       const config = { ...this.config, ...request.config };
 
       const stream = await this.client.chat.completions.create({
         model: config.model,
-        messages,
+        messages: finalMessages,
         max_tokens: config.maxTokens,
         temperature: config.temperature,
         stream: true,

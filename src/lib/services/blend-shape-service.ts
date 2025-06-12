@@ -7,6 +7,7 @@ import { VRM } from "@pixiv/three-vrm";
 export class VRMBlendShapeService {
   private vrm: VRM | null = null;
   private currentWeights: Record<string, number> = {};
+  private hasLoggedAvailableShapes = false;
 
   /**
    * VRMモデルを設定
@@ -42,20 +43,94 @@ export class VRMBlendShapeService {
       // ウェイトを0-1の範囲にクランプ
       const clampedWeight = Math.max(0, Math.min(1, weight));
 
-      // ブレンドシェイプを設定
-      this.vrm.expressionManager.setValue(name, clampedWeight);
+      // ニコニ立体ちゃん対応: 標準名からモデル固有名にマッピング
+      const actualName = this.mapBlendShapeName(name);
 
-      // 現在のウェイトを記録
+      // ブレンドシェイプを設定
+      this.vrm.expressionManager.setValue(actualName, clampedWeight);
+
+      // 現在のウェイトを記録（標準名で記録）
       this.currentWeights[name] = clampedWeight;
 
-      // 更新を適用
+      // 更新を適用（複数回実行して確実に反映）
       this.vrm.expressionManager.update();
 
-      // デバッグログ
-      console.log(`ブレンドシェイプ設定: ${name} = ${clampedWeight}`);
+      // 設定後の値を確認
+      const actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
+
+      // デバッグログ（設定値と実際の値を比較）
+      if (actualName !== name) {
+        console.log(
+          `ブレンドシェイプマッピング: ${name} → ${actualName} = ${clampedWeight} (実際: ${actualValue})`
+        );
+      } else {
+        console.log(
+          `ブレンドシェイプ設定: ${name} = ${clampedWeight} (実際: ${actualValue})`
+        );
+      }
+
+      // 値が正しく設定されていない場合は警告
+      if (Math.abs(actualValue - clampedWeight) > 0.01) {
+        console.warn(
+          `⚠️ ブレンドシェイプ値の不一致: ${actualName} 設定=${clampedWeight}, 実際=${actualValue}`
+        );
+      }
     } catch (error) {
       console.warn(`Failed to set blend shape ${name}:`, error);
     }
+  }
+
+  /**
+   * 標準ブレンドシェイプ名をモデル固有名にマッピング
+   */
+  private mapBlendShapeName(standardName: string): string {
+    if (!this.vrm?.expressionManager) {
+      return standardName;
+    }
+
+    // 利用可能なブレンドシェイプ名を取得
+    const availableShapes = this.getAvailableBlendShapes();
+
+    // 既に存在する場合はそのまま返す
+    if (availableShapes.includes(standardName)) {
+      return standardName;
+    }
+
+    // ニコニ立体ちゃん対応マッピング
+    const mappings: Record<string, string[]> = {
+      A: ["あ", "mouth_a", "Mouth_A", "vrc.v_aa", "aa"],
+      I: ["い", "mouth_i", "Mouth_I", "vrc.v_ih", "ih"],
+      U: ["う", "mouth_u", "Mouth_U", "vrc.v_ou", "ou"],
+      E: ["え", "mouth_e", "Mouth_E", "vrc.v_ee", "ee"],
+      O: ["お", "mouth_o", "Mouth_O", "vrc.v_oh", "oh"],
+
+      aa: ["A", "あ", "mouth_a", "Mouth_A", "vrc.v_aa"],
+      ih: ["I", "い", "mouth_i", "Mouth_I", "vrc.v_ih"],
+      ou: ["U", "う", "mouth_u", "Mouth_U", "vrc.v_ou"],
+      ee: ["E", "え", "mouth_e", "Mouth_E", "vrc.v_ee"],
+      oh: ["O", "お", "mouth_o", "Mouth_O", "vrc.v_oh"],
+
+      Joy: ["喜び", "happy", "Happy"],
+      Angry: ["怒り", "angry", "Angry"],
+      Sorrow: ["悲しみ", "sad", "Sad"],
+      Fun: ["楽しい", "surprised", "Surprised"],
+      Blink: ["まばたき", "blink"],
+      BlinkL: ["左まばたき", "blinkLeft"],
+      BlinkR: ["右まばたき", "blinkRight"],
+    };
+
+    // マッピングを試行
+    const alternatives = mappings[standardName];
+    if (alternatives) {
+      for (const alt of alternatives) {
+        if (availableShapes.includes(alt)) {
+          return alt;
+        }
+      }
+    }
+
+    // マッピングが見つからない場合は元の名前を返す
+    return standardName;
   }
 
   /**
@@ -81,6 +156,7 @@ export class VRMBlendShapeService {
       // 利用可能なブレンドシェイプが見つからない場合は標準的な名前を試す
       if (availableShapes.length === 0) {
         const standardShapes = [
+          // 標準的なVRM形式
           "A",
           "I",
           "U",
@@ -91,6 +167,32 @@ export class VRMBlendShapeService {
           "ou",
           "ee",
           "oh", // VRM 1.0形式
+
+          // ニコニ立体ちゃん対応（ひらがな）
+          "あ",
+          "い",
+          "う",
+          "え",
+          "お",
+
+          // その他の一般的な形式
+          "mouth_a",
+          "mouth_i",
+          "mouth_u",
+          "mouth_e",
+          "mouth_o",
+          "Mouth_A",
+          "Mouth_I",
+          "Mouth_U",
+          "Mouth_E",
+          "Mouth_O",
+          "vrc.v_aa",
+          "vrc.v_ih",
+          "vrc.v_ou",
+          "vrc.v_ee",
+          "vrc.v_oh",
+
+          // 感情表現
           "Joy",
           "Angry",
           "Sorrow",
@@ -99,12 +201,23 @@ export class VRMBlendShapeService {
           "angry",
           "sad",
           "surprised", // 英語名
+          "喜び",
+          "怒り",
+          "悲しみ",
+          "楽しい", // 日本語名
+
+          // まばたき
           "Blink",
           "BlinkL",
           "BlinkR",
           "blink",
           "blinkLeft",
           "blinkRight", // 英語名
+          "まばたき",
+          "左まばたき",
+          "右まばたき", // 日本語名
+
+          // 視線
           "LookUp",
           "LookDown",
           "LookLeft",
@@ -113,6 +226,10 @@ export class VRMBlendShapeService {
           "lookDown",
           "lookLeft",
           "lookRight", // 英語名
+          "上",
+          "下",
+          "左",
+          "右", // 日本語名
         ];
 
         // 実際に設定可能かテストして追加
@@ -123,7 +240,11 @@ export class VRMBlendShapeService {
         }
       }
 
-      console.log("利用可能なブレンドシェイプ:", availableShapes);
+      // デバッグログは初回のみ出力
+      if (availableShapes.length > 0 && !this.hasLoggedAvailableShapes) {
+        console.log("利用可能なブレンドシェイプ:", availableShapes);
+        this.hasLoggedAvailableShapes = true;
+      }
       return availableShapes;
     } catch (error) {
       console.warn("Failed to get available blend shapes:", error);
@@ -235,21 +356,165 @@ export class VRMBlendShapeService {
    * VRMモデルの基本情報を取得
    */
   getVRMInfo(): {
+    hasVRM: boolean;
     hasBlendShapeProxy: boolean;
+    availableBlendShapes: string[];
     availableShapesCount: number;
     currentActiveShapes: number;
+    currentWeights: Record<string, number>;
   } {
+    const hasVRM = !!this.vrm;
     const hasBlendShapeProxy = !!this.vrm?.expressionManager;
-    const availableShapes = this.getAvailableBlendShapes();
+    const availableBlendShapes = this.getAvailableBlendShapes();
     const activeShapes = Object.values(this.currentWeights).filter(
       (weight) => weight > 0
     );
 
     return {
+      hasVRM,
       hasBlendShapeProxy,
-      availableShapesCount: availableShapes.length,
+      availableBlendShapes,
+      availableShapesCount: availableBlendShapes.length,
       currentActiveShapes: activeShapes.length,
+      currentWeights: { ...this.currentWeights },
     };
+  }
+
+  /**
+   * ブレンドシェイプのテスト実行
+   */
+  async testBlendShapes(): Promise<{
+    success: boolean;
+    results: Array<{
+      name: string;
+      available: boolean;
+      testValue: number;
+      error?: string;
+    }>;
+  }> {
+    const results: Array<{
+      name: string;
+      available: boolean;
+      testValue: number;
+      error?: string;
+    }> = [];
+
+    if (!this.vrm?.expressionManager) {
+      return {
+        success: false,
+        results: [
+          {
+            name: "system",
+            available: false,
+            testValue: 0,
+            error: "VRMモデルまたはExpressionManagerが利用できません",
+          },
+        ],
+      };
+    }
+
+    // 基本的な口の形のブレンドシェイプをテスト
+    const testShapes = ["A", "I", "U", "E", "O", "aa", "ih", "ou", "ee", "oh"];
+
+    for (const shapeName of testShapes) {
+      try {
+        // マッピングされた実際の名前を取得
+        const actualName = this.mapBlendShapeName(shapeName);
+
+        // 現在の値を保存
+        const originalValue =
+          this.vrm.expressionManager.getValue(actualName) || 0;
+
+        // テスト値を設定
+        const testValue = 0.5;
+        this.vrm.expressionManager.setValue(actualName, testValue);
+        this.vrm.expressionManager.update();
+
+        // 少し待機
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        // 設定された値を確認
+        const actualValue =
+          this.vrm.expressionManager.getValue(actualName) || 0;
+        const isAvailable = Math.abs(actualValue - testValue) < 0.1;
+
+        results.push({
+          name: `${shapeName}${
+            actualName !== shapeName ? ` → ${actualName}` : ""
+          }`,
+          available: isAvailable,
+          testValue: actualValue,
+        });
+
+        // 元の値に戻す
+        this.vrm.expressionManager.setValue(actualName, originalValue);
+        this.vrm.expressionManager.update();
+
+        // 少し待機
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      } catch (error) {
+        results.push({
+          name: shapeName,
+          available: false,
+          testValue: 0,
+          error: error instanceof Error ? error.message : "不明なエラー",
+        });
+      }
+    }
+
+    const successCount = results.filter((r) => r.available).length;
+    const success = successCount > 0;
+
+    console.log(
+      `ブレンドシェイプテスト完了: ${successCount}/${results.length} 成功`
+    );
+    console.table(results);
+
+    return {
+      success,
+      results,
+    };
+  }
+
+  /**
+   * デモンストレーション用のアニメーション実行
+   */
+  async runDemoAnimation(): Promise<void> {
+    if (!this.vrm?.expressionManager) {
+      console.warn("VRMモデルが利用できません");
+      return;
+    }
+
+    console.log("デモアニメーション開始...");
+
+    const shapes = ["A", "I", "U", "E", "O"];
+    const duration = 1000; // 1秒
+
+    for (const shape of shapes) {
+      if (this.isBlendShapeAvailable(shape)) {
+        // フェードイン
+        for (let i = 0; i <= 10; i++) {
+          const weight = i / 10;
+          this.setBlendShapeWeight(shape, weight);
+          await new Promise((resolve) => setTimeout(resolve, duration / 20));
+        }
+
+        // 少し保持
+        await new Promise((resolve) => setTimeout(resolve, duration / 4));
+
+        // フェードアウト
+        for (let i = 10; i >= 0; i--) {
+          const weight = i / 10;
+          this.setBlendShapeWeight(shape, weight);
+          await new Promise((resolve) => setTimeout(resolve, duration / 20));
+        }
+
+        // 少し待機
+        await new Promise((resolve) => setTimeout(resolve, duration / 4));
+      }
+    }
+
+    console.log("デモアニメーション完了");
   }
 }
 

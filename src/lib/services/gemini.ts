@@ -83,17 +83,28 @@ export class GeminiService {
   }
 
   /**
-   * ChatMessageをGemini用のプロンプトに変換
+   * メッセージ履歴をGemini用のプロンプトに変換
    */
   private convertMessagesToPrompt(messages: ChatMessage[]): string {
-    const conversationHistory = messages
-      .map((message) => {
-        const role = message.role === "user" ? "User" : "Assistant";
-        return `${role}: ${message.content}`;
-      })
-      .join("\n\n");
+    // システムプロンプトを追加（マークダウンなしの普通の文章で応答するよう指示）
+    const systemPrompt = `
+    あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
 
-    return conversationHistory;
+    1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
+    2. 普通の文章のみで応答する
+    3. 改行は自然な文章の区切りでのみ使用する
+    4. 親しみやすく、自然な日本語で会話する
+    5. 簡潔で分かりやすい回答を心がける
+    `;
+
+    const conversationHistory = messages
+      .map((msg) => {
+        const role = msg.role === "user" ? "ユーザー" : "アシスタント";
+        return `${role}: ${msg.content}`;
+      })
+      .join("\n");
+
+    return systemPrompt + conversationHistory + "\n\nアシスタント: ";
   }
 
   /**

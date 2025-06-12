@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { lipSyncService } from "@/lib/services/lipsync-service";
-import { Mic, MicOff, Settings, Activity, Volume2 } from "lucide-react";
+import { Mic, MicOff, Activity, Volume2 } from "lucide-react";
 
 interface LipSyncPanelProps {
   className?: string;
@@ -17,7 +17,6 @@ interface LipSyncPanelProps {
  * リップシンク制御パネル
  */
 export function LipSyncPanel({ className }: LipSyncPanelProps) {
-  const [isVisible, setIsVisible] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState(lipSyncService.getStatus());
@@ -87,38 +86,13 @@ export function LipSyncPanel({ className }: LipSyncPanelProps) {
     lipSyncService.setVolumeThreshold(value[0]);
   };
 
-  if (!isVisible) {
-    return (
-      <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsVisible(true)}
-          className="bg-background/80 backdrop-blur-sm"
-        >
-          <Mic className="w-4 h-4 mr-2" />
-          リップシンク
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className={`fixed bottom-4 right-4 z-50 w-80 ${className}`}>
-      <Card className="bg-background/90 backdrop-blur-sm">
+    <div className={className}>
+      <Card className="bg-background/95">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium">
-              リップシンク制御
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsVisible(false)}
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
+          <CardTitle className="text-sm font-medium">
+            基本リップシンク
+          </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">

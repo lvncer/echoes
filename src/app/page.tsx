@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Model3DViewer } from "@/components/3d/model-3d-viewer";
 import { BlendShapePanel } from "@/components/3d/blend-shape-panel";
 import { LipSyncPanel } from "@/components/3d/lipsync-panel";
 import { AdvancedLipSyncPanel } from "@/components/3d/advanced-lipsync-panel";
+import { IntegratedLipSyncPanel } from "@/components/3d/integrated-lipsync-panel";
+import { SimpleDebugPanel } from "@/components/3d/simple-debug-panel";
 import Chat from "../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
-import { Box, MessageCircle, Settings, Mic } from "lucide-react";
+import { Box, MessageCircle, Settings, Mic, Download } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
+import { useModelStore } from "@/stores/model-store";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
+  const [isHydrated, setIsHydrated] = useState(false);
   const [chatMessages, setChatMessages] = useState<
     Array<{
       role: "user" | "assistant";
@@ -21,61 +26,126 @@ export default function Home() {
     }>
   >([]);
 
+  // モデルストアからデフォルトモデル初期化関数を取得
+  const { initializeDefaultModel, loadDefaultModel, isLoading, currentModel } =
+    useModelStore();
+
+  // 音声チャット履歴のスクロール制御
+  const chatHistoryRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const scrollPositionRef = useRef<number>(0);
+
+  // ハイドレーション完了を検知
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // アプリケーション起動時にデフォルトモデルを初期化
+  useEffect(() => {
+    // 少し遅延させてストアの復元を待つ
+    const timer = setTimeout(() => {
+      console.log("デフォルトモデル初期化を実行");
+      initializeDefaultModel();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [initializeDefaultModel]);
+
+  // デバッグ用：現在のモデル状態をログ出力
+  useEffect(() => {
+    console.log("現在のモデル状態:", currentModel ? currentModel.name : "なし");
+  }, [currentModel]);
+
+  // メッセージ追加時のスクロール制御
+  useEffect(() => {
+    if (chatMessages.length > 0 && chatHistoryRef.current) {
+      const container = chatHistoryRef.current;
+
+      if (shouldAutoScroll) {
+        // 最下部にスクロール（スムーズに）
+        setTimeout(() => {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 50);
+      } else {
+        // ユーザーが手動スクロールしている場合は位置を保持
+        setTimeout(() => {
+          container.scrollTop = scrollPositionRef.current;
+        }, 0);
+      }
+    }
+  }, [chatMessages, shouldAutoScroll]);
+
+  // ユーザーが手動でスクロールした場合の検知
+  const handleScroll = useCallback(() => {
+    if (!chatHistoryRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = chatHistoryRef.current;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 20; // 20pxの余裕
+
+    // スクロール位置を保存
+    scrollPositionRef.current = scrollTop;
+    setShouldAutoScroll(isAtBottom);
+  }, []);
+
+  // メッセージ追加前のスクロール位置を保存
+  const preserveScrollPosition = useCallback(() => {
+    if (chatHistoryRef.current && !shouldAutoScroll) {
+      scrollPositionRef.current = chatHistoryRef.current.scrollTop;
+    }
+  }, [shouldAutoScroll]);
+
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-4 h-screen flex flex-col">
+      <div className="container mx-auto p-4">
         {/* ヘッダー */}
-        <header className="mb-4">
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">E</span>
-            </div>
-            Echoes
-            <span className="text-lg font-normal text-gray-500">
-              - AI Avatar Chat
+        <header className="mb-6">
+          <div className="flex items-center gap-3">
+            <Box className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Echoes</h1>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              v1.0.0
             </span>
-          </h1>
+          </div>
+          <p className="text-gray-600 mt-2">
+            3D モデルと AI によるリアルタイム音声会話アプリケーション
+          </p>
         </header>
 
         {/* メインコンテンツ */}
-        <div className="flex-1 flex gap-4 min-h-0">
-          {/* 左側: 3Dビューアー */}
-          <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-lg shadow-lg h-full p-4 relative">
-              <div className="flex items-center gap-2 mb-4">
-                <Box className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-800">
-                  3D Avatar
-                </h2>
+        <div className="flex gap-6 h-[calc(100vh-200px)]">
+          {/* 左側: リップシンク制御パネル */}
+          <div className="w-80 flex-shrink-0 space-y-4">
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                リップシンク制御
+              </h2>
+              <div className="space-y-4">
+                <LipSyncPanel />
+                <AdvancedLipSyncPanel />
+                <IntegratedLipSyncPanel />
               </div>
+            </div>
 
-              <div className="h-[calc(100%-3rem)]">
-                <ErrorBoundary>
-                  <Model3DViewer
-                    className="w-full h-full"
-                    onModelLoad={() => {
-                      // モデル読み込み完了時の処理
-                    }}
-                    onError={(error) => {
-                      console.error("モデル読み込みエラー:", error);
-                    }}
-                  />
-                </ErrorBoundary>
-              </div>
-
-              {/* ブレンドシェイプ制御パネル */}
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                ブレンドシェイプ制御
+              </h2>
               <BlendShapePanel />
             </div>
           </div>
 
-          {/* リップシンク制御パネル - 3Dビューアーエリア外に配置 */}
-          <div className="fixed bottom-4 left-4 z-40 space-y-4">
-            <LipSyncPanel />
-            <AdvancedLipSyncPanel />
+          {/* 中央: 3Dビューアー */}
+          <div className="flex-1 bg-white rounded-lg shadow-lg overflow-hidden">
+            <ErrorBoundary>
+              <Model3DViewer />
+            </ErrorBoundary>
           </div>
 
           {/* 右側: チャット・設定 */}
-          <div className="w-96 flex-shrink-0">
+          <div className="w-80 flex-shrink-0 relative">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
@@ -113,6 +183,8 @@ export default function Home() {
                     <AudioChatControls
                       onTranscriptReceived={(transcript, isFinal) => {
                         if (isFinal) {
+                          // メッセージ追加前にスクロール位置を保存
+                          preserveScrollPosition();
                           setChatMessages((prev) => [
                             ...prev,
                             {
@@ -124,6 +196,8 @@ export default function Home() {
                         }
                       }}
                       onAIResponseReceived={(response) => {
+                        // メッセージ追加前にスクロール位置を保存
+                        preserveScrollPosition();
                         setChatMessages((prev) => [
                           ...prev,
                           {
@@ -137,7 +211,16 @@ export default function Home() {
                   </ErrorBoundary>
 
                   {/* 音声チャット履歴 */}
-                  <div className="bg-white rounded-lg shadow-lg p-4 flex-1 overflow-y-auto">
+                  <div
+                    className="bg-white rounded-lg shadow-lg p-4 flex-1 overflow-y-auto"
+                    ref={chatHistoryRef}
+                    onScroll={handleScroll}
+                    style={{
+                      scrollBehavior: "smooth",
+                      scrollPaddingTop: "1rem",
+                      scrollPaddingBottom: "1rem",
+                    }}
+                  >
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                       音声チャット履歴
                     </h3>
@@ -149,20 +232,27 @@ export default function Home() {
                       ) : (
                         chatMessages.map((message, index) => (
                           <div
-                            key={index}
+                            key={`${
+                              message.role
+                            }-${index}-${message.timestamp.getTime()}`}
                             className={`p-3 rounded-lg ${
                               message.role === "user"
                                 ? "bg-blue-50 border-l-4 border-blue-400"
                                 : "bg-green-50 border-l-4 border-green-400"
                             }`}
+                            tabIndex={-1}
+                            style={{ outline: "none" }}
                           >
                             <div className="flex justify-between items-start mb-1">
                               <span className="font-medium text-sm">
                                 {message.role === "user" ? "あなた" : "AI"}
                               </span>
-                              <span className="text-xs text-gray-500">
-                                {message.timestamp.toLocaleTimeString()}
-                              </span>
+                              {/* 時刻表示 - ハイドレーション後にのみ表示 */}
+                              {isHydrated && (
+                                <span className="text-xs text-gray-500">
+                                  {message.timestamp.toLocaleTimeString()}
+                                </span>
+                              )}
                             </div>
                             <p className="text-sm text-gray-700">
                               {message.content}
@@ -221,9 +311,31 @@ export default function Home() {
                       </div>
                     </div>
 
+                    <div>
+                      <h4 className="font-medium text-gray-700 mb-2">
+                        デフォルトモデル
+                      </h4>
+                      <div className="space-y-2">
+                        <Button
+                          onClick={loadDefaultModel}
+                          disabled={isLoading}
+                          className="w-full flex items-center gap-2"
+                          variant="outline"
+                        >
+                          <Download className="w-4 h-4" />
+                          {isLoading
+                            ? "読み込み中..."
+                            : "ニコニ立体ちゃんを読み込み"}
+                        </Button>
+                        <p className="text-xs text-gray-500">
+                          テスト用のVRMモデルを読み込みます
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="pt-4 border-t border-gray-200">
                       <p className="text-xs text-gray-500">
-                        3Dモデルは左側のパネルからアップロードできます。
+                        3Dモデルは中央のビューアーエリアにドラッグ&ドロップできます。
                         VRM、glTF、GLB形式に対応しています。
                       </p>
                     </div>
@@ -231,6 +343,11 @@ export default function Home() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            {/* デバッグパネル */}
+            <div className="absolute bottom-4 right-4 z-10">
+              <SimpleDebugPanel />
+            </div>
           </div>
         </div>
 

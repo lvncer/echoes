@@ -15,6 +15,7 @@ export interface ModelInfo {
   thumbnail?: string;
   createdAt: Date;
   lastUsed?: Date;
+  isDefault?: boolean; // デフォルトモデルかどうか
 }
 
 // VRMモデル固有の情報
@@ -129,8 +130,8 @@ export const DEFAULT_SCENE_CONFIG: SceneConfig = {
   ambientLightIntensity: 0.6,
   directionalLightIntensity: 0.8,
   directionalLightPosition: [1, 1, 1],
-  cameraPosition: [0, 1.6, 3],
-  cameraTarget: [0, 1, 0],
+  cameraPosition: [0, 1.6, 1.2], // より顔に近づける（Z軸を1.8から1.2に変更）
+  cameraTarget: [0, 1.5, 0], // 顔の中心をターゲットに（Y軸を1.4から1.5に調整）
   enableShadows: true,
   enableOrbitControls: true,
 };
@@ -139,8 +140,8 @@ export const DEFAULT_CAMERA_CONFIG: CameraControlsConfig = {
   enableZoom: true,
   enablePan: true,
   enableRotate: true,
-  minDistance: 1,
-  maxDistance: 10,
+  minDistance: 0.5, // さらに近くまで寄れるように（0.8から0.5に変更）
+  maxDistance: 8,
   minPolarAngle: 0,
   maxPolarAngle: Math.PI,
   autoRotate: false,

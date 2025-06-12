@@ -49,6 +49,9 @@ export async function loadVRMModel(
       );
     }
 
+    // VRMモデルが後ろ向きになる問題を修正（Y軸で180度回転）
+    vrm.scene.rotation.y = Math.PI;
+
     // スケール・位置・回転の適用
     if (options.scale) {
       vrm.scene.scale.setScalar(options.scale);

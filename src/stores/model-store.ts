@@ -11,6 +11,7 @@ import {
   DEFAULT_CAMERA_CONFIG,
   DEFAULT_ANIMATION_STATE,
 } from "@/lib/types/3d";
+import { loadModel } from "@/lib/3d/loaders";
 
 interface ModelStore extends ModelDisplayState {
   // アクション
@@ -29,6 +30,10 @@ interface ModelStore extends ModelDisplayState {
   loadModelFromFile: (file: File) => Promise<ModelLoadResult>;
   switchToModel: (modelId: string) => void;
   getModelById: (modelId: string) => Model3D | undefined;
+
+  // デフォルトモデル
+  loadDefaultModel: () => Promise<void>;
+  initializeDefaultModel: () => Promise<void>;
 
   // アニメーション制御
   playAnimation: (animationName?: string) => void;
@@ -164,6 +169,95 @@ export const useModelStore = create<ModelStore>()(
         return get().availableModels.find((m) => m.id === modelId);
       },
 
+      // デフォルトモデル読み込み
+      loadDefaultModel: async () => {
+        try {
+          console.log("デフォルトモデルの読み込みを開始します");
+          set({ isLoading: true, error: undefined });
+
+          // デフォルトモデルのパス
+          const defaultModelPath = "/models/test/AliciaSolid.vrm";
+          console.log("デフォルトモデルパス:", defaultModelPath);
+
+          // ファイルをfetchで取得
+          const response = await fetch(defaultModelPath);
+          if (!response.ok) {
+            throw new Error(
+              `デフォルトモデルの読み込みに失敗しました: ${response.status}`
+            );
+          }
+
+          console.log("デフォルトモデルファイルの取得に成功");
+
+          // Blobからファイルオブジェクトを作成
+          const blob = await response.blob();
+          const file = new File([blob], "AliciaSolid.vrm", {
+            type: "application/octet-stream",
+          });
+
+          console.log(
+            "ファイルオブジェクト作成完了:",
+            file.name,
+            file.size,
+            "bytes"
+          );
+
+          // モデルを読み込み
+          const result = await loadModel(file);
+
+          if (result.success && result.model) {
+            // デフォルトモデルとしてマーク
+            const defaultModel = {
+              ...result.model,
+              name: "ニコニ立体ちゃん（デフォルト）",
+              isDefault: true,
+            };
+
+            // ストアに追加
+            get().addModel(defaultModel);
+            get().setCurrentModel(defaultModel);
+
+            console.log("デフォルトモデルを読み込みました:", defaultModel.name);
+            console.log("モデル形式:", defaultModel.format);
+            console.log(
+              "VRMオブジェクト:",
+              defaultModel.format === "vrm" ? "存在" : "なし"
+            );
+          } else {
+            throw new Error(
+              result.error || "デフォルトモデルの読み込みに失敗しました"
+            );
+          }
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : "デフォルトモデルの読み込みエラー";
+          console.error(
+            "デフォルトモデルの読み込みに失敗しました:",
+            errorMessage,
+            error
+          );
+          set({ error: errorMessage });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      initializeDefaultModel: async () => {
+        const state = get();
+
+        // 現在のモデルが存在しない場合のみデフォルトモデルを読み込み
+        if (!state.currentModel) {
+          console.log(
+            "現在のモデルが存在しないため、デフォルトモデルを読み込みます"
+          );
+          await get().loadDefaultModel();
+        } else {
+          console.log("現在のモデルが存在します:", state.currentModel.name);
+        }
+      },
+
       // アニメーション制御
       playAnimation: (animationName) =>
         set((state) => ({
@@ -251,6 +345,11 @@ export const useModelStore = create<ModelStore>()(
                 ? new Date(model.lastUsed)
                 : model.lastUsed,
           }));
+
+          console.log(
+            "ストア復元完了 - 利用可能なモデル数:",
+            state.availableModels.length
+          );
         }
       },
     }

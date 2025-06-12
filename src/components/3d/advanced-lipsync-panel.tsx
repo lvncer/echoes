@@ -179,7 +179,7 @@ export function AdvancedLipSyncPanel() {
   };
 
   return (
-    <Card className="w-80 bg-white/90 backdrop-blur-sm">
+    <Card className="bg-background/95">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Brain className="h-4 w-4" />

@@ -155,13 +155,18 @@ export class LipSyncService {
     this.targetMouthOpening = 0;
     this.currentPhoneme = "sil";
 
-    // 口関連のブレンドシェイプをリセット
+    // VRM 1.0形式も含めた口関連のブレンドシェイプをリセット
     const resetWeights = {
       A: 0,
       I: 0,
       U: 0,
       E: 0,
       O: 0,
+      aa: 0,
+      ih: 0,
+      ou: 0,
+      ee: 0,
+      oh: 0,
     };
 
     blendShapeService.setMultipleBlendShapes(resetWeights);

@@ -96,7 +96,7 @@ export function BlendShapePanel({ className }: BlendShapePanelProps) {
 
   if (!isVisible) {
     return (
-      <div className={`fixed top-4 right-4 z-50 ${className}`}>
+      <div className={`fixed top-4 left-4 z-50 ${className}`}>
         <Button
           variant="outline"
           size="sm"
@@ -111,7 +111,7 @@ export function BlendShapePanel({ className }: BlendShapePanelProps) {
   }
 
   return (
-    <div className={`fixed top-4 right-4 z-50 w-80 ${className}`}>
+    <div className={`fixed top-4 left-4 z-50 w-80 ${className}`}>
       <Card className="bg-background/90 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">

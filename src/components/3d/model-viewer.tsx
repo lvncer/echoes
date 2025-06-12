@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { VRM } from "@pixiv/three-vrm";
 import { Group } from "three";
 import { Model3D, VRMModelInfo, GLTFModelInfo } from "@/lib/types/3d";
+import { blendShapeService } from "@/lib/services/blend-shape-service";
 
 interface ModelViewerProps {
   model: Model3D;
@@ -45,8 +46,12 @@ function VRMViewer({
   useEffect(() => {
     if (model.vrm) {
       vrmRef.current = model.vrm;
+      
+      // ブレンドシェイプサービスにVRMモデルを登録
+      blendShapeService.setVRM(model.vrm);
+      console.log("🎭 VRMモデルをブレンドシェイプサービスに登録:", model.name);
     }
-  }, [model.vrm]);
+  }, [model.vrm, model.name]);
 
   // アニメーションループ
   useFrame((state, delta) => {
@@ -54,6 +59,11 @@ function VRMViewer({
     if (vrm) {
       // VRMの更新（ボーン等の更新）
       vrm.update(delta * animationSpeed);
+
+      // ブレンドシェイプの更新を強制実行
+      if (vrm.expressionManager) {
+        vrm.expressionManager.update();
+      }
 
       // 簡単な待機アニメーション（上下に軽く動く）
       const time = state.clock.elapsedTime;
@@ -125,16 +135,28 @@ export function ModelInfo({ model }: { model: Model3D }) {
   }
 
   return (
-    <div className="absolute top-4 left-4 bg-black/70 text-white p-3 rounded-lg text-sm font-mono">
+    <div className="absolute bottom-4 right-4 bg-black/80 text-white p-2 rounded-lg text-xs font-mono max-w-xs">
       <div className="space-y-1">
-        {Object.entries(info).map(
-          ([key, value]) =>
-            value && (
-              <div key={key} className="flex gap-2">
-                <span className="text-gray-300 capitalize">{key}:</span>
-                <span>{value}</span>
-              </div>
-            )
+        <div className="flex gap-2">
+          <span className="text-gray-300">Name:</span>
+          <span className="truncate">{info.name}</span>
+        </div>
+        <div className="flex gap-2">
+          <span className="text-gray-300">Format:</span>
+          <span>{info.format}</span>
+        </div>
+        <div className="flex gap-2">
+          <span className="text-gray-300">Size:</span>
+          <span>{info.size}</span>
+        </div>
+        {/* VRM固有の情報 */}
+        {model.format === "vrm" && (model as VRMModelInfo).meta?.title && (
+          <div className="flex gap-2">
+            <span className="text-gray-300">Title:</span>
+            <span className="truncate">
+              {(model as VRMModelInfo).meta?.title}
+            </span>
+          </div>
         )}
       </div>
     </div>
@@ -145,39 +167,6 @@ export function ModelInfo({ model }: { model: Model3D }) {
  * モデルが読み込まれていない場合のプレースホルダー
  */
 export function ModelPlaceholder() {
-  return (
-    <group>
-      {/* プレースホルダーのキューブ */}
-      <mesh position={[0, 1, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.5, 2, 0.5]} />
-        <meshStandardMaterial color="#e0e0e0" wireframe />
-      </mesh>
-
-      {/* 頭部 */}
-      <mesh position={[0, 2.2, 0]} castShadow receiveShadow>
-        <sphereGeometry args={[0.3, 16, 16]} />
-        <meshStandardMaterial color="#e0e0e0" wireframe />
-      </mesh>
-
-      {/* 腕 */}
-      <mesh position={[-0.7, 1.5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.2, 1, 0.2]} />
-        <meshStandardMaterial color="#e0e0e0" wireframe />
-      </mesh>
-      <mesh position={[0.7, 1.5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.2, 1, 0.2]} />
-        <meshStandardMaterial color="#e0e0e0" wireframe />
-      </mesh>
-
-      {/* 脚 */}
-      <mesh position={[-0.2, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.2, 1, 0.2]} />
-        <meshStandardMaterial color="#e0e0e0" wireframe />
-      </mesh>
-      <mesh position={[0.2, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.2, 1, 0.2]} />
-        <meshStandardMaterial color="#e0e0e0" wireframe />
-      </mesh>
-    </group>
-  );
+  // デフォルトモデルの読み込み中は何も表示しない
+  return null;
 }

@@ -33,6 +33,9 @@ export class AdvancedLipSyncService {
   // VRMモデル対応
   private availableBlendShapes: string[] = [];
 
+  // ログ出力制御
+  private lastLogTime = 0;
+
   /**
    * 高精度リップシンクを開始
    */
@@ -216,11 +219,15 @@ export class AdvancedLipSyncService {
 
     this.targetBlendShapes = adjustedBlendShapes;
 
-    // デバッグログ
-    console.log(
-      `音素: ${this.currentPhoneme}, ターゲット:`,
-      this.targetBlendShapes
-    );
+    // デバッグログ（5秒間隔で出力）
+    const now = Date.now();
+    if (now - this.lastLogTime > 5000) {
+      console.log(
+        `音素: ${this.currentPhoneme}, ターゲット:`,
+        this.targetBlendShapes
+      );
+      this.lastLogTime = now;
+    }
   }
 
   /**
@@ -235,16 +242,19 @@ export class AdvancedLipSyncService {
    */
   private findAlternativeBlendShape(shape: string): string | null {
     const alternatives: Record<string, string[]> = {
-      A: ["aa", "a"],
-      I: ["ih", "i"],
-      U: ["ou", "u"],
-      E: ["ee", "e"],
-      O: ["oh", "o"],
-      aa: ["A", "a"],
-      ih: ["I", "i"],
-      ou: ["U", "u"],
-      ee: ["E", "e"],
-      oh: ["O", "o"],
+      // 標準形式 → VRM 1.0形式を優先
+      A: ["aa", "あ", "mouth_a", "Mouth_A", "a"],
+      I: ["ih", "い", "mouth_i", "Mouth_I", "i"],
+      U: ["ou", "う", "mouth_u", "Mouth_U", "u"],
+      E: ["ee", "え", "mouth_e", "Mouth_E", "e"],
+      O: ["oh", "お", "mouth_o", "Mouth_O", "o"],
+
+      // VRM 1.0形式 → 標準形式
+      aa: ["A", "あ", "mouth_a", "Mouth_A", "a"],
+      ih: ["I", "い", "mouth_i", "Mouth_I", "i"],
+      ou: ["U", "う", "mouth_u", "Mouth_U", "u"],
+      ee: ["E", "え", "mouth_e", "Mouth_E", "e"],
+      oh: ["O", "お", "mouth_o", "Mouth_O", "o"],
     };
 
     const possibleAlternatives = alternatives[shape] || [];
@@ -315,8 +325,8 @@ export class AdvancedLipSyncService {
    * 現在のブレンドシェイプを更新（スムージング）
    */
   private updateCurrentBlendShapes(): void {
-    // 全ての可能なブレンドシェイプをチェック
-    const allShapes = ["A", "I", "U", "E", "O"];
+    // VRM 1.0形式も含めた全ての可能なブレンドシェイプをチェック
+    const allShapes = ["A", "I", "U", "E", "O", "aa", "ih", "ou", "ee", "oh"];
 
     for (const shape of allShapes) {
       const target = this.targetBlendShapes[shape] || 0;
@@ -360,13 +370,18 @@ export class AdvancedLipSyncService {
     this.currentBlendShapes = {};
     this.phonemeHistory = [];
 
-    // 全てのブレンドシェイプをリセット
+    // VRM 1.0形式も含めた全てのブレンドシェイプをリセット
     const resetWeights = {
       A: 0,
       I: 0,
       U: 0,
       E: 0,
       O: 0,
+      aa: 0,
+      ih: 0,
+      ou: 0,
+      ee: 0,
+      oh: 0,
     };
 
     blendShapeService.setMultipleBlendShapes(resetWeights);

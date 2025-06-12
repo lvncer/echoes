@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Mic, MicOff, VolumeX } from "lucide-react";
+import { Mic, MicOff, VolumeX, Smile } from "lucide-react";
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -34,6 +34,7 @@ export function AudioChatControls({
   const [availableVoices, setAvailableVoices] = useState<
     SpeechSynthesisVoice[]
   >([]);
+  const [lipSyncEnabled, setLipSyncEnabled] = useState(true);
 
   // デフォルト設定（useMemoで最適化）
   const defaultConfig: AudioChatConfig = useMemo(
@@ -80,10 +81,18 @@ export function AudioChatControls({
         onAIResponseReceived?.(response);
       },
       onSpeechStart: () => {
-        // 音声合成開始時の処理
+        // 音声合成開始時の処理 - リップシンク開始
+        if (lipSyncEnabled) {
+          // TTS音声開始時は統合リップシンクサービスが自動で処理
+          console.log("TTS音声開始 - リップシンク連動");
+        }
       },
       onSpeechEnd: () => {
-        // 音声合成終了時の処理
+        // 音声合成終了時の処理 - リップシンク停止
+        if (lipSyncEnabled) {
+          // TTS音声終了時は統合リップシンクサービスが自動で処理
+          console.log("TTS音声終了 - リップシンク停止");
+        }
       },
       onError: (error: AudioError) => {
         setError(error.message);
@@ -93,7 +102,7 @@ export function AudioChatControls({
         setStatus(newStatus);
       },
     }),
-    [onTranscriptReceived, onAIResponseReceived]
+    [onTranscriptReceived, onAIResponseReceived, lipSyncEnabled]
   );
 
   // 音声チャットサービス初期化
@@ -128,7 +137,17 @@ export function AudioChatControls({
   // プッシュトゥトーク終了
   const stopListening = useCallback(() => {
     if (audioChatService && isListening) {
+      // 現在のフォーカス要素を保存
+      const activeElement = document.activeElement as HTMLElement;
+
       audioChatService.stopListening();
+
+      // フォーカスを元の要素に戻す（スクロール防止）
+      if (activeElement && activeElement.focus) {
+        setTimeout(() => {
+          activeElement.focus({ preventScroll: true });
+        }, 0);
+      }
     }
   }, [audioChatService, isListening]);
 
@@ -166,6 +185,32 @@ export function AudioChatControls({
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [isInitialized, startListening, stopListening]);
+
+  // TTS音声リップシンクテスト
+  const testTTSLipSync = useCallback(async () => {
+    if (!isInitialized || status !== "idle") return;
+
+    try {
+      console.log("🎤 TTS音声リップシンクテスト開始");
+
+      // 統合リップシンクサービスをインポート
+      const { integratedLipSyncService } = await import(
+        "@/lib/services/integrated-lipsync-service"
+      );
+
+      // テスト用テキスト
+      const testText =
+        "こんにちは、TTS音声リップシンクのテストです。あいうえお、かきくけこ。";
+
+      // TTS音声リップシンクを開始
+      await integratedLipSyncService.startAIResponseLipSync(testText);
+
+      console.log("✅ TTS音声リップシンクテスト開始完了");
+    } catch (error) {
+      console.error("❌ TTS音声リップシンクテストエラー:", error);
+      setError(`TTS音声リップシンクテストエラー: ${error}`);
+    }
+  }, [isInitialized, status]);
 
   // クリーンアップ
   useEffect(() => {
@@ -262,6 +307,13 @@ export function AudioChatControls({
                 }
                 className="flex-1"
                 disabled={status !== "idle"}
+                onFocus={(e) =>
+                  e.target.scrollIntoView({
+                    block: "nearest",
+                    behavior: "auto",
+                  })
+                }
+                style={{ scrollMargin: "0" }}
               >
                 {(() => {
                   switch (status) {
@@ -292,6 +344,23 @@ export function AudioChatControls({
               <Button onClick={stopAudioChat} variant="outline" size="icon">
                 <VolumeX className="w-4 h-4" />
               </Button>
+              <Button
+                onClick={() => setLipSyncEnabled(!lipSyncEnabled)}
+                variant={lipSyncEnabled ? "default" : "outline"}
+                size="icon"
+                title={lipSyncEnabled ? "リップシンク有効" : "リップシンク無効"}
+              >
+                <Smile className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={testTTSLipSync}
+                variant="outline"
+                size="icon"
+                disabled={!isInitialized || status !== "idle"}
+                title="TTS音声リップシンクテスト"
+              >
+                🎤
+              </Button>
             </>
           )}
         </div>
@@ -300,6 +369,7 @@ export function AudioChatControls({
         <div className="text-xs text-gray-500 space-y-1">
           <p>• ボタン長押しまたはスペースキー長押しで音声入力</p>
           <p>• 音声認識後、自動でAI応答を音声で再生</p>
+          <p>• 🎤ボタンでTTS音声リップシンクテスト実行</p>
           <p>• 日本語音声認識・合成に対応</p>
         </div>
 
