@@ -7,6 +7,20 @@ import { Group } from "three";
 import { Model3D, VRMModelInfo, GLTFModelInfo } from "@/lib/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
 
+// アニメーションコントローラーのグローバルインスタンス取得
+declare global {
+  interface Window {
+    __animationController?: import("@/lib/services/animation-controller").AnimationController;
+  }
+}
+
+const getAnimationController = () => {
+  if (typeof window !== "undefined" && window.__animationController) {
+    return window.__animationController;
+  }
+  return null;
+};
+
 interface ModelViewerProps {
   model: Model3D;
   animationSpeed?: number;
@@ -46,10 +60,22 @@ function VRMViewer({
   useEffect(() => {
     if (model.vrm) {
       vrmRef.current = model.vrm;
-      
+
       // ブレンドシェイプサービスにVRMモデルを登録
       blendShapeService.setVRM(model.vrm);
       console.log("🎭 VRMモデルをブレンドシェイプサービスに登録:", model.name);
+
+      // アニメーションコントローラーにVRMモデルを設定
+      const animationController = getAnimationController();
+      if (animationController) {
+        animationController.setVRMModel(model.vrm);
+        console.log(
+          "🎭 VRMモデルをアニメーションコントローラーに設定:",
+          model.name
+        );
+      } else {
+        console.warn("⚠️ アニメーションコントローラーが見つかりません");
+      }
     }
   }, [model.vrm, model.name]);
 

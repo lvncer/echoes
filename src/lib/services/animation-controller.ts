@@ -103,13 +103,21 @@ export class AnimationController {
   public setVRMModel(model: VRM): void {
     this.vrmModel = model;
     console.log("🎭 AnimationController: VRMモデルを設定しました");
+    console.log("🎭 VRMモデル詳細:", {
+      hasExpressionManager: !!model.expressionManager,
+      hasHumanoid: !!model.humanoid,
+      sceneName: model.scene.name,
+      sceneChildren: model.scene.children.length,
+    });
 
     // 自動アニメーションを開始
     if (this.settings.autoBlinking.enabled) {
       this.startAutoBlinking();
+      console.log("🎭 自動瞬きアニメーション開始要求");
     }
     if (this.settings.breathing.enabled) {
       this.startBreathingAnimation();
+      console.log("🎭 呼吸アニメーション開始要求");
     }
   }
 
@@ -561,6 +569,12 @@ export class AnimationController {
    * 瞬きアニメーションを実行
    */
   private playBlinkAnimation(): void {
+    console.log("👁️ 瞬きアニメーション実行中...", {
+      hasVRM: !!this.vrmModel,
+      isEnabled: this.isEnabled,
+      intensity: this.settings.autoBlinking.intensity,
+    });
+
     const blinkAnimation: AnimationSequence = {
       name: "auto-blink",
       duration: 250,
@@ -579,7 +593,11 @@ export class AnimationController {
       easing: "ease-in-out",
     };
 
-    this.playAnimation(blinkAnimation, AnimationPriority.NORMAL);
+    const animationId = this.playAnimation(
+      blinkAnimation,
+      AnimationPriority.NORMAL
+    );
+    console.log("👁️ 瞬きアニメーションID:", animationId);
   }
 
   /**
@@ -764,6 +782,9 @@ export class AnimationController {
         const expressionManager = this.vrmModel!.expressionManager;
         if (expressionManager) {
           expressionManager.setValue(shapeName, value);
+          console.log(`🎭 ブレンドシェイプ適用: ${shapeName} = ${value}`);
+        } else {
+          console.warn(`⚠️ ExpressionManagerが見つかりません`);
         }
       });
     }

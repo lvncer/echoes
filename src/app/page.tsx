@@ -15,6 +15,21 @@ import { Box, MessageCircle, Settings, Mic, Download } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/stores/model-store";
 import { Button } from "@/components/ui/button";
+import { AnimationController } from "@/lib/services/animation-controller";
+
+// アニメーションコントローラーの初期化
+declare global {
+  interface Window {
+    __animationController?: AnimationController;
+  }
+}
+
+const initializeAnimationController = () => {
+  if (typeof window !== "undefined" && !window.__animationController) {
+    window.__animationController = new AnimationController();
+    console.log("🎭 アニメーションコントローラーを初期化しました");
+  }
+};
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
@@ -39,6 +54,8 @@ export default function Home() {
   // ハイドレーション完了を検知
   useEffect(() => {
     setIsHydrated(true);
+    // アニメーションコントローラーを初期化
+    initializeAnimationController();
   }, []);
 
   // アプリケーション起動時にデフォルトモデルを初期化
