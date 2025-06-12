@@ -261,6 +261,12 @@ export class AnimationController {
       this.activeAnimations.delete(animationId);
       this.events.onAnimationEnd?.(animationId);
       console.log(`🛑 アニメーション停止: ${instance.sequence.name}`);
+
+      // 感情アニメーションの場合は、ブレンドシェイプをリセット
+      if (animationId === this.currentEmotionAnimationId) {
+        this.resetEmotionBlendShapes();
+        this.currentEmotionAnimationId = null;
+      }
     }
   }
 
@@ -418,6 +424,9 @@ export class AnimationController {
     // 現在の感情アニメーションを停止
     this.stopCurrentEmotionAnimation();
 
+    // 新しいアニメーション開始前にブレンドシェイプをクリア
+    this.resetEmotionBlendShapes();
+
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
@@ -453,6 +462,9 @@ export class AnimationController {
       this.stopAnimation(this.currentEmotionAnimationId);
       this.currentEmotionAnimationId = null;
     }
+
+    // ブレンドシェイプをニュートラル状態にリセット
+    this.resetEmotionBlendShapes();
   }
 
   /**
@@ -476,6 +488,14 @@ export class AnimationController {
       return;
     }
 
+    // 現在の感情アニメーションを停止（ブレンドシェイプリセット含む）
+    this.stopCurrentEmotionAnimation();
+
+    if (emotion === "neutral") {
+      console.log("🎭 ニュートラル状態に戻しました");
+      return;
+    }
+
     const emotionAnimation = getEmotionAnimation(emotion, intensity);
 
     if (!emotionAnimation) {
@@ -485,13 +505,8 @@ export class AnimationController {
       return;
     }
 
-    // 現在の感情アニメーションを停止
-    this.stopCurrentEmotionAnimation();
-
-    if (emotion === "neutral") {
-      console.log("🎭 ニュートラル状態に戻しました");
-      return;
-    }
+    // 新しいアニメーション開始前にブレンドシェイプをクリア
+    this.resetEmotionBlendShapes();
 
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
@@ -638,6 +653,40 @@ export class AnimationController {
           : undefined,
       })),
     };
+  }
+
+  /**
+   * 感情ブレンドシェイプをニュートラル状態にリセット
+   */
+  private resetEmotionBlendShapes(): void {
+    if (!this.vrmModel?.expressionManager) return;
+
+    const emotionBlendShapes = [
+      "happy",
+      "sad",
+      "angry",
+      "surprised",
+      "neutral",
+      "joy",
+      "sorrow",
+      "anger",
+      "surprise",
+      "fun",
+      "smile",
+      "frown",
+      "mad",
+      "shocked",
+    ];
+
+    emotionBlendShapes.forEach((shapeName) => {
+      try {
+        this.vrmModel!.expressionManager!.setValue(shapeName, 0);
+      } catch {
+        // ブレンドシェイプが存在しない場合は無視
+      }
+    });
+
+    console.log("🎭 感情ブレンドシェイプをリセットしました");
   }
 
   /**
@@ -913,6 +962,12 @@ export class AnimationController {
       if (instance) {
         this.activeAnimations.delete(id);
         this.events.onAnimationEnd?.(id);
+
+        // 感情アニメーションが完了した場合はブレンドシェイプをリセット
+        if (id === this.currentEmotionAnimationId) {
+          this.resetEmotionBlendShapes();
+          this.currentEmotionAnimationId = null;
+        }
 
         // 呼吸アニメーションが完了した場合は再開
         if (
