@@ -1,0 +1,559 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
+// Checkbox import removed - using Button instead
+import {
+  Eye,
+  EyeOff,
+  Wind,
+  Activity,
+  Settings,
+  Play,
+  Pause,
+  RotateCcw,
+  Monitor,
+} from "lucide-react";
+import { AnimationController } from "@/lib/services/animation-controller";
+import type {
+  AnimationState,
+  AnimationControlSettings,
+} from "@/lib/types/animation";
+
+interface AnimationControlPanelProps {
+  className?: string;
+}
+
+// アニメーション制御サービスのインスタンス（シングルトン）
+declare global {
+  interface Window {
+    __animationController?: AnimationController;
+  }
+}
+
+const getAnimationController = () => {
+  // グローバルに保存されたインスタンスを取得
+  if (typeof window !== "undefined" && window.__animationController) {
+    return window.__animationController;
+  }
+  // 新しいインスタンスを作成してグローバルに保存
+  const controller = new AnimationController();
+  if (typeof window !== "undefined") {
+    window.__animationController = controller;
+  }
+  return controller;
+};
+
+/**
+ * アニメーション制御パネル
+ */
+export function AnimationControlPanel({
+  className,
+}: AnimationControlPanelProps) {
+  const [isVisible, setIsVisible] = useState(true);
+  const [isEnabled, setIsEnabled] = useState(true);
+  const [settings, setSettings] = useState<AnimationControlSettings>({
+    autoBlinking: {
+      enabled: true,
+      interval: [2000, 6000],
+      intensity: 1.0,
+    },
+    breathing: {
+      enabled: true,
+      intensity: 0.5,
+      speed: 1.0,
+    },
+    emotionAnimations: {
+      enabled: true,
+      intensity: 0.8,
+      autoTrigger: true,
+    },
+    gestures: {
+      enabled: true,
+      handMovements: true,
+      headMovements: true,
+      bodyMovements: true,
+      intensity: 0.7,
+    },
+  });
+  const [animationState, setAnimationState] = useState<AnimationState>({
+    activeAnimationCount: 0,
+    frameRate: 0,
+    calculationTime: 0,
+    memoryUsage: 0,
+    runningAnimations: {
+      idle: null,
+      emotion: null,
+      gesture: null,
+    },
+  });
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // アニメーション制御サービスの初期化
+  useEffect(() => {
+    const controller = getAnimationController();
+
+    // 初期設定を適用
+    controller.updateSettings(settings);
+    controller.setEnabled(isEnabled);
+
+    // 状態更新の定期実行
+    const updateState = () => {
+      setAnimationState(controller.getState());
+      setSettings(controller.getSettings());
+    };
+
+    updateState();
+    const interval = setInterval(updateState, 500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isEnabled, settings]);
+
+  // 設定変更ハンドラー
+  const handleSettingChange = (
+    category: keyof AnimationControlSettings,
+    key: string,
+    value: boolean | number
+  ) => {
+    const newSettings = {
+      ...settings,
+      [category]: {
+        ...settings[category],
+        [key]: value,
+      },
+    };
+    setSettings(newSettings);
+    getAnimationController().updateSettings(newSettings);
+  };
+
+  // アニメーション有効/無効切り替え
+  const handleToggleEnabled = () => {
+    const newEnabled = !isEnabled;
+    setIsEnabled(newEnabled);
+    getAnimationController().setEnabled(newEnabled);
+  };
+
+  // 全アニメーション一時停止/再開
+  const handlePauseResume = () => {
+    const controller = getAnimationController();
+    if (animationState.activeAnimationCount > 0) {
+      controller.pauseAllAnimations();
+    } else {
+      controller.resumeAllAnimations();
+    }
+  };
+
+  // 設定リセット
+  const handleResetSettings = () => {
+    const defaultSettings: AnimationControlSettings = {
+      autoBlinking: {
+        enabled: true,
+        interval: [2000, 6000],
+        intensity: 1.0,
+      },
+      breathing: {
+        enabled: true,
+        intensity: 0.5,
+        speed: 1.0,
+      },
+      emotionAnimations: {
+        enabled: true,
+        intensity: 0.8,
+        autoTrigger: true,
+      },
+      gestures: {
+        enabled: true,
+        handMovements: true,
+        headMovements: true,
+        bodyMovements: true,
+        intensity: 0.7,
+      },
+    };
+    setSettings(defaultSettings);
+    getAnimationController().updateSettings(defaultSettings);
+  };
+
+  // パフォーマンス状態の色分け
+  const getPerformanceColor = (value: number, thresholds: [number, number]) => {
+    if (value <= thresholds[0]) return "text-green-600";
+    if (value <= thresholds[1]) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  if (!isVisible) {
+    return (
+      <div className={`fixed top-4 left-4 z-50 ${className}`}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsVisible(true)}
+          className="bg-background/80 backdrop-blur-sm"
+        >
+          <Activity className="w-4 h-4 mr-2" />
+          アニメーション
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={className}>
+      <Card className="bg-background/95">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium">
+              アニメーション制御
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsVisible(false)}
+              >
+                <EyeOff className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {/* 基本制御 */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">アニメーション</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={isEnabled ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleToggleEnabled}
+                >
+                  {isEnabled ? "ON" : "OFF"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePauseResume}
+                  disabled={!isEnabled}
+                >
+                  {animationState.activeAnimationCount > 0 ? (
+                    <Pause className="w-3 h-3" />
+                  ) : (
+                    <Play className="w-3 h-3" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* 状態表示 */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <Badge variant={isEnabled ? "default" : "secondary"}>
+                {isEnabled ? "動作中" : "停止中"}
+              </Badge>
+              <Badge variant="outline">
+                {animationState.activeAnimationCount}個実行中
+              </Badge>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* 基本アニメーション制御 */}
+          <div className="space-y-3">
+            <span className="text-sm font-medium">基本アニメーション</span>
+
+            {/* 自動瞬き */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  <span className="text-xs font-medium">自動瞬き</span>
+                </div>
+                <Button
+                  variant={
+                    settings.autoBlinking.enabled ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() =>
+                    handleSettingChange(
+                      "autoBlinking",
+                      "enabled",
+                      !settings.autoBlinking.enabled
+                    )
+                  }
+                  disabled={!isEnabled}
+                >
+                  {settings.autoBlinking.enabled ? "ON" : "OFF"}
+                </Button>
+              </div>
+
+              {settings.autoBlinking.enabled && (
+                <div className="space-y-2 ml-6">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs">強度</label>
+                      <span className="text-xs text-muted-foreground">
+                        {settings.autoBlinking.intensity.toFixed(1)}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[settings.autoBlinking.intensity]}
+                      onValueChange={([value]) =>
+                        handleSettingChange("autoBlinking", "intensity", value)
+                      }
+                      max={1.0}
+                      min={0.1}
+                      step={0.1}
+                      className="w-full"
+                      disabled={!isEnabled}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 呼吸アニメーション */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wind className="w-4 h-4" />
+                  <span className="text-xs font-medium">呼吸</span>
+                </div>
+                <Button
+                  variant={settings.breathing.enabled ? "default" : "outline"}
+                  size="sm"
+                  onClick={() =>
+                    handleSettingChange(
+                      "breathing",
+                      "enabled",
+                      !settings.breathing.enabled
+                    )
+                  }
+                  disabled={!isEnabled}
+                >
+                  {settings.breathing.enabled ? "ON" : "OFF"}
+                </Button>
+              </div>
+
+              {settings.breathing.enabled && (
+                <div className="space-y-2 ml-6">
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs">強度</label>
+                      <span className="text-xs text-muted-foreground">
+                        {settings.breathing.intensity.toFixed(1)}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[settings.breathing.intensity]}
+                      onValueChange={([value]) =>
+                        handleSettingChange("breathing", "intensity", value)
+                      }
+                      max={1.0}
+                      min={0.1}
+                      step={0.1}
+                      className="w-full"
+                      disabled={!isEnabled}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs">速度</label>
+                      <span className="text-xs text-muted-foreground">
+                        {settings.breathing.speed.toFixed(1)}x
+                      </span>
+                    </div>
+                    <Slider
+                      value={[settings.breathing.speed]}
+                      onValueChange={([value]) =>
+                        handleSettingChange("breathing", "speed", value)
+                      }
+                      max={2.0}
+                      min={0.5}
+                      step={0.1}
+                      className="w-full"
+                      disabled={!isEnabled}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* パフォーマンス監視 */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Monitor className="w-4 h-4" />
+              <span className="text-sm font-medium">パフォーマンス</span>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span>フレームレート:</span>
+                <span
+                  className={getPerformanceColor(
+                    animationState.frameRate,
+                    [30, 60]
+                  )}
+                >
+                  {animationState.frameRate.toFixed(0)} fps
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>計算時間:</span>
+                <span
+                  className={getPerformanceColor(
+                    animationState.calculationTime,
+                    [5, 10]
+                  )}
+                >
+                  {animationState.calculationTime.toFixed(1)} ms
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>実行中:</span>
+                <span>
+                  {Object.values(animationState.runningAnimations)
+                    .filter(Boolean)
+                    .join(", ") || "なし"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 高度な設定 */}
+          {showAdvanced && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">高度な設定</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetSettings}
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    リセット
+                  </Button>
+                </div>
+
+                {/* 感情アニメーション */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">
+                      感情アニメーション
+                    </span>
+                    <Button
+                      variant={
+                        settings.emotionAnimations.enabled
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                      onClick={() =>
+                        handleSettingChange(
+                          "emotionAnimations",
+                          "enabled",
+                          !settings.emotionAnimations.enabled
+                        )
+                      }
+                      disabled={!isEnabled}
+                    >
+                      {settings.emotionAnimations.enabled ? "ON" : "OFF"}
+                    </Button>
+                  </div>
+
+                  {settings.emotionAnimations.enabled && (
+                    <div className="space-y-1 ml-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs">強度</label>
+                        <span className="text-xs text-muted-foreground">
+                          {settings.emotionAnimations.intensity.toFixed(1)}
+                        </span>
+                      </div>
+                      <Slider
+                        value={[settings.emotionAnimations.intensity]}
+                        onValueChange={([value]) =>
+                          handleSettingChange(
+                            "emotionAnimations",
+                            "intensity",
+                            value
+                          )
+                        }
+                        max={1.0}
+                        min={0.1}
+                        step={0.1}
+                        className="w-full"
+                        disabled={!isEnabled}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* ジェスチャー */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">ジェスチャー</span>
+                    <Button
+                      variant={
+                        settings.gestures.enabled ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() =>
+                        handleSettingChange(
+                          "gestures",
+                          "enabled",
+                          !settings.gestures.enabled
+                        )
+                      }
+                      disabled={!isEnabled}
+                    >
+                      {settings.gestures.enabled ? "ON" : "OFF"}
+                    </Button>
+                  </div>
+
+                  {settings.gestures.enabled && (
+                    <div className="space-y-1 ml-4">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs">強度</label>
+                        <span className="text-xs text-muted-foreground">
+                          {settings.gestures.intensity.toFixed(1)}
+                        </span>
+                      </div>
+                      <Slider
+                        value={[settings.gestures.intensity]}
+                        onValueChange={([value]) =>
+                          handleSettingChange("gestures", "intensity", value)
+                        }
+                        max={1.0}
+                        min={0.1}
+                        step={0.1}
+                        className="w-full"
+                        disabled={!isEnabled}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

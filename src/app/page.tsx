@@ -8,6 +8,7 @@ import { LipSyncPanel } from "@/components/3d/lipsync-panel";
 import { AdvancedLipSyncPanel } from "@/components/3d/advanced-lipsync-panel";
 import { IntegratedLipSyncPanel } from "@/components/3d/integrated-lipsync-panel";
 import { SimpleDebugPanel } from "@/components/3d/simple-debug-panel";
+import { AnimationControlPanel } from "@/components/3d/animation-control-panel";
 import Chat from "../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import { Box, MessageCircle, Settings, Mic, Download } from "lucide-react";
@@ -134,6 +135,13 @@ export default function Home() {
                 ブレンドシェイプ制御
               </h2>
               <BlendShapePanel />
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                アニメーション制御
+              </h2>
+              <AnimationControlPanel />
             </div>
           </div>
 

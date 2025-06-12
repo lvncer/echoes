@@ -11,6 +11,7 @@ import {
   LoadOptions,
 } from "@/lib/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
+import { AnimationController } from "@/lib/services/animation-controller";
 
 // ローディングマネージャー
 const loadingManager = new LoadingManager();
@@ -65,6 +66,28 @@ export async function loadVRMModel(
 
     // ブレンドシェイプサービスにVRMを設定
     blendShapeService.setVRM(vrm);
+
+    // アニメーション制御サービスにVRMを設定
+    // シングルトンインスタンスを取得して設定
+    const getAnimationController = () => {
+      // グローバルに保存されたインスタンスを取得
+      if (
+        typeof window !== "undefined" &&
+        (window as any).__animationController
+      ) {
+        return (window as any).__animationController;
+      }
+      // 新しいインスタンスを作成してグローバルに保存
+      const controller = new AnimationController();
+      if (typeof window !== "undefined") {
+        (window as any).__animationController = controller;
+      }
+      return controller;
+    };
+
+    const animationController = getAnimationController();
+    animationController.setVRMModel(vrm);
+    console.log("🎭 AnimationController: VRMモデルを設定しました");
 
     // ブレンドシェイプ情報をログ出力（デバッグ用）
     const vrmInfo = blendShapeService.getVRMInfo();
