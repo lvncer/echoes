@@ -508,13 +508,7 @@ export class AnimationController {
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
 
-    console.log(
-      `🎭 ${emotion}感情アニメーション実行 (表情: ${
-        emotionAnimation.animations.facial.duration
-      }ms, ジェスチャー: ${
-        emotionAnimation.animations.gesture.duration
-      }ms, 強度: ${intensity.toFixed(1)})`
-    );
+    console.log(`🎭 ${emotion}感情アニメーション開始`);
   }
 
   /**
@@ -572,11 +566,7 @@ export class AnimationController {
     );
     this.currentGestureAnimationId = gestureAnimationId;
 
-    console.log(
-      `🤲 ${gestureType}ジェスチャー実行 (${
-        gestureAnimation.duration
-      }ms, 強度: ${intensity.toFixed(1)})`
-    );
+    console.log(`🤲 ${gestureType}ジェスチャー開始`);
 
     // イベント通知
     this.events.onGestureAnimationStart?.(gestureType, intensity);
@@ -816,9 +806,6 @@ export class AnimationController {
 
     // CPU負荷制限チェック
     if (this.activeAnimations.size > 3) {
-      console.warn(
-        `🚨 AnimationController: 同時実行アニメーション数制限超過 (${this.activeAnimations.size}/3)`
-      );
       this.enforceAnimationLimit();
     }
 
@@ -831,13 +818,9 @@ export class AnimationController {
     // パフォーマンス履歴記録
     this.recordPerformanceMetrics(currentTime);
 
-    // CPU負荷制限チェック
+    // CPU負荷制限チェック（ログ出力なし）
     if (this.calculationTime > this.maxCalculationTime) {
-      console.warn(
-        `🚨 AnimationController: CPU負荷制限超過 (${this.calculationTime.toFixed(
-          1
-        )}ms > ${this.maxCalculationTime}ms)`
-      );
+      // パフォーマンス履歴に記録するのみ
     }
   }
 
@@ -868,9 +851,6 @@ export class AnimationController {
 
       // CPU負荷制限チェック
       if (this.activeAnimations.size > 3) {
-        console.warn(
-          `🚨 AnimationController: 同時実行アニメーション数制限超過 (${this.activeAnimations.size}/3)`
-        );
         this.enforceAnimationLimit();
       }
 
@@ -883,13 +863,9 @@ export class AnimationController {
       // パフォーマンス履歴記録
       this.recordPerformanceMetrics(currentTime);
 
-      // CPU負荷制限チェック
+      // CPU負荷制限チェック（ログ出力なし）
       if (this.calculationTime > this.maxCalculationTime) {
-        console.warn(
-          `🚨 AnimationController: CPU負荷制限超過 (${this.calculationTime.toFixed(
-            1
-          )}ms > ${this.maxCalculationTime}ms)`
-        );
+        // パフォーマンス履歴に記録するのみ
       }
 
       this.animationFrame = requestAnimationFrame(animate);
@@ -903,25 +879,7 @@ export class AnimationController {
    */
   private updateAnimations(currentTime: number): void {
     if (!this.vrmModel || !this.isEnabled) {
-      if (this.activeAnimations.size > 0) {
-        console.log("⚠️ アニメーション更新スキップ:", {
-          hasVRM: !!this.vrmModel,
-          isEnabled: this.isEnabled,
-          activeCount: this.activeAnimations.size,
-        });
-      }
       return;
-    }
-
-    // アニメーション更新中のログは1秒に1回だけ表示
-    if (
-      this.activeAnimations.size > 0 &&
-      currentTime - this.lastFrameTime > 1000
-    ) {
-      console.log("🎭 アニメーション更新中:", {
-        activeCount: this.activeAnimations.size,
-        currentTime: currentTime.toFixed(0),
-      });
     }
 
     const completedAnimations: string[] = [];
@@ -931,20 +889,11 @@ export class AnimationController {
 
       instance.currentTime = currentTime - instance.startTime;
 
-      console.log(`🎭 アニメーション時間計算: ${instance.sequence.name}`, {
-        currentTime: currentTime.toFixed(0),
-        startTime: instance.startTime.toFixed(0),
-        animationCurrentTime: instance.currentTime.toFixed(0),
-        duration: instance.sequence.duration,
-        loop: instance.sequence.loop,
-      });
-
       // アニメーション完了チェック
       if (
         !instance.sequence.loop &&
         instance.currentTime >= instance.sequence.duration
       ) {
-        console.log(`✅ アニメーション完了: ${instance.sequence.name}`);
         completedAnimations.push(id);
         return;
       }
@@ -953,10 +902,6 @@ export class AnimationController {
       const animationTime = instance.sequence.loop
         ? instance.currentTime % instance.sequence.duration
         : Math.min(instance.currentTime, instance.sequence.duration);
-
-      console.log(
-        `🎭 補間時間: ${instance.sequence.name} = ${animationTime.toFixed(0)}ms`
-      );
 
       // キーフレーム補間とVRMモデル更新
       this.applyKeyFrameInterpolation(instance.sequence, animationTime);
@@ -989,17 +934,8 @@ export class AnimationController {
     time: number
   ): void {
     if (!this.vrmModel || sequence.keyframes.length === 0) {
-      console.log("⚠️ キーフレーム補間スキップ:", {
-        hasVRM: !!this.vrmModel,
-        keyframeCount: sequence.keyframes.length,
-        sequenceName: sequence.name,
-      });
       return;
     }
-
-    console.log(
-      `🎭 キーフレーム補間実行: ${sequence.name}, キーフレーム数: ${sequence.keyframes.length}`
-    );
 
     // 現在時間に対応するキーフレームを見つける
     let prevFrame: KeyFrame | null = null;
@@ -1047,8 +983,6 @@ export class AnimationController {
       Object.entries(keyFrame.blendShapes).forEach(([shapeName, value]) => {
         const expressionManager = this.vrmModel!.expressionManager;
         if (expressionManager) {
-          const currentValue = expressionManager.getValue(shapeName) || 0;
-
           // ブレンドシェイプが存在するかチェック
           const expressions = expressionManager.expressions;
           const expressionNames = Object.keys(expressions);
@@ -1062,15 +996,6 @@ export class AnimationController {
           }
 
           expressionManager.setValue(shapeName, value);
-
-          // 重要な変更のみログ出力（値が大きく変わった場合のみ）
-          if (Math.abs(currentValue - value) > 0.1) {
-            console.log(
-              `🎭 ブレンドシェイプ変更: ${shapeName} ${currentValue.toFixed(
-                2
-              )} → ${value.toFixed(2)}`
-            );
-          }
         } else {
           console.warn(`⚠️ ExpressionManagerが見つかりません`);
         }
@@ -1239,9 +1164,7 @@ export class AnimationController {
       this.stopAnimation(id);
     });
 
-    console.log(
-      `🔧 AnimationController: ${toRemove.length}個のアニメーションを停止しました`
-    );
+    // アニメーション停止（ログ出力なし）
   }
 
   /**
