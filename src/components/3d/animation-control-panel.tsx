@@ -23,6 +23,7 @@ import type {
   AnimationState,
   AnimationControlSettings,
 } from "@/lib/types/animation";
+import { getAvailableEmotions } from "@/lib/animations/emotion-animations";
 
 interface AnimationControlPanelProps {
   className?: string;
@@ -184,6 +185,32 @@ export function AnimationControlPanel({
     if (value <= thresholds[0]) return "text-green-600";
     if (value <= thresholds[1]) return "text-yellow-600";
     return "text-red-600";
+  };
+
+  // 感情アニメーションテスト
+  const handleTestEmotionAnimation = (emotion: string) => {
+    const controller = getAnimationController();
+    controller.playEmotionAnimation(
+      emotion as "neutral" | "happy" | "sad" | "angry" | "surprised",
+      settings.emotionAnimations.intensity
+    );
+  };
+
+  // 感情ラベルの取得
+  const getEmotionLabel = (emotion: string): string => {
+    const labels: Record<string, string> = {
+      neutral: "ニュートラル",
+      happy: "喜び",
+      sad: "悲しみ",
+      angry: "怒り",
+      surprised: "驚き",
+    };
+    return labels[emotion] || emotion;
+  };
+
+  // 最後の感情解析結果を取得
+  const getLastEmotionAnalysis = () => {
+    return getAnimationController().getLastEmotionAnalysis();
   };
 
   if (!isVisible) {
@@ -549,6 +576,72 @@ export function AnimationControlPanel({
                     </div>
                   )}
                 </div>
+
+                {/* 感情アニメーションテスト */}
+                <div className="space-y-2">
+                  <span className="text-xs font-medium">
+                    感情アニメーションテスト
+                  </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {getAvailableEmotions().map((emotion) => (
+                      <Button
+                        key={emotion}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleTestEmotionAnimation(emotion)}
+                        disabled={!isEnabled}
+                        className="text-xs"
+                      >
+                        {getEmotionLabel(emotion)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 感情解析結果表示 */}
+                {getLastEmotionAnalysis() && (
+                  <div className="space-y-2">
+                    <span className="text-xs font-medium">最後の感情解析</span>
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span>感情:</span>
+                        <span className="font-medium">
+                          {getEmotionLabel(getLastEmotionAnalysis()!.emotion)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>強度:</span>
+                        <span>
+                          {getLastEmotionAnalysis()!.intensity.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>信頼度:</span>
+                        <span>
+                          {getLastEmotionAnalysis()!.confidence.toFixed(2)}
+                        </span>
+                      </div>
+                      {getLastEmotionAnalysis()!.keywords.length > 0 && (
+                        <div className="space-y-1">
+                          <span>キーワード:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {getLastEmotionAnalysis()!
+                              .keywords.slice(0, 3)
+                              .map((keyword, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {keyword}
+                                </Badge>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}

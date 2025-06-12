@@ -155,4 +155,5 @@ export interface AnimationEvents {
   onAnimationPause?: (animationId: string) => void;
   onAnimationResume?: (animationId: string) => void;
   onAnimationError?: (animationId: string, error: string) => void;
+  onEmotionAnimationStart?: (emotion: string, intensity: number) => void;
 }

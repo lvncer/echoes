@@ -9,6 +9,11 @@ import type {
   KeyFrame,
 } from "@/lib/types/animation";
 import { AnimationPriority } from "@/lib/types/animation";
+import { getEmotionAnimation } from "@/lib/animations/emotion-animations";
+import {
+  emotionAnalyzer,
+  type EmotionAnalysisResult,
+} from "@/lib/services/emotion-analyzer";
 
 /**
  * ボーン変形情報の型
@@ -67,6 +72,8 @@ export class AnimationController {
   // 自動アニメーション管理
   private autoBlinkTimer: NodeJS.Timeout | null = null;
   private breathingAnimationId: string | null = null;
+  private currentEmotionAnimationId: string | null = null;
+  private lastEmotionAnalysis: EmotionAnalysisResult | null = null;
 
   constructor() {
     this.startAnimationLoop();
@@ -279,6 +286,141 @@ export class AnimationController {
       this.breathingAnimationId = null;
       console.log("🫁 呼吸アニメーションを停止しました");
     }
+  }
+
+  /**
+   * AI応答テキストから感情を解析してアニメーション実行
+   */
+  public analyzeAndPlayEmotionAnimation(text: string): void {
+    if (!this.isEnabled || !this.settings.emotionAnimations.enabled) {
+      return;
+    }
+
+    // 感情解析
+    const analysis = emotionAnalyzer.analyzeWithContext(text);
+    this.lastEmotionAnalysis = analysis;
+
+    // 信頼度が低い場合はスキップ
+    if (analysis.confidence < 0.4) {
+      console.log(
+        `🎭 AnimationController: 感情解析の信頼度が低いためスキップ (${analysis.confidence.toFixed(
+          2
+        )})`
+      );
+      return;
+    }
+
+    // ニュートラルの場合は現在の感情アニメーションを停止
+    if (analysis.emotion === "neutral") {
+      this.stopCurrentEmotionAnimation();
+      return;
+    }
+
+    // 感情アニメーションを取得
+    const emotionAnimation = getEmotionAnimation(
+      analysis.emotion,
+      analysis.intensity * this.settings.emotionAnimations.intensity
+    );
+
+    if (!emotionAnimation) {
+      console.warn(
+        `🎭 AnimationController: 感情アニメーションが見つかりません: ${analysis.emotion}`
+      );
+      return;
+    }
+
+    // 現在の感情アニメーションを停止
+    this.stopCurrentEmotionAnimation();
+
+    // 表情アニメーションを実行
+    const facialAnimationId = this.playAnimation(
+      emotionAnimation.animations.facial,
+      AnimationPriority.HIGH
+    );
+
+    // ジェスチャーアニメーションを実行
+    this.playAnimation(
+      emotionAnimation.animations.gesture,
+      AnimationPriority.NORMAL
+    );
+
+    // 現在の感情アニメーションIDを記録
+    this.currentEmotionAnimationId = facialAnimationId;
+
+    console.log(
+      `🎭 AnimationController: 感情アニメーション実行 - ${
+        analysis.emotion
+      } (強度: ${analysis.intensity.toFixed(2)})`
+    );
+
+    // イベント通知
+    if (this.events.onEmotionAnimationStart) {
+      this.events.onEmotionAnimationStart(analysis.emotion, analysis.intensity);
+    }
+  }
+
+  /**
+   * 現在の感情アニメーションを停止
+   */
+  public stopCurrentEmotionAnimation(): void {
+    if (this.currentEmotionAnimationId) {
+      this.stopAnimation(this.currentEmotionAnimationId);
+      this.currentEmotionAnimationId = null;
+    }
+  }
+
+  /**
+   * 手動で感情アニメーションを実行
+   */
+  public playEmotionAnimation(
+    emotion: "neutral" | "happy" | "sad" | "angry" | "surprised",
+    intensity: number = 1.0
+  ): void {
+    if (!this.isEnabled) return;
+
+    const emotionAnimation = getEmotionAnimation(emotion, intensity);
+    if (!emotionAnimation) {
+      console.warn(
+        `🎭 AnimationController: 感情アニメーションが見つかりません: ${emotion}`
+      );
+      return;
+    }
+
+    // 現在の感情アニメーションを停止
+    this.stopCurrentEmotionAnimation();
+
+    if (emotion === "neutral") {
+      console.log("🎭 AnimationController: ニュートラル状態に戻しました");
+      return;
+    }
+
+    // 表情アニメーションを実行
+    const facialAnimationId = this.playAnimation(
+      emotionAnimation.animations.facial,
+      AnimationPriority.HIGH
+    );
+
+    // ジェスチャーアニメーションを実行
+    this.playAnimation(
+      emotionAnimation.animations.gesture,
+      AnimationPriority.NORMAL
+    );
+
+    // 現在の感情アニメーションIDを記録
+    this.currentEmotionAnimationId = facialAnimationId;
+
+    console.log(
+      `🎭 AnimationController: 手動感情アニメーション実行 - ${emotion} (強度: ${intensity.toFixed(
+        2
+      )})`
+    );
+  }
+
+  /**
+   * 最後の感情解析結果を取得
+   */
+  public getLastEmotionAnalysis(): EmotionAnalysisResult | null {
+    return this.lastEmotionAnalysis;
   }
 
   /**

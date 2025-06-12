@@ -303,6 +303,20 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
+      // アニメーション制御サービスで感情解析とアニメーション実行
+      if (typeof window !== "undefined") {
+        const windowWithController = window as typeof window & {
+          __animationController?: {
+            analyzeAndPlayEmotionAnimation: (text: string) => void;
+          };
+        };
+        if (windowWithController.__animationController) {
+          windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
+            text
+          );
+        }
+      }
+
       // 統合リップシンクサービスでAI応答リップシンクを開始
       await integratedLipSyncService.startAIResponseLipSync(text);
 
