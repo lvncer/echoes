@@ -105,13 +105,11 @@ export function AnimationControlPanel({
     const controller = getAnimationController();
 
     // 初期設定を適用
-    controller.updateSettings(settings);
     controller.setEnabled(isEnabled);
 
     // 状態更新の定期実行
     const updateState = () => {
       setAnimationState(controller.getState());
-      setSettings(controller.getSettings());
     };
 
     updateState();
@@ -120,7 +118,41 @@ export function AnimationControlPanel({
     return () => {
       clearInterval(interval);
     };
-  }, [isEnabled, settings]);
+  }, [isEnabled]);
+
+  // 設定の初期化（一度だけ）
+  useEffect(() => {
+    const controller = getAnimationController();
+    // 初期設定を非同期で適用
+    const initialSettings = {
+      autoBlinking: {
+        enabled: true,
+        interval: [2000, 6000] as [number, number],
+        intensity: 1.0,
+      },
+      breathing: {
+        enabled: true,
+        intensity: 0.5,
+        speed: 1.0,
+      },
+      emotionAnimations: {
+        enabled: true,
+        intensity: 0.8,
+        autoTrigger: true,
+      },
+      gestures: {
+        enabled: true,
+        handMovements: true,
+        headMovements: true,
+        bodyMovements: true,
+        intensity: 0.7,
+      },
+    };
+    setTimeout(() => {
+      controller.updateSettings(initialSettings);
+    }, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 初期化は一度だけ実行
 
   // 設定変更ハンドラー
   const handleSettingChange = (
@@ -128,15 +160,20 @@ export function AnimationControlPanel({
     key: string,
     value: boolean | number
   ) => {
-    const newSettings = {
-      ...settings,
-      [category]: {
-        ...settings[category],
-        [key]: value,
-      },
-    };
-    setSettings(newSettings);
-    getAnimationController().updateSettings(newSettings);
+    setSettings((prevSettings) => {
+      const newSettings = {
+        ...prevSettings,
+        [category]: {
+          ...prevSettings[category],
+          [key]: value,
+        },
+      };
+      // 非同期でコントローラーを更新（状態更新ループを避けるため）
+      setTimeout(() => {
+        getAnimationController().updateSettings(newSettings);
+      }, 0);
+      return newSettings;
+    });
   };
 
   // アニメーション有効/無効切り替え
@@ -183,7 +220,10 @@ export function AnimationControlPanel({
       },
     };
     setSettings(defaultSettings);
-    getAnimationController().updateSettings(defaultSettings);
+    // 非同期でコントローラーを更新
+    setTimeout(() => {
+      getAnimationController().updateSettings(defaultSettings);
+    }, 0);
   };
 
   // パフォーマンス状態の色分け

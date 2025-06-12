@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ import { getAvailableEmotions } from "@/lib/animations/emotion-animations";
 import {
   AnimationPerformanceTester,
   type PerformanceTestSuite,
+  type PerformanceTestResult,
 } from "@/lib/services/animation-performance-tester";
 
 interface SimpleDebugPanelProps {
@@ -66,8 +67,7 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
   });
 
   // パフォーマンステスト関連の状態
-  const [performanceTester, setPerformanceTester] =
-    useState<AnimationPerformanceTester | null>(null);
+  const performanceTesterRef = useRef<AnimationPerformanceTester | null>(null);
   const [performanceTestResults, setPerformanceTestResults] =
     useState<PerformanceTestSuite | null>(null);
   const [isPerformanceTestRunning, setIsPerformanceTestRunning] =
@@ -98,16 +98,22 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
       if (controller) {
         setAnimationController(controller);
         setAnimationState(controller.getState());
-
-        // パフォーマンステスターの初期化
-        if (!performanceTester) {
-          setPerformanceTester(new AnimationPerformanceTester(controller));
-        }
       }
     } catch (error) {
       console.error("デバッグパネル更新エラー:", error);
     }
-  }, [getAnimationController, performanceTester]);
+  }, [getAnimationController]);
+
+  /**
+   * パフォーマンステスターの初期化（アニメーション制御サービスが利用可能になったとき）
+   */
+  useEffect(() => {
+    if (animationController && !performanceTesterRef.current) {
+      performanceTesterRef.current = new AnimationPerformanceTester(
+        animationController
+      );
+    }
+  }, [animationController]);
 
   /**
    * 定期更新（高頻度でリアルタイム表示）
@@ -485,7 +491,7 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
    * パフォーマンステスト実行
    */
   const runPerformanceTest = async () => {
-    if (!performanceTester) {
+    if (!performanceTesterRef.current) {
       setTestResults((prev) => [...prev, "❌ パフォーマンステスター未初期化"]);
       return;
     }
@@ -497,7 +503,7 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
       console.log("🧪 パフォーマンステスト開始");
       setTestResults((prev) => [...prev, "🧪 パフォーマンステスト開始..."]);
 
-      const results = await performanceTester.runFullTestSuite();
+      const results = await performanceTesterRef.current.runFullTestSuite();
       setPerformanceTestResults(results);
 
       // 結果表示
@@ -512,7 +518,7 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
       ]);
 
       // 個別テスト結果
-      results.testResults.forEach((result) => {
+      results.testResults.forEach((result: PerformanceTestResult) => {
         const status = result.success ? "✅" : "❌";
         setTestResults((prev) => [
           ...prev,
@@ -522,7 +528,7 @@ export function SimpleDebugPanel({ className }: SimpleDebugPanelProps) {
         ]);
 
         if (!result.success) {
-          result.issues.forEach((issue) => {
+          result.issues.forEach((issue: string) => {
             setTestResults((prev) => [...prev, `  ⚠️ ${issue}`]);
           });
         }
