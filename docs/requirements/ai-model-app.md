@@ -765,3 +765,419 @@ gantt
 - テスト用 VRM モデル: ニコニ立体ちゃん（ユーザー提供）
 - 開発環境: 現在のプロジェクト環境
 - 追加ライブラリ: 最小限に抑制
+
+## 11. アニメーション機能実装計画
+
+### 11.1. 概要
+
+Phase 3 のリップシンク機能完了に続き、Phase 4 ではより豊かな表現力を実現するアニメーション機能を実装します。
+
+**実装目標**
+
+- **表情アニメーション**: 瞬き、眉の動き、自然な表情変化
+- **ジェスチャーアニメーション**: 手、頭、体の動きによる感情表現
+- **アイドルアニメーション**: 待機時の自然な呼吸動作
+- **リアクションアニメーション**: AI 応答内容に応じた感情連動アニメーション
+
+### 11.2. 実装フェーズ
+
+#### Phase 4-1: 基本アニメーション（優先度：高）
+
+**瞬きアニメーション**
+
+- **自動瞬き**: 2-6 秒間隔でランダム実行
+- **ブレンドシェイプ制御**: `Blink_L`, `Blink_R` を使用
+- **アニメーション時間**: 150ms（閉じる）+ 100ms（開く）
+
+**呼吸アニメーション**
+
+- **待機時の自然な動き**: 胸部・肩の微細な上下動作
+- **ボーン制御**: `Spine`, `UpperChest`, `LeftShoulder`, `RightShoulder`
+- **周期**: 3-5 秒の自然な呼吸リズム
+
+#### Phase 4-2: 感情連動アニメーション（優先度：高）
+
+**5 種類の感情アニメーション**
+
+| 感情          | 表情ブレンドシェイプ           | ジェスチャー（ボーン制御） |
+| ------------- | ------------------------------ | -------------------------- |
+| **neutral**   | デフォルト状態                 | 自然な姿勢                 |
+| **happy**     | `Joy`, `Blink` (微笑み)        | 軽いうなずき、肩の上がり   |
+| **sad**       | `Sorrow`, `Brow_Down` (悲しみ) | 頭を下げる、肩を落とす     |
+| **angry**     | `Angry`, `Brow_Up` (怒り)      | 眉間にしわ、拳を握る       |
+| **surprised** | `Surprised`, `Blink` (驚き)    | 頭を後ろに引く、手を上げる |
+
+**AI 応答連動制御**
+
+- **感情解析**: AI 応答テキストから感情を自動判定
+- **アニメーション実行**: 感情に対応したアニメーションを自動再生
+- **強度調整**: 感情の強さに応じてアニメーション強度を調整
+
+#### Phase 4-3: 高度なジェスチャー（優先度：中）
+
+**手の動きアニメーション**
+
+- **指差し**: `RightArm`, `RightForeArm`, `RightHand` 制御
+- **手振り**: 会話に合わせた自然な手の動き
+- **拍手**: 喜びの感情表現時の特別アニメーション
+
+**頭の動きアニメーション**
+
+- **うなずき**: 肯定的な応答時の頭の縦振り
+- **首振り**: 否定的な応答時の頭の横振り
+- **傾き**: 疑問や興味を示す頭の傾け
+
+**体の動きアニメーション**
+
+- **前傾**: 興味や関心を示す姿勢
+- **後退**: 驚きや警戒を示す姿勢
+- **肩すくめ**: 困惑や無関心を示すジェスチャー
+
+### 11.3. 技術仕様
+
+#### アニメーションデータ構造（TypeScript 定義）
+
+```typescript
+// lib/types/animation.ts
+export interface KeyFrame {
+  time: number; // ミリ秒
+  blendShapes?: Record<string, number>; // 0-1の値
+  bones?: Record<
+    string,
+    {
+      position?: [number, number, number];
+      rotation?: [number, number, number]; // オイラー角（ラジアン）
+      scale?: [number, number, number];
+    }
+  >;
+}
+
+export interface AnimationSequence {
+  name: string;
+  duration: number; // ミリ秒
+  loop: boolean;
+  keyframes: KeyFrame[];
+  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out";
+}
+
+export interface EmotionAnimation {
+  emotion: "neutral" | "happy" | "sad" | "angry" | "surprised";
+  intensity: number; // 0-1
+  animations: {
+    facial: AnimationSequence;
+    gesture: AnimationSequence;
+    idle?: AnimationSequence;
+  };
+}
+```
+
+#### アニメーション定義例
+
+```typescript
+// lib/animations/emotion-animations.ts
+export const EMOTION_ANIMATIONS: Record<string, EmotionAnimation> = {
+  happy: {
+    emotion: "happy",
+    intensity: 0.8,
+    animations: {
+      facial: {
+        name: "happy-face",
+        duration: 2000,
+        loop: false,
+        keyframes: [
+          {
+            time: 0,
+            blendShapes: { Joy: 0 },
+          },
+          {
+            time: 500,
+            blendShapes: { Joy: 0.8 },
+          },
+          {
+            time: 1500,
+            blendShapes: { Joy: 0.8 },
+          },
+          {
+            time: 2000,
+            blendShapes: { Joy: 0.2 },
+          },
+        ],
+        easing: "ease-in-out",
+      },
+      gesture: {
+        name: "happy-nod",
+        duration: 1000,
+        loop: false,
+        keyframes: [
+          {
+            time: 0,
+            bones: { Head: { rotation: [0, 0, 0] } },
+          },
+          {
+            time: 300,
+            bones: { Head: { rotation: [0.1, 0, 0] } },
+          },
+          {
+            time: 600,
+            bones: { Head: { rotation: [-0.05, 0, 0] } },
+          },
+          {
+            time: 1000,
+            bones: { Head: { rotation: [0, 0, 0] } },
+          },
+        ],
+      },
+    },
+  },
+  // 他の感情も同様に定義...
+};
+
+export const IDLE_ANIMATIONS = {
+  breathing: {
+    name: "breathing",
+    duration: 4000,
+    loop: true,
+    keyframes: [
+      {
+        time: 0,
+        bones: {
+          Spine: { position: [0, 0, 0] },
+          UpperChest: { position: [0, 0, 0] },
+        },
+      },
+      {
+        time: 2000,
+        bones: {
+          Spine: { position: [0, 0.002, 0] },
+          UpperChest: { position: [0, 0.003, 0] },
+        },
+      },
+      {
+        time: 4000,
+        bones: {
+          Spine: { position: [0, 0, 0] },
+          UpperChest: { position: [0, 0, 0] },
+        },
+      },
+    ],
+    easing: "ease-in-out",
+  },
+
+  blinking: {
+    name: "auto-blink",
+    duration: 250,
+    loop: false,
+    keyframes: [
+      { time: 0, blendShapes: { Blink_L: 0, Blink_R: 0 } },
+      { time: 150, blendShapes: { Blink_L: 1, Blink_R: 1 } },
+      { time: 250, blendShapes: { Blink_L: 0, Blink_R: 0 } },
+    ],
+  },
+};
+```
+
+#### アニメーション制御サービス
+
+```typescript
+// lib/services/animation-controller.ts
+export class AnimationController {
+  private activeAnimations: Map<string, AnimationInstance> = new Map();
+  private vrmModel: VRM | null = null;
+  private isEnabled = true;
+
+  // 基本制御
+  public setVRMModel(model: VRM): void;
+  public playAnimation(animation: AnimationSequence, priority?: number): void;
+  public stopAnimation(name: string): void;
+  public pauseAllAnimations(): void;
+  public resumeAllAnimations(): void;
+
+  // 感情アニメーション
+  public playEmotionAnimation(emotion: string, intensity?: number): void;
+  public setIdleAnimation(enabled: boolean): void;
+
+  // 自動アニメーション
+  public startAutoBlinking(): void;
+  public stopAutoBlinking(): void;
+  public startBreathingAnimation(): void;
+  public stopBreathingAnimation(): void;
+}
+```
+
+### 11.4. UI 制御機能
+
+#### アニメーション制御パネル
+
+**左側パネルに「アニメーション制御」セクションを追加**
+
+```typescript
+interface AnimationControlSettings {
+  // 基本アニメーション
+  autoBlinking: {
+    enabled: boolean; // デフォルト: true
+    interval: [number, number]; // [2000, 6000] ms
+    intensity: number; // 0-1, デフォルト: 1.0
+  };
+
+  breathing: {
+    enabled: boolean; // デフォルト: true
+    intensity: number; // 0-1, デフォルト: 0.5
+    speed: number; // 0.5-2.0, デフォルト: 1.0
+  };
+
+  // 感情アニメーション
+  emotionAnimations: {
+    enabled: boolean; // デフォルト: true
+    intensity: number; // 0-1, デフォルト: 0.8
+    autoTrigger: boolean; // AI応答連動, デフォルト: true
+  };
+
+  // ジェスチャーアニメーション
+  gestures: {
+    enabled: boolean; // デフォルト: true
+    handMovements: boolean; // デフォルト: true
+    headMovements: boolean; // デフォルト: true
+    bodyMovements: boolean; // デフォルト: true
+    intensity: number; // 0-1, デフォルト: 0.7
+  };
+}
+```
+
+#### デバッグ用手動制御
+
+**デバッグパネルに「アニメーションテスト」セクションを追加**
+
+- **感情テストボタン**: 5 種類の感情アニメーションを手動実行
+- **ジェスチャーテスト**: 個別のジェスチャーアニメーションを実行
+- **アイドルアニメーション制御**: 瞬き・呼吸の手動 ON/OFF
+- **アニメーション状態表示**: 現在実行中のアニメーション一覧
+
+### 11.5. パフォーマンス最適化
+
+#### 最適化方針
+
+**アニメーション更新頻度**
+
+- **フレームレート**: 30fps（リップシンクと同期）
+- **更新間隔**: 33.33ms（1000ms / 30fps）
+- **補間計算**: リニア補間 + イージング関数
+
+**同時実行制限**
+
+- **最大同時アニメーション数**: 3 つ
+  - 1 つ: アイドルアニメーション（瞬き or 呼吸）
+  - 1 つ: 感情アニメーション（表情 + ジェスチャー）
+  - 1 つ: リップシンクアニメーション
+- **優先度制御**: 高優先度アニメーションが低優先度を上書き
+
+**メモリ使用量制限**
+
+- **アニメーションデータ**: 50MB 以内
+- **キーフレームキャッシュ**: 100 個まで
+- **ガベージコレクション**: 未使用アニメーションの自動削除
+
+**CPU 負荷制限**
+
+- **アニメーション計算時間**: 10ms 以内/フレーム
+- **ボーン更新**: 最大 20 ボーン/フレーム
+- **ブレンドシェイプ更新**: 最大 30 シェイプ/フレーム
+
+#### パフォーマンス監視
+
+**デバッグパネルで監視する指標**
+
+```
+アニメーション状態
+├── アクティブアニメーション数: [0-3]
+├── フレームレート: [30fps目標]
+├── アニメーション計算時間: [<10ms]
+└── メモリ使用量: [<50MB]
+
+実行中アニメーション
+├── アイドル: 瞬き/呼吸 [ON/OFF]
+├── 感情: [neutral/happy/sad/angry/surprised]
+└── ジェスチャー: [手/頭/体の動き状態]
+```
+
+### 11.6. 実装スケジュール
+
+```mermaid
+gantt
+    title Phase 4: アニメーション機能実装
+    dateFormat  YYYY-MM-DD
+
+    section Phase 4-1: 基本アニメーション
+    アニメーション基盤構築    :p4-1-1, 2025-01-20, 2025-01-27
+    瞬きアニメーション実装    :p4-1-2, 2025-01-25, 2025-02-01
+    呼吸アニメーション実装    :p4-1-3, 2025-01-30, 2025-02-05
+    基本UI制御パネル         :p4-1-4, 2025-02-01, 2025-02-08
+
+    section Phase 4-2: 感情連動アニメーション
+    感情アニメーション定義    :p4-2-1, 2025-02-05, 2025-02-12
+    AI応答感情解析          :p4-2-2, 2025-02-08, 2025-02-15
+    感情アニメーション統合    :p4-2-3, 2025-02-12, 2025-02-19
+
+    section Phase 4-3: 高度ジェスチャー
+    ジェスチャーアニメーション :p4-3-1, 2025-02-15, 2025-02-25
+    統合テスト・最適化       :p4-3-2, 2025-02-20, 2025-03-01
+```
+
+### 11.7. 品質保証・テスト計画
+
+#### テスト項目
+
+**単体テスト**
+
+- アニメーション制御サービスの個別機能テスト
+- キーフレーム補間計算の精度テスト
+- パフォーマンス制限の動作テスト
+
+**統合テスト**
+
+- リップシンク + アニメーションの同時実行テスト
+- AI 応答連動アニメーションの動作テスト
+- UI 制御パネルとアニメーション制御の連携テスト
+
+**パフォーマンステスト**
+
+- 30fps 維持テスト（複数アニメーション同時実行）
+- メモリ使用量監視（長時間実行）
+- CPU 負荷測定（アニメーション計算時間）
+
+#### 成功基準
+
+- **フレームレート**: 30fps 以上を維持（アニメーション実行中）
+- **応答性**: アニメーション開始遅延 100ms 以内
+- **メモリ使用量**: 全体で 2GB 以内（アニメーション機能追加後）
+- **CPU 負荷**: アニメーション計算 10ms 以内/フレーム
+- **ユーザビリティ**: 直感的な UI 操作、デフォルト設定で自然な動作
+
+### 11.8. 将来拡張計画
+
+#### Phase 5 以降での拡張予定
+
+**高度な感情表現**
+
+- より細かい感情分類（10-15 種類）
+- 感情の混合表現（複数感情の同時表現）
+- 感情の強度に応じた段階的アニメーション
+
+**物理演算連携**
+
+- VRMSpringBone との連携（髪・服の物理演算）
+- 重力・慣性を考慮したリアルなアニメーション
+- 環境との相互作用（風、光の影響）
+
+**AI 連動の高度化**
+
+- 会話内容に基づく具体的なジェスチャー生成
+- 文脈理解による適切なタイミングでのアニメーション
+- ユーザーの反応に応じた適応的アニメーション
+
+**カスタマイズ機能**
+
+- ユーザー定義アニメーションの作成・編集
+- アニメーションプリセットの保存・共有
+- VRM モデル固有のアニメーション最適化
+
+この実装計画により、Echoes はより豊かな表現力を持つ 3D アバターとの自然な対話体験を提供できるようになります。
