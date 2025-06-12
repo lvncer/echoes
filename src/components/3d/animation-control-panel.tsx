@@ -151,7 +151,6 @@ export function AnimationControlPanel({
     setTimeout(() => {
       controller.updateSettings(initialSettings);
     }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 初期化は一度だけ実行
 
   // 設定変更ハンドラー

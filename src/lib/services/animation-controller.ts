@@ -94,7 +94,8 @@ export class AnimationController {
   private lastEmotionAnalysis: EmotionAnalysisResult | null = null;
 
   constructor() {
-    this.startAnimationLoop();
+    // アニメーションループは外部から制御されるため、ここでは開始しない
+    // this.startAnimationLoop();
   }
 
   /**
@@ -620,6 +621,56 @@ export class AnimationController {
   }
 
   /**
+   * 外部から呼び出されるアニメーション更新メソッド
+   */
+  public updateFrame(currentTime: number): void {
+    this.calculationStartTime = performance.now();
+
+    // フレームレート計算
+    if (currentTime - this.lastFrameTime >= 1000) {
+      this.frameRate = this.frameCount;
+      this.frameCount = 0;
+      this.lastFrameTime = currentTime;
+
+      // メモリ使用量監視（概算）
+      if (typeof window !== "undefined" && "memory" in performance) {
+        const memory = (performance as { memory?: { usedJSHeapSize: number } })
+          .memory;
+        if (memory) {
+          this.memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // MB
+        }
+      }
+    }
+    this.frameCount++;
+
+    // CPU負荷制限チェック
+    if (this.activeAnimations.size > 3) {
+      console.warn(
+        `🚨 AnimationController: 同時実行アニメーション数制限超過 (${this.activeAnimations.size}/3)`
+      );
+      this.enforceAnimationLimit();
+    }
+
+    // アニメーション更新
+    this.updateAnimations(currentTime);
+
+    // パフォーマンス計算
+    this.calculationTime = performance.now() - this.calculationStartTime;
+
+    // パフォーマンス履歴記録
+    this.recordPerformanceMetrics(currentTime);
+
+    // CPU負荷制限チェック
+    if (this.calculationTime > this.maxCalculationTime) {
+      console.warn(
+        `🚨 AnimationController: CPU負荷制限超過 (${this.calculationTime.toFixed(
+          1
+        )}ms > ${this.maxCalculationTime}ms)`
+      );
+    }
+  }
+
+  /**
    * アニメーションループを開始
    */
   private startAnimationLoop(): void {
@@ -781,8 +832,16 @@ export class AnimationController {
       Object.entries(keyFrame.blendShapes).forEach(([shapeName, value]) => {
         const expressionManager = this.vrmModel!.expressionManager;
         if (expressionManager) {
+          const currentValue = expressionManager.getValue(shapeName) || 0;
           expressionManager.setValue(shapeName, value);
-          console.log(`🎭 ブレンドシェイプ適用: ${shapeName} = ${value}`);
+          // 値が変更された場合のみログ出力
+          if (Math.abs(currentValue - value) > 0.01) {
+            console.log(
+              `🎭 ブレンドシェイプ適用: ${shapeName} = ${value} (前回: ${currentValue.toFixed(
+                2
+              )})`
+            );
+          }
         } else {
           console.warn(`⚠️ ExpressionManagerが見つかりません`);
         }

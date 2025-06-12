@@ -83,6 +83,14 @@ function VRMViewer({
   useFrame((state, delta) => {
     const vrm = vrmRef.current;
     if (vrm) {
+      // アニメーションコントローラーの更新を先に実行
+      const animationController = getAnimationController();
+      if (animationController) {
+        // 現在時刻をミリ秒で取得
+        const currentTime = performance.now();
+        animationController.updateFrame(currentTime);
+      }
+
       // VRMの更新（ボーン等の更新）
       vrm.update(delta * animationSpeed);
 
