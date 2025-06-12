@@ -111,6 +111,21 @@ export class AnimationController {
       sceneChildren: model.scene.children.length,
     });
 
+    // 利用可能なブレンドシェイプ名を確認
+    if (model.expressionManager) {
+      const expressions = model.expressionManager.expressions;
+      const expressionNames = Object.keys(expressions);
+      console.log("🎭 利用可能なブレンドシェイプ:", expressionNames);
+
+      // 瞬き関連のブレンドシェイプを特に確認
+      const blinkExpressions = expressionNames.filter(
+        (name) =>
+          name.toLowerCase().includes("blink") ||
+          name.toLowerCase().includes("eye")
+      );
+      console.log("👁️ 瞬き関連ブレンドシェイプ:", blinkExpressions);
+    }
+
     // 自動アニメーションを開始
     if (this.settings.autoBlinking.enabled) {
       this.startAutoBlinking();
@@ -578,18 +593,18 @@ export class AnimationController {
 
     const blinkAnimation: AnimationSequence = {
       name: "auto-blink",
-      duration: 250,
+      duration: 1000, // テスト用に1秒に延長
       loop: false,
       keyframes: [
         { time: 0, blendShapes: { Blink_L: 0, Blink_R: 0 } },
         {
-          time: 150,
+          time: 500, // 中間点を500msに
           blendShapes: {
             Blink_L: this.settings.autoBlinking.intensity,
             Blink_R: this.settings.autoBlinking.intensity,
           },
         },
-        { time: 250, blendShapes: { Blink_L: 0, Blink_R: 0 } },
+        { time: 1000, blendShapes: { Blink_L: 0, Blink_R: 0 } },
       ],
       easing: "ease-in-out",
     };
@@ -885,8 +900,8 @@ export class AnimationController {
         if (expressionManager) {
           const currentValue = expressionManager.getValue(shapeName) || 0;
           expressionManager.setValue(shapeName, value);
-          // 値が変更された場合のみログ出力
-          if (Math.abs(currentValue - value) > 0.01) {
+          // 値が変更された場合、または値が0でない場合はログ出力
+          if (Math.abs(currentValue - value) > 0.01 || value > 0) {
             console.log(
               `🎭 ブレンドシェイプ適用: ${shapeName} = ${value} (前回: ${currentValue.toFixed(
                 2
