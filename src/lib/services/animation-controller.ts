@@ -749,7 +749,11 @@ export class AnimationController {
       return;
     }
 
-    if (this.activeAnimations.size > 0) {
+    // アニメーション更新中のログは1秒に1回だけ表示
+    if (
+      this.activeAnimations.size > 0 &&
+      currentTime - this.lastFrameTime > 1000
+    ) {
       console.log("🎭 アニメーション更新中:", {
         activeCount: this.activeAnimations.size,
         currentTime: currentTime.toFixed(0),
@@ -763,11 +767,20 @@ export class AnimationController {
 
       instance.currentTime = currentTime - instance.startTime;
 
+      console.log(`🎭 アニメーション時間計算: ${instance.sequence.name}`, {
+        currentTime: currentTime.toFixed(0),
+        startTime: instance.startTime.toFixed(0),
+        animationCurrentTime: instance.currentTime.toFixed(0),
+        duration: instance.sequence.duration,
+        loop: instance.sequence.loop,
+      });
+
       // アニメーション完了チェック
       if (
         !instance.sequence.loop &&
         instance.currentTime >= instance.sequence.duration
       ) {
+        console.log(`✅ アニメーション完了: ${instance.sequence.name}`);
         completedAnimations.push(id);
         return;
       }
@@ -777,12 +790,11 @@ export class AnimationController {
         ? instance.currentTime % instance.sequence.duration
         : Math.min(instance.currentTime, instance.sequence.duration);
 
-      // キーフレーム補間とVRMモデル更新
       console.log(
-        `🎭 キーフレーム補間: ${
-          instance.sequence.name
-        }, 時間: ${animationTime.toFixed(0)}ms`
+        `🎭 補間時間: ${instance.sequence.name} = ${animationTime.toFixed(0)}ms`
       );
+
+      // キーフレーム補間とVRMモデル更新
       this.applyKeyFrameInterpolation(instance.sequence, animationTime);
     });
 
