@@ -591,13 +591,52 @@ export function AnimationControlPanel({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>実行中:</span>
-                <span>
-                  {Object.values(animationState.runningAnimations)
-                    .filter(Boolean)
-                    .join(", ") || "なし"}
+                <span>メモリ使用量:</span>
+                <span
+                  className={getPerformanceColor(
+                    animationState.memoryUsage,
+                    [30, 50]
+                  )}
+                >
+                  {animationState.memoryUsage.toFixed(0)} MB
                 </span>
               </div>
+            </div>
+
+            {/* 統合テスト */}
+            <div className="space-y-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // 統合テスト実行
+                  console.log("🧪 統合テスト開始");
+
+                  // 1. デフォルト姿勢リセット
+                  handleResetPose();
+
+                  // 2. 基本アニメーション確認
+                  setTimeout(() => {
+                    console.log("🧪 基本アニメーション確認");
+                    const controller = getAnimationController();
+                    const state = controller.getState();
+                    console.log("🧪 アニメーション状態:", state);
+                  }, 1000);
+
+                  // 3. 音声チャット連動テスト
+                  setTimeout(() => {
+                    console.log("🧪 音声チャット連動テスト実行");
+                    handleTestVoiceChatIntegration();
+                  }, 2000);
+
+                  console.log("🧪 統合テスト完了予定時間: 約20秒");
+                }}
+                disabled={!isEnabled}
+                className="w-full text-xs"
+              >
+                <Activity className="w-3 h-3 mr-1" />
+                統合テスト実行
+              </Button>
             </div>
           </div>
 
