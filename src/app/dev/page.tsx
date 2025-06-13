@@ -8,7 +8,7 @@ import { AdvancedLipSyncPanel } from "@/components/3d/advanced-lipsync-panel";
 import { IntegratedLipSyncPanel } from "@/components/3d/integrated-lipsync-panel";
 import { SimpleDebugPanel } from "@/components/3d/simple-debug-panel";
 import { AnimationControlPanel } from "@/components/3d/animation-control-panel";
-import { Model3DViewer } from "@/components/3d/model-3d-viewer";
+import { Simple3DViewer } from "@/components/3d/model-3d-viewer";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import {
   Code,
@@ -69,9 +69,7 @@ export default function DevPage() {
               </Button>
             </Link>
             <Code className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              開発者向け設定
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">開発者向け設定</h1>
           </div>
           <p className="text-gray-600">
             音声設定、アニメーション制御、ブレンドシェイプ、デバッグ機能
@@ -94,7 +92,7 @@ export default function DevPage() {
             </div>
             <div className="h-[600px] relative">
               <ErrorBoundary>
-                <Model3DViewer
+                <Simple3DViewer
                   model={currentModel}
                   className="w-full h-full"
                   showInfo={true}
@@ -104,7 +102,9 @@ export default function DevPage() {
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
                   <div className="text-center">
                     <Box className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">3Dモデルが読み込まれていません</p>
+                    <p className="text-gray-600 mb-2">
+                      3Dモデルが読み込まれていません
+                    </p>
                     <Link href="/settings">
                       <Button variant="outline" size="sm">
                         <Settings className="w-4 h-4 mr-2" />
@@ -129,11 +129,17 @@ export default function DevPage() {
                   <Mic className="w-4 h-4" />
                   音声
                 </TabsTrigger>
-                <TabsTrigger value="animation" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="animation"
+                  className="flex items-center gap-2"
+                >
                   <Zap className="w-4 h-4" />
                   アニメーション
                 </TabsTrigger>
-                <TabsTrigger value="blendshape" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="blendshape"
+                  className="flex items-center gap-2"
+                >
                   <Palette className="w-4 h-4" />
                   表情
                 </TabsTrigger>
@@ -144,7 +150,10 @@ export default function DevPage() {
               </TabsList>
 
               {/* 音声設定タブ */}
-              <TabsContent value="audio" className="p-6 h-[600px] overflow-y-auto">
+              <TabsContent
+                value="audio"
+                className="p-6 h-[600px] overflow-y-auto"
+              >
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
@@ -186,7 +195,10 @@ export default function DevPage() {
               </TabsContent>
 
               {/* アニメーション設定タブ */}
-              <TabsContent value="animation" className="p-6 h-[600px] overflow-y-auto">
+              <TabsContent
+                value="animation"
+                className="p-6 h-[600px] overflow-y-auto"
+              >
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     アニメーション制御
@@ -200,7 +212,10 @@ export default function DevPage() {
               </TabsContent>
 
               {/* ブレンドシェイプ設定タブ */}
-              <TabsContent value="blendshape" className="p-6 h-[600px] overflow-y-auto">
+              <TabsContent
+                value="blendshape"
+                className="p-6 h-[600px] overflow-y-auto"
+              >
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     ブレンドシェイプ制御
@@ -214,7 +229,10 @@ export default function DevPage() {
               </TabsContent>
 
               {/* デバッグタブ */}
-              <TabsContent value="debug" className="p-6 h-[600px] overflow-y-auto">
+              <TabsContent
+                value="debug"
+                className="p-6 h-[600px] overflow-y-auto"
+              >
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">
                     デバッグ・テスト機能
@@ -232,4 +250,4 @@ export default function DevPage() {
       </div>
     </main>
   );
-} 
+}
