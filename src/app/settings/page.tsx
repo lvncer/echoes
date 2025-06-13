@@ -8,6 +8,7 @@ import { AdvancedLipSyncPanel } from "@/components/3d/advanced-lipsync-panel";
 import { IntegratedLipSyncPanel } from "@/components/3d/integrated-lipsync-panel";
 import { SimpleDebugPanel } from "@/components/3d/simple-debug-panel";
 import { AnimationControlPanel } from "@/components/3d/animation-control-panel";
+import { ModelSelector } from "@/components/3d/model-selector";
 import Chat from "../../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import {
@@ -18,11 +19,14 @@ import {
   Zap,
   Bug,
   ArrowLeft,
+  Box,
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimationController } from "@/lib/services/animation-controller";
+import { useModelStore } from "@/stores/model-store";
+import { loadModel } from "@/lib/3d/loaders";
 
 // アニメーションコントローラーの初期化
 declare global {
@@ -39,7 +43,20 @@ const initializeAnimationController = () => {
 };
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("ai");
+  const [activeTab, setActiveTab] = useState("models");
+
+  // モデルストアから必要な関数を取得
+  const {
+    availableModels,
+    currentModel,
+    isLoading,
+    addModel,
+    removeModel,
+    setCurrentModel,
+    switchToModel,
+    setLoading,
+    setError,
+  } = useModelStore();
 
   // ハイドレーション完了を検知
   useEffect(() => {
@@ -80,7 +97,11 @@ export default function SettingsPage() {
             onValueChange={setActiveTab}
             className="h-full"
           >
-            <TabsList className="grid w-full grid-cols-5 p-1">
+            <TabsList className="grid w-full grid-cols-6 p-1">
+              <TabsTrigger value="models" className="flex items-center gap-2">
+                <Box className="w-4 h-4" />
+                モデル
+              </TabsTrigger>
               <TabsTrigger value="ai" className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4" />
                 AI設定
@@ -108,6 +129,52 @@ export default function SettingsPage() {
                 デバッグ
               </TabsTrigger>
             </TabsList>
+
+            {/* 3Dモデル管理タブ */}
+            <TabsContent value="models" className="p-6">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                    3Dモデル管理
+                  </h2>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <ErrorBoundary>
+                      <ModelSelector
+                        models={availableModels}
+                        currentModel={currentModel}
+                        onModelSelect={(model) => switchToModel(model.id)}
+                        onModelUpload={async (file) => {
+                          try {
+                            setLoading(true);
+                            setError(undefined);
+
+                            const result = await loadModel(file);
+                            if (result.success && result.model) {
+                              addModel(result.model);
+                              setCurrentModel(result.model);
+                            } else {
+                              throw new Error(
+                                result.error || "モデルの読み込みに失敗しました"
+                              );
+                            }
+                          } catch (error) {
+                            const errorMessage =
+                              error instanceof Error
+                                ? error.message
+                                : "不明なエラーが発生しました";
+                            setError(errorMessage);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        onModelDelete={(modelId) => removeModel(modelId)}
+                        isLoading={isLoading}
+                      />
+                    </ErrorBoundary>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
 
             {/* AI設定タブ */}
             <TabsContent value="ai" className="p-6">

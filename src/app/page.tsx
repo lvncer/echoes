@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Model3DViewer } from "@/components/3d/model-3d-viewer";
+import { Simple3DViewer } from "@/components/3d/model-3d-viewer";
 import { Box, Settings, Mic, MicOff } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/stores/model-store";
@@ -112,7 +112,11 @@ export default function Home() {
       <div className="flex-1 relative min-h-0">
         <ErrorBoundary>
           <div className="w-full h-full">
-            <Model3DViewer className="w-full h-full" />
+            <Simple3DViewer
+              model={currentModel}
+              className="w-full h-full"
+              showInfo={false}
+            />
           </div>
         </ErrorBoundary>
 
@@ -122,17 +126,21 @@ export default function Home() {
             <div className="bg-white/95 rounded-xl p-6 shadow-xl text-center max-w-sm mx-4 border border-gray-200">
               <Box className="w-16 h-16 text-blue-600 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                3Dモデルを読み込み
+                3Dモデルが必要です
               </h2>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                VRM、glTF、GLBファイルを
+              <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                3Dモデルを読み込んで
                 <br />
-                ドラッグ&ドロップまたは
-                <br />
-                画面をクリックして選択
+                音声会話を始めましょう
               </p>
-              <div className="mt-4 text-xs text-gray-500">
-                推奨: VRMファイル
+              <Link href="/settings">
+                <Button className="w-full flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  モデルを読み込む
+                </Button>
+              </Link>
+              <div className="mt-3 text-xs text-gray-500">
+                設定ページでVRM、glTF、GLBファイルを選択
               </div>
             </div>
           </div>
