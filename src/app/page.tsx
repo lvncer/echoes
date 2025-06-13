@@ -82,9 +82,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col">
+    <main className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -109,20 +109,18 @@ export default function Home() {
       </header>
 
       {/* メインコンテンツ: 3Dビューアー */}
-      <div className="flex-1 relative min-h-0">
+      <div className="flex-1 relative overflow-hidden">
         <ErrorBoundary>
-          <div className="w-full h-full">
-            <Simple3DViewer
-              model={currentModel}
-              className="w-full h-full"
-              showInfo={false}
-            />
-          </div>
+          <Simple3DViewer
+            model={currentModel}
+            className="absolute inset-0 w-full h-full"
+            showInfo={false}
+          />
         </ErrorBoundary>
 
         {/* モデル読み込み案内（モデルが読み込まれていない場合） */}
         {!currentModel && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-sm z-10">
             <div className="bg-white/95 rounded-xl p-6 shadow-xl text-center max-w-sm mx-4 border border-gray-200">
               <Box className="w-16 h-16 text-blue-600 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-800 mb-3">
@@ -148,7 +146,7 @@ export default function Home() {
       </div>
 
       {/* 音声操作UI */}
-      <footer className="bg-white border-t shadow-lg">
+      <footer className="bg-white border-t shadow-lg flex-shrink-0">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-center gap-4">
             {/* 音声チャット切り替えボタン */}
