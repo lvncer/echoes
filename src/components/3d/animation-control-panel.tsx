@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Monitor,
   Bug,
+  Mic,
 } from "lucide-react";
 import { AnimationController } from "@/lib/services/animation-controller";
 import type {
@@ -218,11 +219,83 @@ export function AnimationControlPanel({
         intensity: 0.7,
       },
     };
+
     setSettings(defaultSettings);
-    // 非同期でコントローラーを更新
-    setTimeout(() => {
-      getAnimationController().updateSettings(defaultSettings);
-    }, 0);
+    getAnimationController().updateSettings(defaultSettings);
+  };
+
+  // デフォルト姿勢リセット
+  const handleResetPose = () => {
+    const controller = getAnimationController();
+    controller.resetToNaturalPose();
+  };
+
+  // 音声チャット連動テスト
+  const handleTestVoiceChatIntegration = async () => {
+    const controller = getAnimationController();
+
+    // テスト用のAI応答テキスト（感情を含む）
+    const testResponses = [
+      "こんにちは！今日はとても良い天気ですね。気分が明るくなります。", // happy
+      "申し訳ありませんが、その件についてはお答えできません。", // sad
+      "それは絶対に許可できません！危険すぎます。", // angry
+      "えっ！本当ですか？信じられません！", // surprised
+      "そうですね、普通のことだと思います。", // neutral
+    ];
+
+    console.log("🎭 音声チャット連動テスト開始");
+
+    for (let i = 0; i < testResponses.length; i++) {
+      const response = testResponses[i];
+      console.log(`🎭 テスト ${i + 1}/5: "${response}"`);
+
+      // 感情解析とアニメーション実行
+      controller.analyzeAndPlayEmotionAnimation(response);
+
+      // 次のテストまで3秒待機
+      if (i < testResponses.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    }
+
+    console.log("🎭 音声チャット連動テスト完了");
+  };
+
+  // 感情解析結果表示
+  const getEmotionAnalysisDisplay = () => {
+    const analysis = getLastEmotionAnalysis();
+    if (!analysis) return null;
+
+    return (
+      <div className="text-xs space-y-1 p-2 bg-muted rounded">
+        <div className="flex justify-between">
+          <span>感情:</span>
+          <span className="font-medium">
+            {getEmotionLabel(analysis.emotion)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>強度:</span>
+          <span>{(analysis.intensity * 100).toFixed(0)}%</span>
+        </div>
+        <div className="flex justify-between">
+          <span>信頼度:</span>
+          <span>{(analysis.confidence * 100).toFixed(0)}%</span>
+        </div>
+        {analysis.keywords.length > 0 && (
+          <div className="space-y-1">
+            <span>キーワード:</span>
+            <div className="flex flex-wrap gap-1">
+              {analysis.keywords.map((keyword, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {keyword}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   // パフォーマンス状態の色分け
@@ -343,6 +416,21 @@ export function AnimationControlPanel({
               <Badge variant="outline">
                 {animationState.activeAnimationCount}個実行中
               </Badge>
+            </div>
+
+            {/* デフォルト姿勢リセット */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">デフォルト姿勢</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetPose}
+                disabled={!isEnabled}
+                className="text-xs"
+              >
+                <RotateCcw className="w-3 h-3 mr-1" />
+                リセット
+              </Button>
             </div>
           </div>
 
@@ -503,13 +591,52 @@ export function AnimationControlPanel({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>実行中:</span>
-                <span>
-                  {Object.values(animationState.runningAnimations)
-                    .filter(Boolean)
-                    .join(", ") || "なし"}
+                <span>メモリ使用量:</span>
+                <span
+                  className={getPerformanceColor(
+                    animationState.memoryUsage,
+                    [30, 50]
+                  )}
+                >
+                  {animationState.memoryUsage.toFixed(0)} MB
                 </span>
               </div>
+            </div>
+
+            {/* 統合テスト */}
+            <div className="space-y-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // 統合テスト実行
+                  console.log("🧪 統合テスト開始");
+
+                  // 1. デフォルト姿勢リセット
+                  handleResetPose();
+
+                  // 2. 基本アニメーション確認
+                  setTimeout(() => {
+                    console.log("🧪 基本アニメーション確認");
+                    const controller = getAnimationController();
+                    const state = controller.getState();
+                    console.log("🧪 アニメーション状態:", state);
+                  }, 1000);
+
+                  // 3. 音声チャット連動テスト
+                  setTimeout(() => {
+                    console.log("🧪 音声チャット連動テスト実行");
+                    handleTestVoiceChatIntegration();
+                  }, 2000);
+
+                  console.log("🧪 統合テスト完了予定時間: 約20秒");
+                }}
+                disabled={!isEnabled}
+                className="w-full text-xs"
+              >
+                <Activity className="w-3 h-3 mr-1" />
+                統合テスト実行
+              </Button>
             </div>
           </div>
 
@@ -716,6 +843,23 @@ export function AnimationControlPanel({
                       </Button>
                     ))}
                   </div>
+
+                  {/* 音声チャット連動テスト */}
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleTestVoiceChatIntegration}
+                      disabled={!isEnabled}
+                      className="w-full text-xs"
+                    >
+                      <Mic className="w-3 h-3 mr-1" />
+                      音声チャット連動テスト
+                    </Button>
+                  </div>
+
+                  {/* 感情解析結果表示 */}
+                  {getEmotionAnalysisDisplay()}
                 </div>
 
                 {/* ジェスチャーアニメーションテスト */}

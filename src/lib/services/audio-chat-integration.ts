@@ -303,6 +303,8 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
+      console.log(`🎭 AI応答アニメーション連動開始: "${text.substring(0, 50)}..."`);
+
       // アニメーション制御サービスで感情解析とアニメーション実行
       if (typeof window !== "undefined") {
         const windowWithController = window as typeof window & {
@@ -311,18 +313,28 @@ export class AudioChatIntegrationService {
           };
         };
         if (windowWithController.__animationController) {
+          console.log("🎭 アニメーションコントローラー発見 - 感情解析実行");
           windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
             text
           );
+          console.log("🎭 感情解析・アニメーション実行完了");
+        } else {
+          console.warn("⚠️ アニメーションコントローラーが見つかりません");
         }
+      } else {
+        console.warn("⚠️ ブラウザ環境ではありません - アニメーション連動スキップ");
       }
 
       // 統合リップシンクサービスでAI応答リップシンクを開始
+      console.log("🔊 統合リップシンクサービス開始");
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // 音声合成の完了を監視するためのPromiseを作成
+      console.log("🔊 音声合成完了待機開始");
       await this.waitForSpeechCompletion(text);
+      console.log("🔊 音声合成完了");
     } catch (error) {
+      console.error("❌ AI応答音声合成エラー:", error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,
