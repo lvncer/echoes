@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Monitor,
   Bug,
+  Mic,
 } from "lucide-react";
 import { AnimationController } from "@/lib/services/animation-controller";
 import type {
@@ -227,6 +228,74 @@ export function AnimationControlPanel({
   const handleResetPose = () => {
     const controller = getAnimationController();
     controller.resetToNaturalPose();
+  };
+
+  // 音声チャット連動テスト
+  const handleTestVoiceChatIntegration = async () => {
+    const controller = getAnimationController();
+
+    // テスト用のAI応答テキスト（感情を含む）
+    const testResponses = [
+      "こんにちは！今日はとても良い天気ですね。気分が明るくなります。", // happy
+      "申し訳ありませんが、その件についてはお答えできません。", // sad
+      "それは絶対に許可できません！危険すぎます。", // angry
+      "えっ！本当ですか？信じられません！", // surprised
+      "そうですね、普通のことだと思います。", // neutral
+    ];
+
+    console.log("🎭 音声チャット連動テスト開始");
+
+    for (let i = 0; i < testResponses.length; i++) {
+      const response = testResponses[i];
+      console.log(`🎭 テスト ${i + 1}/5: "${response}"`);
+
+      // 感情解析とアニメーション実行
+      controller.analyzeAndPlayEmotionAnimation(response);
+
+      // 次のテストまで3秒待機
+      if (i < testResponses.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    }
+
+    console.log("🎭 音声チャット連動テスト完了");
+  };
+
+  // 感情解析結果表示
+  const getEmotionAnalysisDisplay = () => {
+    const analysis = getLastEmotionAnalysis();
+    if (!analysis) return null;
+
+    return (
+      <div className="text-xs space-y-1 p-2 bg-muted rounded">
+        <div className="flex justify-between">
+          <span>感情:</span>
+          <span className="font-medium">
+            {getEmotionLabel(analysis.emotion)}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>強度:</span>
+          <span>{(analysis.intensity * 100).toFixed(0)}%</span>
+        </div>
+        <div className="flex justify-between">
+          <span>信頼度:</span>
+          <span>{(analysis.confidence * 100).toFixed(0)}%</span>
+        </div>
+        {analysis.keywords.length > 0 && (
+          <div className="space-y-1">
+            <span>キーワード:</span>
+            <div className="flex flex-wrap gap-1">
+              {analysis.keywords.map((keyword, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {keyword}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   // パフォーマンス状態の色分け
@@ -735,6 +804,23 @@ export function AnimationControlPanel({
                       </Button>
                     ))}
                   </div>
+
+                  {/* 音声チャット連動テスト */}
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleTestVoiceChatIntegration}
+                      disabled={!isEnabled}
+                      className="w-full text-xs"
+                    >
+                      <Mic className="w-3 h-3 mr-1" />
+                      音声チャット連動テスト
+                    </Button>
+                  </div>
+
+                  {/* 感情解析結果表示 */}
+                  {getEmotionAnalysisDisplay()}
                 </div>
 
                 {/* ジェスチャーアニメーションテスト */}

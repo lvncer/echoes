@@ -236,7 +236,10 @@ export class AnimationController {
             bone.rotation.y += transform.rotation[1];
             bone.rotation.z += transform.rotation[2];
             adjustedBones++;
-            console.log(`✅ デフォルト姿勢調整: ${boneName}`, transform.rotation);
+            console.log(
+              `✅ デフォルト姿勢調整: ${boneName}`,
+              transform.rotation
+            );
           }
         } catch (error) {
           console.warn(`⚠️ デフォルト姿勢調整失敗: ${boneName}`, error);
@@ -248,7 +251,9 @@ export class AnimationController {
       }
     });
 
-    console.log(`🧍 デフォルト姿勢調整完了: 成功=${adjustedBones}, 失敗=${failedBones}`);
+    console.log(
+      `🧍 デフォルト姿勢調整完了: 成功=${adjustedBones}, 失敗=${failedBones}`
+    );
 
     // 利用可能なボーン一覧をデバッグ出力
     this.logAvailableBones();
@@ -264,15 +269,28 @@ export class AnimationController {
     if (!humanoid) return;
 
     console.log("🦴 利用可能なHumanoidボーン一覧:");
-    
+
     // VRMのHumanoidボーン名を確認
     const humanoidBoneNames = [
-      "head", "neck", "spine", "upperChest", "chest",
-      "leftShoulder", "rightShoulder",
-      "leftUpperArm", "leftLowerArm", "leftHand",
-      "rightUpperArm", "rightLowerArm", "rightHand",
-      "leftUpperLeg", "leftLowerLeg", "leftFoot",
-      "rightUpperLeg", "rightLowerLeg", "rightFoot",
+      "head",
+      "neck",
+      "spine",
+      "upperChest",
+      "chest",
+      "leftShoulder",
+      "rightShoulder",
+      "leftUpperArm",
+      "leftLowerArm",
+      "leftHand",
+      "rightUpperArm",
+      "rightLowerArm",
+      "rightHand",
+      "leftUpperLeg",
+      "leftLowerLeg",
+      "leftFoot",
+      "rightUpperLeg",
+      "rightLowerLeg",
+      "rightFoot",
     ];
 
     const availableBones: string[] = [];
@@ -291,7 +309,13 @@ export class AnimationController {
 
     console.log(`✅ 利用可能: ${availableBones.join(", ")}`);
     console.log(`❌ 利用不可: ${unavailableBones.join(", ")}`);
-    console.log(`📊 利用可能率: ${availableBones.length}/${humanoidBoneNames.length} (${Math.round(availableBones.length / humanoidBoneNames.length * 100)}%)`);
+    console.log(
+      `📊 利用可能率: ${availableBones.length}/${
+        humanoidBoneNames.length
+      } (${Math.round(
+        (availableBones.length / humanoidBoneNames.length) * 100
+      )}%)`
+    );
   }
 
   /**
@@ -498,12 +522,24 @@ export class AnimationController {
    */
   public analyzeAndPlayEmotionAnimation(text: string): void {
     if (!this.isEnabled || !this.settings.emotionAnimations.enabled) {
+      console.log(
+        "🎭 AnimationController: 感情アニメーション無効化されています"
+      );
       return;
     }
+
+    console.log(`🎭 感情解析開始: "${text}"`);
 
     // 感情解析
     const analysis = emotionAnalyzer.analyzeWithContext(text);
     this.lastEmotionAnalysis = analysis;
+
+    console.log(`🎭 感情解析結果:`, {
+      emotion: analysis.emotion,
+      intensity: analysis.intensity.toFixed(2),
+      confidence: analysis.confidence.toFixed(2),
+      keywords: analysis.keywords,
+    });
 
     // 信頼度が低い場合はスキップ
     if (analysis.confidence < 0.4) {
@@ -517,6 +553,7 @@ export class AnimationController {
 
     // ニュートラルの場合は現在の感情アニメーションを停止
     if (analysis.emotion === "neutral") {
+      console.log("🎭 ニュートラル感情検出 - 現在のアニメーション停止");
       this.stopCurrentEmotionAnimation();
       return;
     }
@@ -540,6 +577,12 @@ export class AnimationController {
     // 新しいアニメーション開始前にブレンドシェイプをクリア
     this.resetEmotionBlendShapes();
 
+    console.log(
+      `🎭 感情アニメーション実行開始: ${
+        analysis.emotion
+      } (強度: ${analysis.intensity.toFixed(2)})`
+    );
+
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
@@ -547,7 +590,7 @@ export class AnimationController {
     );
 
     // ジェスチャーアニメーションを実行
-    this.playAnimation(
+    const gestureAnimationId = this.playAnimation(
       emotionAnimation.animations.gesture,
       AnimationPriority.NORMAL
     );
@@ -556,9 +599,7 @@ export class AnimationController {
     this.currentEmotionAnimationId = facialAnimationId;
 
     console.log(
-      `🎭 AnimationController: 感情アニメーション実行 - ${
-        analysis.emotion
-      } (強度: ${analysis.intensity.toFixed(2)})`
+      `🎭 感情アニメーション実行完了 - 表情ID: ${facialAnimationId}, ジェスチャーID: ${gestureAnimationId}`
     );
 
     // イベント通知
