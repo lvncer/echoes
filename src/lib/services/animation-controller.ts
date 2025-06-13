@@ -1,5 +1,6 @@
 import type { VRM } from "@pixiv/three-vrm";
 import type { Object3D } from "three";
+import { Vector3 } from "three";
 import type {
   AnimationSequence,
   AnimationInstance,
@@ -690,6 +691,47 @@ export class AnimationController {
   }
 
   /**
+   * ボーンの変形をリセット
+   */
+  private resetBoneTransforms(): void {
+    if (!this.vrmModel) return;
+
+    const humanoid = this.vrmModel.humanoid;
+    if (!humanoid) return;
+
+    // 主要なボーンをリセット
+    const bonesToReset = [
+      "head",
+      "neck",
+      "spine",
+      "upperChest",
+      "chest",
+      "leftShoulder",
+      "rightShoulder",
+      "leftUpperArm",
+      "leftLowerArm",
+      "leftHand",
+      "rightUpperArm",
+      "rightLowerArm",
+      "rightHand",
+    ];
+
+    bonesToReset.forEach((boneName) => {
+      const bone = humanoid.getNormalizedBoneNode(
+        boneName as keyof typeof humanoid.humanBones
+      );
+      if (bone) {
+        // 回転をリセット（相対的な変形をリセット）
+        bone.rotation.set(0, 0, 0);
+        // positionは初期位置からの相対値なので、差分をリセット
+        // bone.position.set(0, 0, 0); // これは危険なので避ける
+      }
+    });
+
+    console.log("🦴 ボーン変形をリセットしました");
+  }
+
+  /**
    * 瞬きアニメーションを実行
    */
   private playBlinkAnimation(): void {
@@ -966,7 +1008,14 @@ export class AnimationController {
         // 感情アニメーションが完了した場合はブレンドシェイプをリセット
         if (id === this.currentEmotionAnimationId) {
           this.resetEmotionBlendShapes();
+          this.resetBoneTransforms();
           this.currentEmotionAnimationId = null;
+        }
+
+        // ジェスチャーアニメーションが完了した場合はボーンをリセット
+        if (id === this.currentGestureAnimationId) {
+          this.resetBoneTransforms();
+          this.currentGestureAnimationId = null;
         }
 
         // 呼吸アニメーションが完了した場合は再開
@@ -1063,7 +1112,7 @@ export class AnimationController {
         const bone = this.findBone(boneName);
         if (bone) {
           if (transform.position) {
-            bone.position.set(...transform.position);
+            bone.position.add(new Vector3(...transform.position));
           }
           if (transform.rotation) {
             bone.rotation.set(...transform.rotation);
@@ -1071,6 +1120,11 @@ export class AnimationController {
           if (transform.scale) {
             bone.scale.set(...transform.scale);
           }
+          console.log(`🦴 ボーン変形適用: ${boneName}`, transform);
+        } else {
+          console.warn(
+            `⚠️ ボーン変形失敗: ${boneName} - ボーンが見つかりません`
+          );
         }
       });
     }
@@ -1155,7 +1209,7 @@ export class AnimationController {
       const bone = this.findBone(boneName);
       if (bone) {
         if (transform.position) {
-          bone.position.set(...transform.position);
+          bone.position.add(new Vector3(...transform.position));
         }
         if (transform.rotation) {
           bone.rotation.set(...transform.rotation);
@@ -1193,14 +1247,72 @@ export class AnimationController {
     // VRMモデルからボーンを検索
     const humanoid = this.vrmModel.humanoid;
     if (humanoid) {
+      // VRMのHumanoidボーン名マッピング
+      const boneMapping: Record<string, string> = {
+        // 頭部
+        Head: "head",
+        Neck: "neck",
+
+        // 胴体
+        Spine: "spine",
+        UpperChest: "upperChest",
+        Chest: "chest",
+
+        // 肩
+        LeftShoulder: "leftShoulder",
+        RightShoulder: "rightShoulder",
+
+        // 腕
+        LeftUpperArm: "leftUpperArm",
+        LeftLowerArm: "leftLowerArm",
+        LeftHand: "leftHand",
+        RightUpperArm: "rightUpperArm",
+        RightLowerArm: "rightLowerArm",
+        RightHand: "rightHand",
+
+        // 腕の別名
+        LeftArm: "leftUpperArm",
+        RightArm: "rightUpperArm",
+        LeftForeArm: "leftLowerArm",
+        RightForeArm: "rightLowerArm",
+
+        // 脚
+        LeftUpperLeg: "leftUpperLeg",
+        LeftLowerLeg: "leftLowerLeg",
+        LeftFoot: "leftFoot",
+        RightUpperLeg: "rightUpperLeg",
+        RightLowerLeg: "rightLowerLeg",
+        RightFoot: "rightFoot",
+      };
+
+      // マッピングされたボーン名で検索
+      const mappedBoneName = boneMapping[boneName] || boneName.toLowerCase();
       const bone = humanoid.getNormalizedBoneNode(
-        boneName as keyof typeof humanoid.humanBones
+        mappedBoneName as keyof typeof humanoid.humanBones
       );
-      if (bone) return bone;
+      if (bone) {
+        console.log(`✅ ボーン発見: ${boneName} -> ${mappedBoneName}`);
+        return bone;
+      }
     }
 
-    // 直接検索
-    return this.vrmModel.scene.getObjectByName(boneName) || null;
+    // 直接検索（シーン内のオブジェクト名で検索）
+    const directBone = this.vrmModel.scene.getObjectByName(boneName);
+    if (directBone) {
+      console.log(`✅ 直接ボーン発見: ${boneName}`);
+      return directBone;
+    }
+
+    // ボーンが見つからない場合の警告
+    console.warn(`⚠️ ボーンが見つかりません: ${boneName}`);
+
+    // 利用可能なボーン一覧を出力（デバッグ用）
+    if (humanoid) {
+      const availableBones = Object.keys(humanoid.humanBones);
+      console.log(`📋 利用可能なHumanoidボーン: ${availableBones.join(", ")}`);
+    }
+
+    return null;
   }
 
   /**
