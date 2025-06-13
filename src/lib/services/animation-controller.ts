@@ -203,23 +203,23 @@ export class AnimationController {
     // 自然な立ち姿勢の設定
     const naturalPoseAdjustments = {
       // 腕・手の位置調整（自然に下げる）
-      leftShoulder: { rotation: [-0.1, 0, 0] }, // 肩を下げる（X軸負の方向）
-      rightShoulder: { rotation: [-0.1, 0, 0] },
-      leftUpperArm: { rotation: [0.2, 0, 0.3] }, // 腕を下に向ける、体に沿わせる
-      rightUpperArm: { rotation: [0.2, 0, -0.3] },
-      leftLowerArm: { rotation: [0.3, 0, 0] }, // 肘を自然に曲げる
-      rightLowerArm: { rotation: [0.3, 0, 0] },
-      leftHand: { rotation: [0.1, 0, 0.1] }, // 手を自然な角度に
-      rightHand: { rotation: [0.1, 0, -0.1] },
+      leftShoulder: { rotation: [0, 0, 0.2] }, // 肩を外側に開く
+      rightShoulder: { rotation: [0, 0, -0.2] },
+      leftUpperArm: { rotation: [0.4, 0, 0.3] }, // 腕をより下に向ける
+      rightUpperArm: { rotation: [0.4, 0, -0.3] },
+      leftLowerArm: { rotation: [0.2, 0, 0.1] }, // 肘を軽く曲げる
+      rightLowerArm: { rotation: [0.2, 0, -0.1] },
+      leftHand: { rotation: [0, 0, 0.1] }, // 手を自然な角度に
+      rightHand: { rotation: [0, 0, -0.1] },
 
-      // 体幹の微調整（後ろに傾かないように）
-      spine: { rotation: [-0.02, 0, 0] }, // 背筋を前に傾ける（後ろ傾きを防ぐ）
-      chest: { rotation: [-0.01, 0, 0] },
-      upperChest: { rotation: [-0.01, 0, 0] },
+      // 体幹の微調整（まっすぐ立つ）
+      spine: { rotation: [0, 0, 0] }, // 背筋をまっすぐに
+      chest: { rotation: [0, 0, 0] },
+      upperChest: { rotation: [0, 0, 0] },
 
-      // 頭の位置調整
-      neck: { rotation: [-0.05, 0, 0] }, // 首を少し下に向ける
-      head: { rotation: [-0.03, 0, 0] }, // 頭を少し下げる
+      // 頭の位置調整（正面を向く）
+      neck: { rotation: [0.05, 0, 0] }, // 首を少し上に向ける
+      head: { rotation: [0.03, 0, 0] }, // 頭を少し上げる
     };
 
     let adjustedBones = 0;
