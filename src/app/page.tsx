@@ -24,16 +24,14 @@ const initializeAnimationController = () => {
 };
 
 export default function Home() {
-  const [isHydrated, setIsHydrated] = useState(false);
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
   // モデルストアからデフォルトモデル初期化関数を取得
   const { initializeDefaultModel, currentModel } = useModelStore();
 
-  // ハイドレーション完了を検知
+  // 初期化処理
   useEffect(() => {
-    setIsHydrated(true);
     // アニメーションコントローラーを初期化
     initializeAnimationController();
   }, []);
@@ -111,24 +109,31 @@ export default function Home() {
       </header>
 
       {/* メインコンテンツ: 3Dビューアー */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-0">
         <ErrorBoundary>
-          <Model3DViewer />
+          <div className="w-full h-full">
+            <Model3DViewer className="w-full h-full" />
+          </div>
         </ErrorBoundary>
 
         {/* モデル読み込み案内（モデルが読み込まれていない場合） */}
-        {!currentModel && isHydrated && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
-            <div className="bg-white rounded-lg p-6 shadow-lg text-center max-w-md mx-4">
-              <Box className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                3Dモデルを読み込んでください
+        {!currentModel && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-sm">
+            <div className="bg-white/95 rounded-xl p-6 shadow-xl text-center max-w-sm mx-4 border border-gray-200">
+              <Box className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-800 mb-3">
+                3Dモデルを読み込み
               </h2>
-              <p className="text-gray-600 text-sm">
-                VRM、glTF、GLBファイルをドラッグ&ドロップするか、
+              <p className="text-gray-600 text-sm leading-relaxed">
+                VRM、glTF、GLBファイルを
                 <br />
-                画面をクリックしてファイルを選択してください
+                ドラッグ&ドロップまたは
+                <br />
+                画面をクリックして選択
               </p>
+              <div className="mt-4 text-xs text-gray-500">
+                推奨: VRMファイル
+              </div>
             </div>
           </div>
         )}

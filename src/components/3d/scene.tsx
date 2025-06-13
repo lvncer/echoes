@@ -36,6 +36,15 @@ export function Scene({
         }}
         shadows={sceneConfig.enableShadows}
         style={{ background: sceneConfig.backgroundColor }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance",
+        }}
+        dpr={[1, 2]} // デバイスピクセル比を制限してパフォーマンス向上
+        performance={{
+          min: 0.5, // 最小フレームレート
+        }}
       >
         {/* 統計情報（開発用） */}
         {showStats && <Stats />}
@@ -49,15 +58,15 @@ export function Scene({
         {/* グリッド */}
         {showGrid && (
           <Grid
-            args={[10, 10]}
-            cellSize={1}
-            cellThickness={0.5}
-            cellColor="#6f6f6f"
+            args={[20, 20]}
+            cellSize={0.5}
+            cellThickness={0.3}
+            cellColor="#e0e0e0"
             sectionSize={5}
-            sectionThickness={1}
-            sectionColor="#9d4b4b"
-            fadeDistance={25}
-            fadeStrength={1}
+            sectionThickness={0.8}
+            sectionColor="#c0c0c0"
+            fadeDistance={15}
+            fadeStrength={0.8}
             followCamera={false}
             infiniteGrid={true}
           />
@@ -158,9 +167,15 @@ export function DebugCube({
  */
 export function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
-      <planeGeometry args={[20, 20]} />
-      <meshStandardMaterial color="#f0f0f0" />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+      <planeGeometry args={[30, 30]} />
+      <meshStandardMaterial 
+        color="#ffffff" 
+        roughness={0.8}
+        metalness={0.1}
+        transparent
+        opacity={0.9}
+      />
     </mesh>
   );
 }
