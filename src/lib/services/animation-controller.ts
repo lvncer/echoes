@@ -253,16 +253,13 @@ export class AnimationController {
     console.log(
       `🧍 デフォルト姿勢調整完了: 成功=${adjustedBones}, 失敗=${failedBones}`
     );
-
-    // 利用可能なボーン一覧をデバッグ出力
-    this.logAvailableBones();
   }
 
   /**
-   * 利用可能なボーン一覧をデバッグ出力
+   * 利用可能なボーン一覧をデバッグ出力（開発環境のみ）
    */
   private logAvailableBones(): void {
-    if (!this.vrmModel) return;
+    if (process.env.NODE_ENV !== "development" || !this.vrmModel) return;
 
     const humanoid = this.vrmModel.humanoid;
     if (!humanoid) return;
@@ -382,9 +379,12 @@ export class AnimationController {
     this.activeAnimations.set(animationId, instance);
     this.events.onAnimationStart?.(animationId);
 
+    // アニメーション開始ログ（開発環境のみ）
+    if (process.env.NODE_ENV === "development") {
     console.log(
       `🎭 アニメーション開始: ${animation.name} (ID: ${animationId})`
     );
+    }
     return animationId;
   }
 
@@ -396,7 +396,10 @@ export class AnimationController {
     if (instance) {
       this.activeAnimations.delete(animationId);
       this.events.onAnimationEnd?.(animationId);
+      // アニメーション停止ログ（開発環境のみ）
+      if (process.env.NODE_ENV === "development") {
       console.log(`🛑 アニメーション停止: ${instance.sequence.name}`);
+      }
 
       // 感情アニメーションの場合は、ブレンドシェイプをリセット
       if (animationId === this.currentEmotionAnimationId) {
@@ -444,7 +447,9 @@ export class AnimationController {
     };
 
     scheduleNextBlink();
+    if (process.env.NODE_ENV === "development") {
     console.log("👁️ 自動瞬きを開始しました");
+    }
   }
 
   /**
@@ -454,7 +459,9 @@ export class AnimationController {
     if (this.autoBlinkTimer) {
       clearTimeout(this.autoBlinkTimer);
       this.autoBlinkTimer = null;
+      if (process.env.NODE_ENV === "development") {
       console.log("👁️ 自動瞬きを停止しました");
+      }
     }
   }
 
@@ -502,7 +509,9 @@ export class AnimationController {
       breathingAnimation,
       AnimationPriority.LOW
     );
+    if (process.env.NODE_ENV === "development") {
     console.log("🫁 呼吸アニメーションを開始しました");
+    }
   }
 
   /**
@@ -512,7 +521,9 @@ export class AnimationController {
     if (this.breathingAnimationId) {
       this.stopAnimation(this.breathingAnimationId);
       this.breathingAnimationId = null;
+      if (process.env.NODE_ENV === "development") {
       console.log("🫁 呼吸アニメーションを停止しました");
+      }
     }
   }
 
@@ -1500,17 +1511,10 @@ export class AnimationController {
       // マッピングされたボーン名で検索
       const mappedBoneName = boneMapping[boneName] || boneName.toLowerCase();
 
-      console.log(`🔍 ボーン検索: ${boneName} -> ${mappedBoneName}`);
-
       const bone = humanoid.getNormalizedBoneNode(
         mappedBoneName as keyof typeof humanoid.humanBones
       );
       if (bone) {
-        console.log(`✅ ボーン発見: ${boneName} -> ${mappedBoneName}`, {
-          position: [bone.position.x, bone.position.y, bone.position.z],
-          rotation: [bone.rotation.x, bone.rotation.y, bone.rotation.z],
-          scale: [bone.scale.x, bone.scale.y, bone.scale.z],
-        });
         return bone;
       }
     }
@@ -1518,32 +1522,7 @@ export class AnimationController {
     // 直接検索（シーン内のオブジェクト名で検索）
     const directBone = this.vrmModel.scene.getObjectByName(boneName);
     if (directBone) {
-      console.log(`✅ 直接ボーン発見: ${boneName}`);
       return directBone;
-    }
-
-    // ボーンが見つからない場合の詳細な警告
-    console.warn(`⚠️ ボーンが見つかりません: ${boneName}`);
-
-    // 利用可能なボーン一覧を出力（デバッグ用）
-    if (humanoid) {
-      const availableBones = Object.keys(humanoid.humanBones);
-      console.log(
-        `📋 利用可能なHumanoidボーン (${availableBones.length}個):`,
-        availableBones
-      );
-
-      // 実際のボーンノードの存在確認
-      const existingBones = availableBones.filter((boneName) => {
-        const bone = humanoid.getNormalizedBoneNode(
-          boneName as keyof typeof humanoid.humanBones
-        );
-        return bone !== null;
-      });
-      console.log(
-        `🦴 実際に存在するボーン (${existingBones.length}個):`,
-        existingBones
-      );
     }
 
     return null;

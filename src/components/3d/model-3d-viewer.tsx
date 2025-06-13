@@ -145,8 +145,7 @@ export const Model3DViewer = memo(function Model3DViewer({
                 animationSpeed={1}
                 enableAnimation={true}
               />
-            ) : isLoading ? // ローディング中は何も表示しない（ローディング状況は下部に表示）
-            null : (
+            ) : isLoading ? null : ( // ローディング中は何も表示しない（ローディング状況は下部に表示）
               <ModelPlaceholder />
             )}
           </Scene>
@@ -200,30 +199,32 @@ export function Simple3DViewer({
 
   return (
     <div className={className}>
-      <div className="relative bg-gray-100 rounded-lg overflow-hidden h-full">
-        <Scene
-          sceneConfig={finalSceneConfig}
-          cameraConfig={finalCameraConfig}
-          showStats={false}
-          showGrid={true}
-          className="w-full h-full"
-        >
-          <Ground />
+      <Scene
+        sceneConfig={finalSceneConfig}
+        cameraConfig={finalCameraConfig}
+        showStats={false}
+        showGrid={true}
+        className="w-full h-full"
+      >
+        <Ground />
 
-          {model ? (
-            <ModelViewer
-              model={model}
-              animationSpeed={1}
-              enableAnimation={true}
-            />
-          ) : (
-            <ModelPlaceholder />
-          )}
-        </Scene>
+        {model ? (
+          <ModelViewer
+            model={model}
+            animationSpeed={1}
+            enableAnimation={true}
+          />
+        ) : (
+          <ModelPlaceholder />
+        )}
+      </Scene>
 
-        {/* モデル情報オーバーレイ */}
-        {showInfo && model && <ModelInfo model={model} />}
-      </div>
+      {/* モデル情報オーバーレイ */}
+      {showInfo && model && (
+        <div className="absolute top-4 left-4 z-10">
+          <ModelInfo model={model} />
+        </div>
+      )}
     </div>
   );
 }
