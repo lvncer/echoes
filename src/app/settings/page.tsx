@@ -40,18 +40,9 @@ const initializeAnimationController = () => {
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("ai");
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [chatMessages, setChatMessages] = useState<
-    Array<{
-      role: "user" | "assistant";
-      content: string;
-      timestamp: Date;
-    }>
-  >([]);
 
   // ハイドレーション完了を検知
   useEffect(() => {
-    setIsHydrated(true);
     // アニメーションコントローラーを初期化
     initializeAnimationController();
   }, []);
@@ -143,10 +134,7 @@ export default function SettingsPage() {
                   </h2>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <ErrorBoundary>
-                      <AudioChatControls
-                        chatMessages={chatMessages}
-                        setChatMessages={setChatMessages}
-                      />
+                      <AudioChatControls />
                     </ErrorBoundary>
                   </div>
                 </div>
