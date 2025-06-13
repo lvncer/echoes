@@ -171,6 +171,9 @@ export class AnimationController {
       });
     }
 
+    // デフォルト姿勢を自然な状態に調整
+    this.applyNaturalDefaultPose();
+
     // 自動アニメーションを開始
     if (this.settings.autoBlinking.enabled) {
       this.startAutoBlinking();
@@ -180,6 +183,115 @@ export class AnimationController {
       this.startBreathingAnimation();
       console.log("🎭 呼吸アニメーション開始要求");
     }
+  }
+
+  /**
+   * デフォルト姿勢を自然な状態に調整
+   * 特に手の位置を下げて人間として自然な立ち姿勢を実現
+   */
+  private applyNaturalDefaultPose(): void {
+    if (!this.vrmModel) return;
+
+    const humanoid = this.vrmModel.humanoid;
+    if (!humanoid) {
+      console.warn("🎭 Humanoidボーンが見つかりません");
+      return;
+    }
+
+    console.log("🧍 デフォルト姿勢を自然な状態に調整開始");
+
+    // 自然な立ち姿勢の設定
+    const naturalPoseAdjustments = {
+      // 腕・手の位置調整（自然に下げる）
+      leftShoulder: { rotation: [0.1, 0, 0.05] }, // 肩を少し前に
+      rightShoulder: { rotation: [0.1, 0, -0.05] },
+      leftUpperArm: { rotation: [0, 0, 0.15] }, // 腕を体に沿わせる
+      rightUpperArm: { rotation: [0, 0, -0.15] },
+      leftLowerArm: { rotation: [0.05, 0, 0] }, // 肘を少し曲げる
+      rightLowerArm: { rotation: [0.05, 0, 0] },
+      leftHand: { rotation: [0, 0, 0.1] }, // 手を自然な角度に
+      rightHand: { rotation: [0, 0, -0.1] },
+
+      // 体幹の微調整
+      spine: { rotation: [0.02, 0, 0] }, // 背筋を少し伸ばす
+      chest: { rotation: [0.01, 0, 0] },
+      upperChest: { rotation: [0.01, 0, 0] },
+
+      // 頭の位置調整
+      neck: { rotation: [0.05, 0, 0] }, // 首を少し前に
+      head: { rotation: [0.02, 0, 0] }, // 頭を少し下げる
+    };
+
+    let adjustedBones = 0;
+    let failedBones = 0;
+
+    // 各ボーンに自然な姿勢を適用
+    Object.entries(naturalPoseAdjustments).forEach(([boneName, transform]) => {
+      const bone = this.findBone(boneName);
+      if (bone) {
+        try {
+          if (transform.rotation) {
+            // 現在の回転に加算（相対的な調整）
+            bone.rotation.x += transform.rotation[0];
+            bone.rotation.y += transform.rotation[1];
+            bone.rotation.z += transform.rotation[2];
+            adjustedBones++;
+            console.log(`✅ デフォルト姿勢調整: ${boneName}`, transform.rotation);
+          }
+        } catch (error) {
+          console.warn(`⚠️ デフォルト姿勢調整失敗: ${boneName}`, error);
+          failedBones++;
+        }
+      } else {
+        console.warn(`⚠️ ボーンが見つかりません: ${boneName}`);
+        failedBones++;
+      }
+    });
+
+    console.log(`🧍 デフォルト姿勢調整完了: 成功=${adjustedBones}, 失敗=${failedBones}`);
+
+    // 利用可能なボーン一覧をデバッグ出力
+    this.logAvailableBones();
+  }
+
+  /**
+   * 利用可能なボーン一覧をデバッグ出力
+   */
+  private logAvailableBones(): void {
+    if (!this.vrmModel) return;
+
+    const humanoid = this.vrmModel.humanoid;
+    if (!humanoid) return;
+
+    console.log("🦴 利用可能なHumanoidボーン一覧:");
+    
+    // VRMのHumanoidボーン名を確認
+    const humanoidBoneNames = [
+      "head", "neck", "spine", "upperChest", "chest",
+      "leftShoulder", "rightShoulder",
+      "leftUpperArm", "leftLowerArm", "leftHand",
+      "rightUpperArm", "rightLowerArm", "rightHand",
+      "leftUpperLeg", "leftLowerLeg", "leftFoot",
+      "rightUpperLeg", "rightLowerLeg", "rightFoot",
+    ];
+
+    const availableBones: string[] = [];
+    const unavailableBones: string[] = [];
+
+    humanoidBoneNames.forEach((boneName) => {
+      const bone = humanoid.getNormalizedBoneNode(
+        boneName as keyof typeof humanoid.humanBones
+      );
+      if (bone) {
+        availableBones.push(boneName);
+      } else {
+        unavailableBones.push(boneName);
+      }
+    });
+
+    console.log(`✅ 利用可能: ${availableBones.join(", ")}`);
+    console.log(`❌ 利用不可: ${unavailableBones.join(", ")}`);
+    console.log(`📊 利用可能率: ${availableBones.length}/${humanoidBoneNames.length} (${Math.round(availableBones.length / humanoidBoneNames.length * 100)}%)`);
   }
 
   /**
@@ -729,6 +841,26 @@ export class AnimationController {
     });
 
     console.log("🦴 ボーン変形をリセットしました");
+  }
+
+  /**
+   * デフォルト姿勢をリセットして自然な状態に戻す（公開メソッド）
+   */
+  public resetToNaturalPose(): void {
+    if (!this.vrmModel) {
+      console.warn("🎭 VRMモデルが設定されていません");
+      return;
+    }
+
+    console.log("🧍 デフォルト姿勢をリセット中...");
+
+    // 現在のボーン変形をリセット
+    this.resetBoneTransforms();
+
+    // 自然な姿勢を再適用
+    this.applyNaturalDefaultPose();
+
+    console.log("🧍 デフォルト姿勢のリセット完了");
   }
 
   /**

@@ -218,11 +218,15 @@ export function AnimationControlPanel({
         intensity: 0.7,
       },
     };
+
     setSettings(defaultSettings);
-    // 非同期でコントローラーを更新
-    setTimeout(() => {
-      getAnimationController().updateSettings(defaultSettings);
-    }, 0);
+    getAnimationController().updateSettings(defaultSettings);
+  };
+
+  // デフォルト姿勢リセット
+  const handleResetPose = () => {
+    const controller = getAnimationController();
+    controller.resetToNaturalPose();
   };
 
   // パフォーマンス状態の色分け
@@ -343,6 +347,21 @@ export function AnimationControlPanel({
               <Badge variant="outline">
                 {animationState.activeAnimationCount}個実行中
               </Badge>
+            </div>
+
+            {/* デフォルト姿勢リセット */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">デフォルト姿勢</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetPose}
+                disabled={!isEnabled}
+                className="text-xs"
+              >
+                <RotateCcw className="w-3 h-3 mr-1" />
+                リセット
+              </Button>
             </div>
           </div>
 
