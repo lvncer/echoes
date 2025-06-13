@@ -200,26 +200,26 @@ export class AnimationController {
 
     console.log("🧍 デフォルト姿勢を自然な状態に調整開始");
 
-    // 自然な立ち姿勢の設定
+    // ジェスチャーアニメーションで使用されているボーン名と設定値を参考にした自然な立ち姿勢
     const naturalPoseAdjustments = {
-      // 腕・手の位置調整（自然に下げる）
-      leftShoulder: { rotation: [0, 0, 0.2] }, // 肩を外側に開く
-      rightShoulder: { rotation: [0, 0, -0.2] },
-      leftUpperArm: { rotation: [0.4, 0, 0.3] }, // 腕をより下に向ける
-      rightUpperArm: { rotation: [0.4, 0, -0.3] },
-      leftLowerArm: { rotation: [0.2, 0, 0.1] }, // 肘を軽く曲げる
-      rightLowerArm: { rotation: [0.2, 0, -0.1] },
-      leftHand: { rotation: [0, 0, 0.1] }, // 手を自然な角度に
-      rightHand: { rotation: [0, 0, -0.1] },
+      // 腕・手の位置調整（ジェスチャーアニメーションと同じボーン名を使用）
+      LeftShoulder: { rotation: [0, 0, 0] }, // 基本姿勢
+      RightShoulder: { rotation: [0, 0, 0] },
+      LeftUpperArm: { rotation: [0.3, 0, 0.1] }, // 腕を少し下に向ける（ジェスチャー参考）
+      RightUpperArm: { rotation: [0.3, 0, -0.1] },
+      LeftLowerArm: { rotation: [0.2, 0, 0] }, // 肘を軽く曲げる
+      RightLowerArm: { rotation: [0.2, 0, 0] },
+      LeftHand: { rotation: [0, 0, 0] }, // 基本姿勢
+      RightHand: { rotation: [0, 0, 0] },
 
-      // 体幹の微調整（まっすぐ立つ）
-      spine: { rotation: [0, 0, 0] }, // 背筋をまっすぐに
-      chest: { rotation: [0, 0, 0] },
-      upperChest: { rotation: [0, 0, 0] },
+      // 体幹の調整（基本姿勢）
+      Spine: { rotation: [0, 0, 0] },
+      Chest: { rotation: [0, 0, 0] },
+      UpperChest: { rotation: [0, 0, 0] },
 
-      // 頭の位置調整（正面を向く）
-      neck: { rotation: [0.05, 0, 0] }, // 首を少し上に向ける
-      head: { rotation: [0.03, 0, 0] }, // 頭を少し上げる
+      // 頭の位置調整（基本姿勢）
+      Neck: { rotation: [0, 0, 0] },
+      Head: { rotation: [0, 0, 0] },
     };
 
     let adjustedBones = 0;
@@ -231,10 +231,10 @@ export class AnimationController {
       if (bone) {
         try {
           if (transform.rotation) {
-            // 現在の回転に加算（相対的な調整）
-            bone.rotation.x += transform.rotation[0];
-            bone.rotation.y += transform.rotation[1];
-            bone.rotation.z += transform.rotation[2];
+            // 絶対的な回転を設定（相対的ではなく）
+            bone.rotation.x = transform.rotation[0];
+            bone.rotation.y = transform.rotation[1];
+            bone.rotation.z = transform.rotation[2];
             adjustedBones++;
             console.log(
               `✅ デフォルト姿勢調整: ${boneName}`,
