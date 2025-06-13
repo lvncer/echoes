@@ -8,12 +8,28 @@ import { LipSyncPanel } from "@/components/3d/lipsync-panel";
 import { AdvancedLipSyncPanel } from "@/components/3d/advanced-lipsync-panel";
 import { IntegratedLipSyncPanel } from "@/components/3d/integrated-lipsync-panel";
 import { SimpleDebugPanel } from "@/components/3d/simple-debug-panel";
+import { AnimationControlPanel } from "@/components/3d/animation-control-panel";
 import Chat from "../components/chat";
 import { AudioChatControls } from "@/components/AudioChatControls";
 import { Box, MessageCircle, Settings, Mic, Download } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/stores/model-store";
 import { Button } from "@/components/ui/button";
+import { AnimationController } from "@/lib/services/animation-controller";
+
+// アニメーションコントローラーの初期化
+declare global {
+  interface Window {
+    __animationController?: AnimationController;
+  }
+}
+
+const initializeAnimationController = () => {
+  if (typeof window !== "undefined" && !window.__animationController) {
+    window.__animationController = new AnimationController();
+    console.log("🎭 アニメーションコントローラーを初期化しました");
+  }
+};
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
@@ -38,6 +54,8 @@ export default function Home() {
   // ハイドレーション完了を検知
   useEffect(() => {
     setIsHydrated(true);
+    // アニメーションコントローラーを初期化
+    initializeAnimationController();
   }, []);
 
   // アプリケーション起動時にデフォルトモデルを初期化
@@ -116,8 +134,15 @@ export default function Home() {
 
         {/* メインコンテンツ */}
         <div className="flex gap-6 h-[calc(100vh-200px)]">
-          {/* 左側: リップシンク制御パネル */}
+          {/* 左側: 制御パネル */}
           <div className="w-80 flex-shrink-0 space-y-4">
+            <div className="bg-white rounded-lg shadow-lg p-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                アニメーション制御
+              </h2>
+              <AnimationControlPanel />
+            </div>
+
             <div className="bg-white rounded-lg shadow-lg p-4">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 リップシンク制御

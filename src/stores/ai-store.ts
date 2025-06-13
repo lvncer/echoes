@@ -173,6 +173,20 @@ export const useAIStore = create<AIStore>()(
             messages: [...state.messages, response.message],
             isLoading: false,
           }));
+
+          // 感情アニメーション実行（ブラウザ環境でのみ）
+          if (typeof window !== "undefined") {
+            const windowWithController = window as typeof window & {
+              __animationController?: {
+                analyzeAndPlayEmotionAnimation: (text: string) => void;
+              };
+            };
+            if (windowWithController.__animationController) {
+              windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
+                response.message.content
+              );
+            }
+          }
         } catch (error) {
           console.error("AI 応答生成エラー:", error);
 
