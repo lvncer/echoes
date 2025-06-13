@@ -130,8 +130,8 @@ export const DEFAULT_SCENE_CONFIG: SceneConfig = {
   ambientLightIntensity: 0.7, // 環境光を少し明るく
   directionalLightIntensity: 0.9, // メインライトを強化
   directionalLightPosition: [2, 3, 2], // より自然な照明角度
-  cameraPosition: [0, 1.65, 1.8], // 最適な視点距離（顔全体が見える）
-  cameraTarget: [0, 1.55, 0], // 顔の中心より少し上をターゲット
+  cameraPosition: [0, 1.6, 2.5], // 適度な距離で少し上方向から見下ろす自然な角度
+  cameraTarget: [0, 1.3, 0], // 顔の中心をターゲットに
   enableShadows: true,
   enableOrbitControls: true,
 };
@@ -141,7 +141,7 @@ export const DEFAULT_CAMERA_CONFIG: CameraControlsConfig = {
   enablePan: true,
   enableRotate: true,
   minDistance: 0.8, // 最小距離を調整（近すぎない）
-  maxDistance: 10, // 最大距離を拡張
+  maxDistance: 20, // 最大距離を大幅に拡張
   minPolarAngle: Math.PI / 6, // 上からの視点を制限（30度）
   maxPolarAngle: (Math.PI * 5) / 6, // 下からの視点を制限（150度）
   autoRotate: false,
