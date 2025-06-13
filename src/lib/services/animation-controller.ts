@@ -1,6 +1,5 @@
 import type { VRM } from "@pixiv/three-vrm";
 import type { Object3D } from "three";
-import { Vector3 } from "three";
 import type {
   AnimationSequence,
   AnimationInstance,
@@ -844,7 +843,7 @@ export class AnimationController {
   }
 
   /**
-   * ボーンの変形をリセット
+   * ボーン変形をリセット
    */
   private resetBoneTransforms(): void {
     if (!this.vrmModel) return;
@@ -852,32 +851,21 @@ export class AnimationController {
     const humanoid = this.vrmModel.humanoid;
     if (!humanoid) return;
 
-    // 主要なボーンをリセット
-    const bonesToReset = [
-      "head",
-      "neck",
-      "spine",
-      "upperChest",
-      "chest",
-      "leftShoulder",
-      "rightShoulder",
-      "leftUpperArm",
-      "leftLowerArm",
-      "leftHand",
-      "rightUpperArm",
-      "rightLowerArm",
-      "rightHand",
-    ];
-
-    bonesToReset.forEach((boneName) => {
-      const bone = humanoid.getNormalizedBoneNode(
-        boneName as keyof typeof humanoid.humanBones
-      );
-      if (bone) {
-        // 回転をリセット（相対的な変形をリセット）
-        bone.rotation.set(0, 0, 0);
-        // positionは初期位置からの相対値なので、差分をリセット
-        // bone.position.set(0, 0, 0); // これは危険なので避ける
+    // 全てのHumanoidボーンをリセット
+    Object.values(humanoid.humanBones).forEach((bone) => {
+      if (bone && bone.node) {
+        const boneNode = bone.node;
+        
+        // 保存された元の状態に復元
+        if (boneNode.userData.originalPosition) {
+          boneNode.position.copy(boneNode.userData.originalPosition);
+        }
+        if (boneNode.userData.originalRotation) {
+          boneNode.rotation.copy(boneNode.userData.originalRotation);
+        }
+        if (boneNode.userData.originalScale) {
+          boneNode.scale.copy(boneNode.userData.originalScale);
+        }
       }
     });
 
@@ -1284,16 +1272,45 @@ export class AnimationController {
       Object.entries(keyFrame.bones).forEach(([boneName, transform]) => {
         const bone = this.findBone(boneName);
         if (bone) {
+          // 元の位置・回転・スケールを保存（初回のみ）
+          if (!bone.userData.originalPosition) {
+            bone.userData.originalPosition = bone.position.clone();
+            bone.userData.originalRotation = bone.rotation.clone();
+            bone.userData.originalScale = bone.scale.clone();
+          }
+
+          // 位置変更（加算ではなく、元の位置からの相対位置として設定）
           if (transform.position) {
-            bone.position.add(new Vector3(...transform.position));
+            const originalPos = bone.userData.originalPosition;
+            bone.position.set(
+              originalPos.x + transform.position[0],
+              originalPos.y + transform.position[1],
+              originalPos.z + transform.position[2]
+            );
           }
+
+          // 回転変更（元の回転からの相対回転として設定）
           if (transform.rotation) {
-            bone.rotation.set(...transform.rotation);
+            const originalRot = bone.userData.originalRotation;
+            bone.rotation.set(
+              originalRot.x + transform.rotation[0],
+              originalRot.y + transform.rotation[1],
+              originalRot.z + transform.rotation[2]
+            );
           }
+
+          // スケール変更
           if (transform.scale) {
             bone.scale.set(...transform.scale);
           }
-          console.log(`🦴 ボーン変形適用: ${boneName}`, transform);
+
+          console.log(`🦴 ボーン変形適用成功: ${boneName}`, {
+            position: transform.position,
+            rotation: transform.rotation,
+            scale: transform.scale,
+            bonePosition: [bone.position.x, bone.position.y, bone.position.z],
+            boneRotation: [bone.rotation.x, bone.rotation.y, bone.rotation.z],
+          });
         } else {
           console.warn(
             `⚠️ ボーン変形失敗: ${boneName} - ボーンが見つかりません`
@@ -1381,12 +1398,34 @@ export class AnimationController {
     Object.entries(bones).forEach(([boneName, transform]) => {
       const bone = this.findBone(boneName);
       if (bone) {
+        // 元の位置・回転・スケールを保存（初回のみ）
+        if (!bone.userData.originalPosition) {
+          bone.userData.originalPosition = bone.position.clone();
+          bone.userData.originalRotation = bone.rotation.clone();
+          bone.userData.originalScale = bone.scale.clone();
+        }
+
+        // 位置変更（加算ではなく、元の位置からの相対位置として設定）
         if (transform.position) {
-          bone.position.add(new Vector3(...transform.position));
+          const originalPos = bone.userData.originalPosition;
+          bone.position.set(
+            originalPos.x + transform.position[0],
+            originalPos.y + transform.position[1],
+            originalPos.z + transform.position[2]
+          );
         }
+
+        // 回転変更（元の回転からの相対回転として設定）
         if (transform.rotation) {
-          bone.rotation.set(...transform.rotation);
+          const originalRot = bone.userData.originalRotation;
+          bone.rotation.set(
+            originalRot.x + transform.rotation[0],
+            originalRot.y + transform.rotation[1],
+            originalRot.z + transform.rotation[2]
+          );
         }
+
+        // スケール変更
         if (transform.scale) {
           bone.scale.set(...transform.scale);
         }
@@ -1460,11 +1499,18 @@ export class AnimationController {
 
       // マッピングされたボーン名で検索
       const mappedBoneName = boneMapping[boneName] || boneName.toLowerCase();
+      
+      console.log(`🔍 ボーン検索: ${boneName} -> ${mappedBoneName}`);
+      
       const bone = humanoid.getNormalizedBoneNode(
         mappedBoneName as keyof typeof humanoid.humanBones
       );
       if (bone) {
-        console.log(`✅ ボーン発見: ${boneName} -> ${mappedBoneName}`);
+        console.log(`✅ ボーン発見: ${boneName} -> ${mappedBoneName}`, {
+          position: [bone.position.x, bone.position.y, bone.position.z],
+          rotation: [bone.rotation.x, bone.rotation.y, bone.rotation.z],
+          scale: [bone.scale.x, bone.scale.y, bone.scale.z],
+        });
         return bone;
       }
     }
@@ -1476,13 +1522,20 @@ export class AnimationController {
       return directBone;
     }
 
-    // ボーンが見つからない場合の警告
+    // ボーンが見つからない場合の詳細な警告
     console.warn(`⚠️ ボーンが見つかりません: ${boneName}`);
 
     // 利用可能なボーン一覧を出力（デバッグ用）
     if (humanoid) {
       const availableBones = Object.keys(humanoid.humanBones);
-      console.log(`📋 利用可能なHumanoidボーン: ${availableBones.join(", ")}`);
+      console.log(`📋 利用可能なHumanoidボーン (${availableBones.length}個):`, availableBones);
+      
+      // 実際のボーンノードの存在確認
+      const existingBones = availableBones.filter(boneName => {
+        const bone = humanoid.getNormalizedBoneNode(boneName as keyof typeof humanoid.humanBones);
+        return bone !== null;
+      });
+      console.log(`🦴 実際に存在するボーン (${existingBones.length}個):`, existingBones);
     }
 
     return null;
