@@ -201,15 +201,15 @@ export class AnimationController {
 
     // ジェスチャーアニメーションで使用されているボーン名と設定値を参考にした自然な立ち姿勢
     const naturalPoseAdjustments = {
-      // 腕・手の位置調整（ジェスチャーアニメーションと同じボーン名を使用）
-      LeftShoulder: { rotation: [0, 0, 0] }, // 基本姿勢
-      RightShoulder: { rotation: [0, 0, 0] },
-      LeftUpperArm: { rotation: [0.3, 0, 0.1] }, // 腕を少し下に向ける（ジェスチャー参考）
-      RightUpperArm: { rotation: [0.3, 0, -0.1] },
-      LeftLowerArm: { rotation: [0.2, 0, 0] }, // 肘を軽く曲げる
-      RightLowerArm: { rotation: [0.2, 0, 0] },
-      LeftHand: { rotation: [0, 0, 0] }, // 基本姿勢
-      RightHand: { rotation: [0, 0, 0] },
+      // 腕・手の位置調整（より自然な立ち姿勢に変更）
+      LeftShoulder: { rotation: [0, 0, 0.05] }, // 肩を少しリラックス
+      RightShoulder: { rotation: [0, 0, -0.05] },
+      LeftUpperArm: { rotation: [0.1, 0, 0.2] }, // 腕を体の横に自然に下ろす
+      RightUpperArm: { rotation: [0.1, 0, -0.2] },
+      LeftLowerArm: { rotation: [-0.1, 0, 0.1] }, // 肘を軽く曲げて自然に
+      RightLowerArm: { rotation: [-0.1, 0, -0.1] },
+      LeftHand: { rotation: [0.05, 0, 0.05] }, // 手を軽くリラックス
+      RightHand: { rotation: [0.05, 0, -0.05] },
 
       // 体幹の調整（基本姿勢）
       Spine: { rotation: [0, 0, 0] },
@@ -855,7 +855,7 @@ export class AnimationController {
     Object.values(humanoid.humanBones).forEach((bone) => {
       if (bone && bone.node) {
         const boneNode = bone.node;
-        
+
         // 保存された元の状態に復元
         if (boneNode.userData.originalPosition) {
           boneNode.position.copy(boneNode.userData.originalPosition);
@@ -1499,9 +1499,9 @@ export class AnimationController {
 
       // マッピングされたボーン名で検索
       const mappedBoneName = boneMapping[boneName] || boneName.toLowerCase();
-      
+
       console.log(`🔍 ボーン検索: ${boneName} -> ${mappedBoneName}`);
-      
+
       const bone = humanoid.getNormalizedBoneNode(
         mappedBoneName as keyof typeof humanoid.humanBones
       );
@@ -1528,14 +1528,22 @@ export class AnimationController {
     // 利用可能なボーン一覧を出力（デバッグ用）
     if (humanoid) {
       const availableBones = Object.keys(humanoid.humanBones);
-      console.log(`📋 利用可能なHumanoidボーン (${availableBones.length}個):`, availableBones);
-      
+      console.log(
+        `📋 利用可能なHumanoidボーン (${availableBones.length}個):`,
+        availableBones
+      );
+
       // 実際のボーンノードの存在確認
-      const existingBones = availableBones.filter(boneName => {
-        const bone = humanoid.getNormalizedBoneNode(boneName as keyof typeof humanoid.humanBones);
+      const existingBones = availableBones.filter((boneName) => {
+        const bone = humanoid.getNormalizedBoneNode(
+          boneName as keyof typeof humanoid.humanBones
+        );
         return bone !== null;
       });
-      console.log(`🦴 実際に存在するボーン (${existingBones.length}個):`, existingBones);
+      console.log(
+        `🦴 実際に存在するボーン (${existingBones.length}個):`,
+        existingBones
+      );
     }
 
     return null;
