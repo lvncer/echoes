@@ -1,5 +1,7 @@
 # Echoes
 
+![https://img.shields.io/github/license/lvncer/echoes](https://img.shields.io/github/license/lvncer/echoes)
+
 3D モデル（アバター）と AI によるリアルタイム音声会話アプリケーション
 
 ## 🚀 クイックスタート
@@ -12,26 +14,10 @@ npm install
 
 ### 2. 環境変数の設定
 
-プロジェクトルートに `.env.local` ファイルを作成し、以下の環境変数を設定してください：
+以下のコマンドを実行し、`.env.example`をコピーして、 `.env.local` ファイルを作成してください。
 
-```
-# Gemini API Configuration (推奨)
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-1.5-flash
-GEMINI_MAX_TOKENS=1000
-GEMINI_TEMPERATURE=0.7
-
-# OpenAI API Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-3.5-turbo
-OPENAI_MAX_TOKENS=1000
-OPENAI_TEMPERATURE=0.7
-
-# AI Provider Settings (gemini | openai)
-AI_PROVIDER=gemini
-
-# Demo Mode (APIキーなしでテスト可能)
-AI_DEMO_MODE=false
+```bash
+cp .env.example .emv.local
 ```
 
 ### 3. 開発サーバーの起動
@@ -85,29 +71,6 @@ npm run dev
 - **用途**: AI 音声チャット専用の自動リップシンク
 - **仕組み**: TTS 音声と同期したリップシンク + 感情表現
 - **特徴**: AI 応答内容に基づく感情アニメーション
-
-### トラブルシューティング
-
-#### マイクアクセスエラー
-
-```
-マイクロフォンへのアクセスが拒否されました
-```
-
-→ ブラウザの設定でマイクアクセスを許可してください
-
-#### VRM モデルが動かない
-
-```
-ブレンドシェイプが利用できません
-```
-
-→ VRM モデルにブレンドシェイプが含まれているか確認してください
-
-#### リップシンクが遅延する
-
-- デバッグパネル（右下）で「統合テスト実行」を試してください
-- ブラウザのパフォーマンス設定を確認してください
 
 ### デバッグ機能
 
@@ -203,83 +166,13 @@ npm run dev
 3. API Keys セクションで新しいキーを生成
 4. 生成されたキーを `.env.local` の `OPENAI_API_KEY` に設定
 
-## 📁 プロジェクト構造
-
-```sh
-src/
-├── app/                 # Next.js App Router
-├── components/          # Reactコンポーネント
-├── lib/
-│   ├── config/         # 設定管理
-│   ├── services/       # API・ビジネスロジック
-│   └── types/          # 型定義
-└── stores/             # 状態管理 (Zustand)
-```
-
 ## 🛠️ 技術スタック
 
 - **フロントエンド**: Next.js 15 + TypeScript
 - **状態管理**: Zustand
 - **スタイリング**: Tailwind CSS
-- **AI 連携**: OpenAI SDK
+- **AI 連携**: Gemini
 - **バリデーション**: Zod
-
-## 📋 開発ロードマップ
-
-- [x] **Phase 1**: 3D モデル表示・AI チャット機能・リファクタリング
-- [x] **Phase 2**: 音声処理基盤（Web Speech API）
-- [x] **Phase 3**: リップシンク・アニメーション
-- [x] **Phase 4-1**: 基本アニメーション機能（瞬き・呼吸・感情・ジェスチャー）
-- [ ] **Phase 4-2**: アニメーション微細調整・改善
-- [ ] **Phase 5**: 音声処理拡張（OpenAI Whisper/TTS、VOICEVOX）
-- [ ] **Phase 6**: ローカル LLM 対応
-
-**現在の状況**: Phase 4-1 完了 - 基本アニメーション機能（瞬き・呼吸・感情・ジェスチャー）、VRM ボーン名マッピング、パフォーマンス監視が利用可能
-
-**詳細**: [要件定義書 - アニメーション機能実装計画](docs/requirements/ai-model-app.md#11-アニメーション機能実装計画)
-
-## 🔧 トラブルシューティング
-
-### API キーエラー
-
-```markdown
-Gemini API キーが設定されていません
-```
-
-→ `.env.local` ファイルに正しい `GEMINI_API_KEY` が設定されているか確認してください。
-
-```markdown
-OpenAI API キーが設定されていません
-```
-
-→ `.env.local` ファイルに正しい `OPENAI_API_KEY` が設定されているか確認してください。
-
-### クォータ制限エラー
-
-```markdown
-OpenAI API のクォータ制限に達しました
-```
-
-→ [OpenAI Usage](https://platform.openai.com/usage) でクォータ状況を確認し、必要に応じて支払い情報を設定してください。
-
-### デモモード
-
-API キーなしでアプリケーションをテストしたい場合：
-
-```bash
-# .env.local に追加
-AI_DEMO_MODE=true
-```
-
-デモモードでは、実際の AI 応答の代わりにモックレスポンスが返されます。
-
-### 接続エラー
-
-```marksown
-AI からの応答がありません
-```
-
-→ インターネット接続と API キーの有効性を確認してください。
 
 ## 📄 ライセンス
 
