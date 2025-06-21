@@ -44,3 +44,8 @@ next-env.d.ts
 # cursor - exclude sensitive files only
 .cursor/mcp.json
 .cursor/prompts/
+
+# cluade code
+.claude/
+CLAUDE.md
+.mcp.json
