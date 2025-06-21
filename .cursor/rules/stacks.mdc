@@ -26,17 +26,6 @@ alwaysApply: true
 - **Radix UI**
 - **Lucide React** (アイコン)
 
-### 認証
-
-- **Clerk**
-
-## バックエンド
-
-### データベース
-
-- **Prisma** (TypeSafe ORM)
-- **Supabase** (BaaS)
-
 ## その他
 
 ### フォーム・バリデーション
@@ -53,7 +42,6 @@ alwaysApply: true
 - **ESLint**
 - **PostCSS**
 
-### 決済・デプロイ
+### デプロイ
 
-- **Stripe**
 - **Vercel**
