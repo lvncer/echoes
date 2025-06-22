@@ -1,14 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEmotionStore } from "@/lib/stores/emotion-store";
 import { generateEmotionalResponse } from "@/app/actions/emotion-actions";
 import { EmotionDisplay } from "@/components/emotion/emotion-display";
+import { getEmotionBridge } from "@/lib/services/emotion-bridge";
 
 export function EmotionChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<string[]>([]);
-  const { setEmotion, setProcessing, isProcessing } = useEmotionStore();
+  const { setEmotion, setProcessing, isProcessing, currentEmotion, intensity } =
+    useEmotionStore();
+
+  // 感情ブリッジサービスの初期化
+  useEffect(() => {
+    const emotionBridge = getEmotionBridge();
+    console.log("🌉 EmotionChat: 感情ブリッジサービス初期化");
+
+    return () => {
+      // クリーンアップは必要に応じて実装
+    };
+  }, []);
+
+  // 感情変化を監視して3Dアニメーションを実行
+  useEffect(() => {
+    const emotionBridge = getEmotionBridge();
+    emotionBridge.handleEmotionChange(currentEmotion, intensity);
+  }, [currentEmotion, intensity]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +42,12 @@ export function EmotionChat() {
 
     if (result.success && result.data) {
       const { text, emotions } = result.data;
-      if (emotions && emotions.length > 0) setEmotion(emotions[0]);
+      if (emotions && emotions.length > 0) {
+        setEmotion(emotions[0]);
+        console.log(
+          `🎭 新しい感情設定: ${emotions[0].type} (強度: ${emotions[0].intensity})`
+        );
+      }
       setMessages((prev) => [...prev, `AI: ${text}`]);
     } else {
       setMessages((prev) => [
