@@ -1,12 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type {
-  AISettings,
-  AIProviderConfig,
-  ChatMessage,
-} from "../lib/types/ai";
-import { createAIConfigFromEnv } from "../lib/config/env";
-import { ClientAIService } from "../lib/services/client-ai";
+import type { AISettings, AIProviderConfig, ChatMessage } from "../types/ai";
+import { createAIConfigFromEnv } from "../config/env";
+import { ClientAIService } from "../services/client-ai";
 
 /**
  * AI ストアの状態

@@ -34,12 +34,24 @@ export class EmotionService {
     const emotions: EmotionTag[] = [];
     let cleanText = text;
 
+    const validEmotions: EmotionType[] = [
+      "neutral",
+      "happy",
+      "sad",
+      "angry",
+      "surprised",
+    ];
+
     let match;
     while ((match = emotionRegex.exec(text)) !== null) {
-      emotions.push({
-        type: match[1] as EmotionType,
-        intensity: parseFloat(match[2]),
-      });
+      const emotionType = match[1];
+      // 有効な感情タイプのみを追加
+      if (validEmotions.includes(emotionType as EmotionType)) {
+        emotions.push({
+          type: emotionType as EmotionType,
+          intensity: parseFloat(match[2]),
+        });
+      }
       cleanText = cleanText.replace(match[0], "");
     }
 
