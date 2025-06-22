@@ -6,6 +6,7 @@ import { VRM } from "@pixiv/three-vrm";
 import { Group } from "three";
 import { Model3D, VRMModelInfo, GLTFModelInfo } from "@/lib/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
+import { getEmotionBridge } from "@/lib/services/emotion-bridge";
 
 // アニメーションコントローラーのグローバルインスタンス取得
 declare global {
@@ -76,6 +77,11 @@ function VRMViewer({
       } else {
         console.warn("⚠️ アニメーションコントローラーが見つかりません");
       }
+
+      // 感情ブリッジサービスにVRMモデルを設定
+      const emotionBridge = getEmotionBridge();
+      emotionBridge.setVRMModel(model.vrm);
+      console.log("🌉 VRMモデルを感情ブリッジサービスに登録:", model.name);
     }
   }, [model.vrm, model.name]);
 
