@@ -9,8 +9,6 @@ import {
   MessageCircle,
   ArrowLeft,
   Box,
-  Code,
-  ExternalLink,
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { Button } from "@/components/ui/button";
@@ -144,30 +142,6 @@ export default function SettingsPage() {
           </Tabs>
         </div>
 
-        {/* 開発用設定へのリンク */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <Code className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-blue-900 mb-2">
-                開発者向け設定
-              </h3>
-              <p className="text-blue-700 text-sm mb-3">
-                音声設定、アニメーション制御、ブレンドシェイプ、デバッグ機能などの詳細設定にアクセスできます。
-              </p>
-              <Link href="/dev">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  開発用設定を開く
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   );
