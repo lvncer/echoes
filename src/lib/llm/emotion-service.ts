@@ -1,4 +1,4 @@
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
 
 export type EmotionType = "neutral" | "happy" | "sad" | "angry" | "surprised";
@@ -24,6 +24,8 @@ export class EmotionService {
     }
 
     try {
+      const google = createGoogleGenerativeAI({ apiKey });
+
       const { text } = await generateText({
         model: google("gemini-1.5-flash"),
         system: `
