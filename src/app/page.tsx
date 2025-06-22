@@ -98,6 +98,10 @@ export default function Home() {
   const [emotionIntensity, setEmotionIntensity] = useState<number>(0);
   const [isEmotionAnalyzing, setIsEmotionAnalyzing] = useState(false);
 
+  // Phase 3: AI応答表示関連の状態
+  const [currentAIResponse, setCurrentAIResponse] = useState<string>("");
+  const [showAIResponse, setShowAIResponse] = useState(false);
+
   // モデルストアからデフォルトモデル初期化関数を取得
   const { initializeDefaultModel, currentModel } = useModelStore();
 
@@ -278,6 +282,16 @@ export default function Home() {
       },
       onAIResponseReceived: (response: string) => {
         console.log("🤖 AI応答受信:", response);
+
+        // Phase 3: AI応答を表示状態に設定
+        setCurrentAIResponse(response);
+        setShowAIResponse(true);
+
+        // 10秒後に自動で非表示
+        setTimeout(() => {
+          setShowAIResponse(false);
+        }, 10000);
+
         // Phase 2: AI応答受信時に感情分析を実行
         handleEmotionAnalysis(response);
       },
@@ -517,6 +531,31 @@ export default function Home() {
                     </span>
                   </>
                 ) : null}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Phase 3: AI応答表示 */}
+        {showAIResponse && currentAIResponse && (
+          <div className="absolute top-36 left-4 right-4 z-20">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 max-h-32 overflow-y-auto">
+              <div className="flex items-start gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
+                <div className="flex-1">
+                  <div className="text-sm text-green-800 font-medium mb-1">
+                    🤖 AI応答
+                  </div>
+                  <p className="text-sm text-green-700 leading-relaxed">
+                    {currentAIResponse}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAIResponse(false)}
+                  className="text-green-600 hover:text-green-800 text-xs ml-2"
+                >
+                  ✕
+                </button>
               </div>
             </div>
           </div>

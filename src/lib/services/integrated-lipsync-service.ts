@@ -64,11 +64,18 @@ export class IntegratedLipSyncService {
     responseText: string,
     emotion?: EmotionType
   ): Promise<void> {
-    if (!this.isAutoMode) return;
+    if (!this.isAutoMode) {
+      console.log("⚠️ 自動モードが無効のため、AI応答リップシンクをスキップ");
+      return;
+    }
 
     try {
+      console.log("🔊 AI応答リップシンク開始準備");
+      console.log(`📝 応答テキスト: "${responseText.substring(0, 100)}..."`);
+
       // 感情解析
       const detectedEmotion = emotion || this.analyzeTextEmotion(responseText);
+      console.log(`🎭 検出された感情: ${detectedEmotion}`);
 
       // 感情表現を適用
       await this.applyEmotion(detectedEmotion);
@@ -76,24 +83,82 @@ export class IntegratedLipSyncService {
       // TTS音声の準備
       await this.prepareTTSLipSync();
 
+      // 🔧 音声合成サービスの状態を確認
+      const speechSynthesisSupported =
+        this.speechSynthesis.isSynthesisSupported();
+      console.log(`🔍 音声合成サポート状況: ${speechSynthesisSupported}`);
+
+      if (!speechSynthesisSupported) {
+        console.error("❌ 音声合成がサポートされていません");
+        return;
+      }
+
       // TTS音声開始（リップシンクは自動で開始される）
+      console.log("🔊 音声合成開始実行");
       const success = this.speechSynthesis.speak(responseText);
+      console.log(`🔍 音声合成開始結果: ${success}`);
 
       if (success) {
         console.log(
-          `AI応答リップシンク開始: ${responseText.substring(0, 50)}...`
+          `✅ AI応答リップシンク開始成功: ${responseText.substring(0, 50)}...`
         );
-        console.log(`検出された感情: ${detectedEmotion}`);
+        console.log(`🎭 適用された感情: ${detectedEmotion}`);
 
         // 音声合成の状態を定期的にチェック
         this.startSpeechStatusMonitoring();
       } else {
-        console.error("音声合成の開始に失敗しました");
+        console.error("❌ 音声合成の開始に失敗しました");
         this.isTTSSpeaking = false;
+
+        // 🔧 フォールバック: ブラウザの標準音声合成を直接試行
+        console.log("🔄 フォールバック: 標準音声合成を試行");
+        this.fallbackToStandardSpeech(responseText);
       }
     } catch (error) {
-      console.error("AI応答リップシンク開始エラー:", error);
+      console.error("❌ AI応答リップシンク開始エラー:", error);
       this.isTTSSpeaking = false;
+
+      // 🔧 フォールバック処理
+      console.log("🔄 エラー時フォールバック: 標準音声合成を試行");
+      this.fallbackToStandardSpeech(responseText);
+    }
+  }
+
+  /**
+   * 標準音声合成へのフォールバック
+   */
+  private fallbackToStandardSpeech(text: string): void {
+    try {
+      if ("speechSynthesis" in window) {
+        console.log("🔄 標準SpeechSynthesis APIを使用");
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "ja-JP";
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+
+        utterance.onstart = () => {
+          console.log("🔊 標準音声合成開始");
+          this.isTTSSpeaking = true;
+          this.startTTSAnalysis();
+        };
+
+        utterance.onend = () => {
+          console.log("🔊 標準音声合成終了");
+          this.handleTTSSpeechEnd();
+        };
+
+        utterance.onerror = (event) => {
+          console.error("❌ 標準音声合成エラー:", event.error);
+          this.handleTTSSpeechEnd();
+        };
+
+        window.speechSynthesis.speak(utterance);
+        console.log("✅ 標準音声合成開始成功");
+      } else {
+        console.error("❌ 標準SpeechSynthesis APIも利用できません");
+      }
+    } catch (error) {
+      console.error("❌ 標準音声合成フォールバックエラー:", error);
     }
   }
 
