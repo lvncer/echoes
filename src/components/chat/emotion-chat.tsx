@@ -43,10 +43,21 @@ export function EmotionChat() {
     if (result.success && result.data) {
       const { text, emotions } = result.data;
       if (emotions && emotions.length > 0) {
-        setEmotion(emotions[0]);
+        const emotion = emotions[0];
+        setEmotion(emotion);
+
         console.log(
-          `🎭 新しい感情設定: ${emotions[0].type} (強度: ${emotions[0].intensity})`
+          `🎭 新しい感情設定: ${emotion.type} (強度: ${emotion.intensity})`
         );
+
+        // Phase 2: 音声合成統合機能を使用
+        const emotionBridge = getEmotionBridge();
+        await emotionBridge.handleAIResponseWithSpeech(
+          text,
+          emotion.type,
+          emotion.intensity
+        );
+        console.log("🔊 AI応答音声合成統合処理完了");
       }
       setMessages((prev) => [...prev, `AI: ${text}`]);
     } else {

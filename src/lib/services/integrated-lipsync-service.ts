@@ -2,6 +2,7 @@ import { blendShapeService } from "./blend-shape-service";
 import { SpeechSynthesisService } from "./speech-synthesis";
 import { AdvancedLipSyncService } from "./advanced-lipsync-service";
 import { LipSyncService } from "./lipsync-service";
+import { EmotionType } from "@/lib/llm/emotion-service";
 
 /**
  * 統合リップシンクサービス
@@ -412,9 +413,6 @@ export class IntegratedLipSyncService {
     };
   }
 }
-
-// 感情タイプの定義
-export type EmotionType = "neutral" | "happy" | "sad" | "angry" | "surprised";
 
 // シングルトンインスタンス
 export const integratedLipSyncService = new IntegratedLipSyncService();

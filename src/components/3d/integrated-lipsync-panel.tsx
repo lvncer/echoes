@@ -25,10 +25,8 @@ import {
   Zap,
   RotateCcw,
 } from "lucide-react";
-import {
-  integratedLipSyncService,
-  EmotionType,
-} from "@/lib/services/integrated-lipsync-service";
+import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
+import { EmotionType } from "@/lib/llm/emotion-service";
 
 interface IntegratedLipSyncPanelProps {
   className?: string;
