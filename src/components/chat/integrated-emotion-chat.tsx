@@ -213,6 +213,155 @@ export function IntegratedEmotionChat() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Phase 3: UX向上制御パネル */}
+        <div className="absolute bottom-4 right-4 z-10">
+          <Card className="w-80 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">🌊 UX向上制御</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* 感情遷移制御 */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">感情遷移:</span>
+                  <Button
+                    size="sm"
+                    variant={
+                      emotionBridgeState.emotionTransitionEnabled
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() => {
+                      const newState =
+                        !emotionBridgeState.emotionTransitionEnabled;
+                      getEmotionBridge().setEmotionTransitionEnabled(newState);
+                    }}
+                    className="text-xs h-6"
+                  >
+                    {emotionBridgeState.emotionTransitionEnabled
+                      ? "有効"
+                      : "無効"}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">遷移状態:</span>
+                  <Badge
+                    variant={
+                      emotionBridgeState.isTransitioning
+                        ? "destructive"
+                        : "secondary"
+                    }
+                    className="text-xs"
+                  >
+                    {emotionBridgeState.isTransitioning ? "遷移中" : "完了"}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">遷移時間:</span>
+                  <span className="text-xs font-mono">
+                    {(emotionBridgeState.transitionDuration / 1000).toFixed(1)}
+                    秒
+                  </span>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* アイドルアニメーション制御 */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">アイドル動作:</span>
+                  <Button
+                    size="sm"
+                    variant={
+                      emotionBridgeState.idleAnimationEnabled
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() => {
+                      const newState = !emotionBridgeState.idleAnimationEnabled;
+                      getEmotionBridge().setIdleAnimationEnabled(newState);
+                    }}
+                    className="text-xs h-6"
+                  >
+                    {emotionBridgeState.idleAnimationEnabled ? "有効" : "無効"}
+                  </Button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">最終活動:</span>
+                  <span className="text-xs font-mono">
+                    {(emotionBridgeState.timeSinceLastActivity / 1000).toFixed(
+                      1
+                    )}
+                    秒前
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">アイドル閾値:</span>
+                  <span className="text-xs font-mono">
+                    {(emotionBridgeState.idleThreshold / 1000).toFixed(0)}秒
+                  </span>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* テスト機能 */}
+              <div className="space-y-2">
+                <div className="text-xs text-gray-600 font-medium">
+                  テスト機能
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      getEmotionBridge().handleEmotionChange("happy", 0.8)
+                    }
+                    className="text-xs h-6"
+                  >
+                    😊 喜び
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      getEmotionBridge().handleEmotionChange("sad", 0.7)
+                    }
+                    className="text-xs h-6"
+                  >
+                    😢 悲しみ
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      getEmotionBridge().handleEmotionChange("angry", 0.6)
+                    }
+                    className="text-xs h-6"
+                  >
+                    😠 怒り
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      getEmotionBridge().handleEmotionChange("surprised", 0.9)
+                    }
+                    className="text-xs h-6"
+                  >
+                    😲 驚き
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* 右側: チャット機能 */}
