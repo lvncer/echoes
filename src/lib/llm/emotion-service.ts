@@ -1,4 +1,4 @@
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
 
 export type EmotionType = "neutral" | "happy" | "sad" | "angry" | "surprised";
@@ -13,15 +13,27 @@ export class EmotionService {
     text: string;
     emotions: EmotionTag[];
   }> {
+    // 環境変数からAPIキーを取得
+    const apiKey =
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      throw new Error(
+        "Gemini API key is not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY environment variable."
+      );
+    }
+
+    const google = createGoogleGenerativeAI({ apiKey });
+
     const { text } = await generateText({
       model: google("gemini-1.5-flash"),
       system: `
-        あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
-        [emotion:happy:0.8] - 喜び（強度0.8）
-        [emotion:sad:0.6] - 悲しみ（強度0.6）
+あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
+[emotion:happy:0.8] - 喜び（強度0.8）
+[emotion:sad:0.6] - 悲しみ（強度0.6）
 
-        利用可能な感情: neutral, happy, sad, angry, surprised
-        文脈に応じて自然な感情を選択してください。
+利用可能な感情: neutral, happy, sad, angry, surprised
+文脈に応じて自然な感情を選択してください。
       `,
       prompt: userInput,
     });
@@ -29,26 +41,21 @@ export class EmotionService {
     return this.parseResponse(text);
   }
 
-  private parseResponse(text: string) {
+  private parseResponse(text: string): {
+    text: string;
+    emotions: EmotionTag[];
+  } {
     const emotionRegex = /\[emotion:(\w+):(\d+\.?\d*)\]/g;
     const emotions: EmotionTag[] = [];
     let cleanText = text;
-
-    const validEmotions: EmotionType[] = [
-      "neutral",
-      "happy",
-      "sad",
-      "angry",
-      "surprised",
-    ];
 
     let match;
     while ((match = emotionRegex.exec(text)) !== null) {
       const emotionType = match[1];
       // 有効な感情タイプのみを追加
-      if (validEmotions.includes(emotionType as EmotionType)) {
+      if (this.isValidEmotionType(emotionType)) {
         emotions.push({
-          type: emotionType as EmotionType,
+          type: emotionType,
           intensity: parseFloat(match[2]),
         });
       }
@@ -60,5 +67,9 @@ export class EmotionService {
       emotions:
         emotions.length > 0 ? emotions : [{ type: "neutral", intensity: 0.5 }],
     };
+  }
+
+  private isValidEmotionType(type: string): type is EmotionType {
+    return ["neutral", "happy", "sad", "angry", "surprised"].includes(type);
   }
 }
