@@ -7,6 +7,8 @@ import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
+import { getEmotionBridge } from "@/lib/services/emotion-bridge";
+import { generateEmotionalResponse } from "@/app/actions/emotion-actions";
 import Link from "next/link";
 
 // カメラデバッグパネルコンポーネント
@@ -43,6 +45,7 @@ function CameraDebugPanel() {
     </div>
   );
 }
+
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -65,6 +68,18 @@ const initializeAnimationController = () => {
   }
 };
 
+// Phase 2: 感情名の表示関数
+const getEmotionDisplayName = (emotion: string): string => {
+  const emotionMap: Record<string, string> = {
+    neutral: "😐 ニュートラル",
+    happy: "😊 喜び",
+    sad: "😢 悲しみ",
+    angry: "😠 怒り",
+    surprised: "😲 驚き",
+  };
+  return emotionMap[emotion] || `${emotion}`;
+};
+
 export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -78,6 +93,11 @@ export default function Home() {
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
 
+  // Phase 2: 感情分析関連の状態
+  const [currentEmotion, setCurrentEmotion] = useState<string | null>(null);
+  const [emotionIntensity, setEmotionIntensity] = useState<number>(0);
+  const [isEmotionAnalyzing, setIsEmotionAnalyzing] = useState(false);
+
   // モデルストアからデフォルトモデル初期化関数を取得
   const { initializeDefaultModel, currentModel } = useModelStore();
 
@@ -85,6 +105,10 @@ export default function Home() {
   useEffect(() => {
     // アニメーションコントローラーを初期化
     initializeAnimationController();
+
+    // Phase 2: 感情ブリッジサービスを初期化
+    getEmotionBridge();
+    console.log("🌉 感情ブリッジサービスを初期化しました");
   }, []);
 
   // アプリケーション起動時にデフォルトモデルを初期化
@@ -97,6 +121,59 @@ export default function Home() {
 
     return () => clearTimeout(timer);
   }, [initializeDefaultModel]);
+
+  // Phase 2: VRMモデルが読み込まれたら感情ブリッジサービスに設定
+  useEffect(() => {
+    if (currentModel && currentModel.format === "vrm" && currentModel.vrm) {
+      const emotionBridge = getEmotionBridge();
+      emotionBridge.setVRMModel(currentModel.vrm);
+      console.log("🌉 VRMモデルを感情ブリッジサービスに設定しました");
+    }
+  }, [currentModel]);
+
+  // Phase 2: AI応答時の感情分析処理
+  const handleEmotionAnalysis = useCallback(async (aiResponse: string) => {
+    setIsEmotionAnalyzing(true);
+    try {
+      console.log("🎭 感情分析開始:", aiResponse.substring(0, 50) + "...");
+
+      const result = await generateEmotionalResponse(aiResponse);
+
+      if (
+        result.success &&
+        result.data?.emotions &&
+        result.data.emotions.length > 0
+      ) {
+        const emotion = result.data.emotions[0];
+        setCurrentEmotion(emotion.type);
+        setEmotionIntensity(emotion.intensity);
+
+        // 感情ブリッジサービスに感情変化を通知
+        const emotionBridge = getEmotionBridge();
+        await emotionBridge.handleAIResponseWithSpeech(
+          aiResponse,
+          emotion.type,
+          emotion.intensity
+        );
+
+        console.log(
+          `🎭 感情分析完了: ${emotion.type} (強度: ${emotion.intensity})`
+        );
+      } else {
+        console.warn("🎭 感情分析結果が無効:", result.error);
+        // デフォルト感情を設定
+        setCurrentEmotion("neutral");
+        setEmotionIntensity(0.3);
+      }
+    } catch (error) {
+      console.error("🎭 感情分析エラー:", error);
+      // エラー時はニュートラルに設定
+      setCurrentEmotion("neutral");
+      setEmotionIntensity(0.2);
+    } finally {
+      setIsEmotionAnalyzing(false);
+    }
+  }, []);
 
   // デフォルト音声チャット設定
   const defaultConfig: AudioChatConfig = useMemo(
@@ -147,6 +224,8 @@ export default function Home() {
       },
       onAIResponseReceived: (response: string) => {
         console.log("🤖 AI応答受信:", response);
+        // Phase 2: AI応答受信時に感情分析を実行
+        handleEmotionAnalysis(response);
       },
       onSpeechStart: () => {
         console.log("🔊 音声合成開始");
@@ -163,7 +242,7 @@ export default function Home() {
         console.log("📊 ステータス変更:", newStatus);
       },
     }),
-    []
+    [handleEmotionAnalysis]
   );
 
   // 音声チャットサービス初期化
@@ -267,16 +346,16 @@ export default function Home() {
 
   return (
     <main className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-        {/* ヘッダー */}
+      {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Box className="w-8 h-8 text-blue-600" />
+            <div className="flex items-center gap-3">
+              <Box className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">Echoes</h1>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              v1.0.0
-            </span>
+                v1.0.0
+              </span>
             </div>
             <Link href="/settings">
               <Button
@@ -290,7 +369,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        </header>
+      </header>
 
       {/* メインコンテンツ: 3Dビューアー */}
       <div className="flex-1 relative overflow-hidden">
@@ -325,6 +404,35 @@ export default function Home() {
           </div>
         )}
 
+        {/* Phase 2: 感情状態表示 */}
+        {(currentEmotion || isEmotionAnalyzing) && (
+          <div className="absolute top-20 left-4 right-4 z-20">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                {isEmotionAnalyzing ? (
+                  <>
+                    <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-purple-800 font-medium">
+                      感情分析中...
+                    </span>
+                  </>
+                ) : currentEmotion ? (
+                  <>
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm text-purple-800">
+                      <strong>感情:</strong>{" "}
+                      {getEmotionDisplayName(currentEmotion)}
+                      <span className="ml-2 text-xs">
+                        (強度: {(emotionIntensity * 100).toFixed(0)}%)
+                      </span>
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* モデル読み込み案内（モデルが読み込まれていない場合） */}
         {!currentModel && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10 backdrop-blur-sm z-10">
@@ -350,7 +458,7 @@ export default function Home() {
             </div>
           </div>
         )}
-          </div>
+      </div>
 
       {/* 音声操作UI */}
       <footer className="bg-white border-t shadow-lg flex-shrink-0">
@@ -379,12 +487,12 @@ export default function Home() {
                   <div className="flex items-center gap-2 text-red-600">
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="font-medium">録音中...</span>
-                            </div>
+                  </div>
                 ) : status === "processing" ? (
                   <div className="flex items-center gap-2 text-yellow-600">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
                     <span className="font-medium">AI処理中...</span>
-                          </div>
+                  </div>
                 ) : status === "speaking" ? (
                   <div className="flex items-center gap-2 text-green-600">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -418,7 +526,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-        </footer>
+      </footer>
     </main>
   );
 }
