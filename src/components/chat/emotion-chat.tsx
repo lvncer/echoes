@@ -14,7 +14,7 @@ export function EmotionChat() {
 
   // 感情ブリッジサービスの初期化
   useEffect(() => {
-    const emotionBridge = getEmotionBridge();
+    getEmotionBridge(); // 初期化のみ実行
     console.log("🌉 EmotionChat: 感情ブリッジサービス初期化");
 
     return () => {

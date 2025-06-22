@@ -1,6 +1,6 @@
-import { useEmotionStore } from "@/lib/stores/emotion-store";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { EmotionType } from "@/lib/llm/emotion-service";
+import type { VRM } from "@pixiv/three-vrm";
 
 /**
  * 感情ブリッジサービス
@@ -27,7 +27,7 @@ export class EmotionBridgeService {
   /**
    * VRMモデルを設定
    */
-  public setVRMModel(vrm: any): void {
+  public setVRMModel(vrm: VRM): void {
     if (this.animationController) {
       this.animationController.setVRMModel(vrm);
       console.log("🌉 EmotionBridgeService: VRMモデル設定完了");
