@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 
 export type EmotionType = "neutral" | "happy" | "sad" | "angry" | "surprised";
@@ -23,40 +23,57 @@ export class EmotionService {
       );
     }
 
-    const google = createGoogleGenerativeAI({ apiKey });
+    try {
+      const { text } = await generateText({
+        model: google("gemini-1.5-flash"),
+        system: `
+        あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
+        [emotion:happy:0.8] - 喜び（強度0.8）
+        [emotion:sad:0.6] - 悲しみ（強度0.6）
 
-    const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
-      system: `
-あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
-[emotion:happy:0.8] - 喜び（強度0.8）
-[emotion:sad:0.6] - 悲しみ（強度0.6）
-
-利用可能な感情: neutral, happy, sad, angry, surprised
-文脈に応じて自然な感情を選択してください。
+        利用可能な感情: neutral, happy, sad, angry, surprised
+        文脈に応じて自然な感情を選択してください。
       `,
-      prompt: userInput,
-    });
+        prompt: userInput,
+      });
 
-    return this.parseResponse(text);
+      return this.parseResponse(text);
+    } catch (error) {
+      console.error("Failed to generate emotional response:", error);
+      throw new Error("Failed to generate emotional response");
+    }
   }
 
-  private parseResponse(text: string): {
-    text: string;
-    emotions: EmotionTag[];
-  } {
-    const emotionRegex = /\[emotion:(\w+):(\d+\.?\d*)\]/g;
+  private parseResponse(text: string) {
+    const emotionRegex = /\[emotion:([a-zA-Z]+):((?:0|1)(?:\.\d+)?)\]/g;
     const emotions: EmotionTag[] = [];
     let cleanText = text;
+
+    const validEmotions: EmotionType[] = [
+      "neutral",
+      "happy",
+      "sad",
+      "angry",
+      "surprised",
+    ];
 
     let match;
     while ((match = emotionRegex.exec(text)) !== null) {
       const emotionType = match[1];
+      const intensity = parseFloat(match[2]);
+
+      // Validate intensity range
+      if (isNaN(intensity) || intensity < 0 || intensity > 1) {
+        console.warn(`Invalid emotion intensity: ${match[2]}, skipping`);
+        cleanText = cleanText.replace(match[0], "");
+        continue;
+      }
+
       // 有効な感情タイプのみを追加
-      if (this.isValidEmotionType(emotionType)) {
+      if (validEmotions.includes(emotionType as EmotionType)) {
         emotions.push({
-          type: emotionType,
-          intensity: parseFloat(match[2]),
+          type: emotionType as EmotionType,
+          intensity,
         });
       }
       cleanText = cleanText.replace(match[0], "");
@@ -64,12 +81,7 @@ export class EmotionService {
 
     return {
       text: cleanText.trim(),
-      emotions:
-        emotions.length > 0 ? emotions : [{ type: "neutral", intensity: 0.5 }],
+      emotions,
     };
-  }
-
-  private isValidEmotionType(type: string): type is EmotionType {
-    return ["neutral", "happy", "sad", "angry", "surprised"].includes(type);
   }
 }

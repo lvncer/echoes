@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { EmotionType, EmotionTag } from "../llm/emotion-service";
+import { EmotionTag, EmotionType } from "@/lib/llm/emotion-service";
 
 interface EmotionState {
   currentEmotion: EmotionType;
@@ -18,7 +18,7 @@ export const useEmotionStore = create<EmotionState>((set) => ({
   setEmotion: (emotion) =>
     set({
       currentEmotion: emotion.type,
-      intensity: emotion.intensity,
+      intensity: Math.max(0, Math.min(1, emotion.intensity)),
     }),
 
   setProcessing: (processing) => set({ isProcessing: processing }),
