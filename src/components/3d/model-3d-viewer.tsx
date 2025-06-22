@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, memo, useMemo } from "react";
-import { useModelStore } from "@/stores/model-store";
+import { useModelStore } from "@/lib/stores/model-store";
 import { loadModel } from "@/lib/3d/loaders";
 import { Scene, Ground } from "./scene";
 import { ModelViewer, ModelPlaceholder, ModelInfo } from "./model-viewer";

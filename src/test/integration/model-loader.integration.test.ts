@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { useModelStore } from "../../stores/model-store";
+import { useModelStore } from "../../lib/stores/model-store";
 
 // Fileオブジェクトのモック
 Object.defineProperty(global, "File", {

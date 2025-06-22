@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Simple3DViewer } from "@/components/3d/model-3d-viewer";
 import { Box, Settings, Mic, MicOff } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
-import { useModelStore } from "@/stores/model-store";
+import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import Link from "next/link";
