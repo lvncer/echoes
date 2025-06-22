@@ -231,23 +231,13 @@ export class AudioChatIntegrationService {
       this.setStatus("processing");
 
       // AI応答を取得
-      console.log("🤖 AI応答取得開始");
       const aiResponse = await this.getAIResponse(transcript);
       console.log(`🤖 AI応答取得完了: "${aiResponse.substring(0, 50)}..."`);
-
-      // デバッグ: AI応答の詳細情報
-      console.log("🔍 AI応答詳細:", {
-        length: aiResponse.length,
-        isEmpty: !aiResponse || aiResponse.trim().length === 0,
-        content: aiResponse,
-      });
 
       this.callbacks.onAIResponseReceived?.(aiResponse);
 
       // 音声合成で応答を再生
-      console.log("🔊 音声合成開始");
       await this.speakResponse(aiResponse);
-      console.log("🔊 音声合成完了 - 処理終了");
 
       // 確実にアイドル状態に戻す
       this.setStatus("idle");
@@ -266,8 +256,6 @@ export class AudioChatIntegrationService {
    * AI応答の取得
    */
   private async getAIResponse(userMessage: string): Promise<string> {
-    console.log("🔍 AI応答取得デバッグ: リクエスト開始");
-
     // 既存のchat APIエンドポイントと互換性のある形式でリクエスト
     const messages = [
       {
@@ -277,8 +265,6 @@ export class AudioChatIntegrationService {
         timestamp: new Date(),
       },
     ];
-
-    console.log("🔍 AI応答取得デバッグ: リクエストボディ", { messages });
 
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -290,15 +276,8 @@ export class AudioChatIntegrationService {
       }),
     });
 
-    console.log("🔍 AI応答取得デバッグ: レスポンス受信", {
-      status: response.status,
-      ok: response.ok,
-      statusText: response.statusText,
-    });
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("🔍 AI応答取得デバッグ: エラーレスポンス", errorData);
       throw new Error(
         `AI API エラー: ${response.status} - ${
           errorData.error || "Unknown error"
@@ -307,22 +286,14 @@ export class AudioChatIntegrationService {
     }
 
     const data = await response.json();
-    console.log("🔍 AI応答取得デバッグ: レスポンスデータ", data);
 
     // APIレスポンスから適切にメッセージを取得
     if (data.message && data.message.content) {
-      console.log("🔍 AI応答取得デバッグ: 正常なレスポンス取得");
       return data.message.content;
     }
 
     // フォールバック
-    const fallbackResponse =
-      data.response || "申し訳ありませんが、応答を生成できませんでした。";
-    console.log(
-      "🔍 AI応答取得デバッグ: フォールバック応答使用",
-      fallbackResponse
-    );
-    return fallbackResponse;
+    return data.response || "申し訳ありませんが、応答を生成できませんでした。";
   }
 
   /**
@@ -341,32 +312,17 @@ export class AudioChatIntegrationService {
           };
         };
         if (windowWithController.__animationController) {
-          console.log("🎭 アニメーションコントローラー発見 - 感情解析実行");
           windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
             text
           );
-          console.log("🎭 感情解析・アニメーション実行完了");
-        } else {
-          console.warn("⚠️ アニメーションコントローラーが見つかりません");
         }
-      } else {
-        console.warn(
-          "⚠️ ブラウザ環境ではありません - アニメーション連動スキップ"
-        );
       }
 
-      // 🔧 修正: 統合リップシンクサービスを使用（音声合成とリップシンクの統合）
-      console.log("🔊 統合リップシンクサービスでAI応答開始");
-
-      // 統合リップシンクサービスが音声合成とリップシンクを同時に処理
+      // 統合リップシンクサービスで音声合成とリップシンクを統合処理
       await integratedLipSyncService.startAIResponseLipSync(text);
 
-      console.log("🔊 統合リップシンクサービス開始完了");
-
-      // 音声合成の完了を監視するためのPromiseを作成
-      console.log("🔊 音声合成完了待機開始");
+      // 音声合成の完了を監視
       await this.waitForSpeechCompletion(text);
-      console.log("🔊 音声合成完了");
     } catch (error) {
       console.error("❌ AI応答音声合成エラー:", error);
       this.handleError({
@@ -381,56 +337,37 @@ export class AudioChatIntegrationService {
    */
   private waitForSpeechCompletion(text: string): Promise<void> {
     return new Promise((resolve) => {
-      console.log(`🔍 音声合成完了待機開始: "${text.substring(0, 30)}..."`);
-
       // タイムアウト設定（テキストの長さに基づいて動的に設定）
       const estimatedDuration = Math.max(8000, text.length * 200); // 最低8秒、文字数×200ms
-      console.log(`⏰ 推定音声時間: ${estimatedDuration}ms`);
 
       const timeout = setTimeout(() => {
-        console.warn("⚠️ 音声合成のタイムアウト - 強制的に完了とみなします");
-        this.setStatus("idle"); // 強制的にアイドル状態に戻す
+        this.setStatus("idle");
         resolve();
       }, estimatedDuration);
 
       let checkCount = 0;
-      const maxChecks = Math.floor(estimatedDuration / 200); // 最大チェック回数
+      const maxChecks = Math.floor(estimatedDuration / 200);
 
       // 音声合成の完了を監視
       const checkCompletion = () => {
         checkCount++;
         const lipSyncStatus = integratedLipSyncService.getStatus();
         const isSpeaking = this.speechSynthesis.isSpeaking();
-        const isStandardSpeaking = 'speechSynthesis' in window ? window.speechSynthesis.speaking : false;
+        const isStandardSpeaking =
+          "speechSynthesis" in window ? window.speechSynthesis.speaking : false;
 
-        // 詳細ログ（最初の5回と最後の5回、その後は10回に1回）
-        if (
-          checkCount <= 5 ||
-          checkCount >= maxChecks - 5 ||
-          checkCount % 10 === 0
-        ) {
-          console.log(
-            `🔍 音声状態チェック[${checkCount}/${maxChecks}]: ` +
-            `TTS=${lipSyncStatus.isTTSSpeaking}, ` +
-            `Speech=${isSpeaking}, ` +
-            `Standard=${isStandardSpeaking}, ` +
-            `Status=${this.status}`
-          );
-        }
-
-        // 🔧 改善: 複数の音声合成状態をチェック
-        const isAnySpeaking = lipSyncStatus.isTTSSpeaking || isSpeaking || isStandardSpeaking;
+        // 複数の音声合成状態をチェック
+        const isAnySpeaking =
+          lipSyncStatus.isTTSSpeaking || isSpeaking || isStandardSpeaking;
 
         if (!isAnySpeaking) {
           // 音声合成が完了した
           clearTimeout(timeout);
-          console.log("✅ 音声合成完了を検知 - アイドル状態に移行");
           this.setStatus("idle");
           resolve();
         } else if (checkCount >= maxChecks) {
           // 最大チェック回数に達した
           clearTimeout(timeout);
-          console.warn("⚠️ 最大チェック回数に達しました - 強制完了");
           this.setStatus("idle");
           resolve();
         } else {

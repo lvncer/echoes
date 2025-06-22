@@ -139,8 +139,6 @@ export default function Home() {
   const handleEmotionAnalysis = useCallback(async (aiResponse: string) => {
     setIsEmotionAnalyzing(true);
     try {
-      console.log("🎭 感情分析開始:", aiResponse.substring(0, 50) + "...");
-
       const result = await generateEmotionalResponse(aiResponse);
 
       if (
@@ -155,31 +153,16 @@ export default function Home() {
         // 感情ブリッジサービスに感情変化を通知
         const emotionBridge = getEmotionBridge();
 
-        // Phase 3: 音声合成の問題をデバッグ - 詳細ログ追加
-        console.log("🔊 音声合成デバッグ: handleAIResponseWithSpeech開始");
-        console.log("🔊 音声合成デバッグ: テキスト長:", aiResponse.length);
-        console.log(
-          "🔊 音声合成デバッグ: 感情:",
-          emotion.type,
-          "強度:",
-          emotion.intensity
-        );
-
         try {
           await emotionBridge.handleAIResponseWithSpeech(
             aiResponse,
             emotion.type,
             emotion.intensity
           );
-          console.log("🔊 音声合成デバッグ: handleAIResponseWithSpeech完了");
         } catch (speechError) {
-          console.error(
-            "🔊 音声合成デバッグ: handleAIResponseWithSpeech失敗:",
-            speechError
-          );
+          console.error("音声合成エラー:", speechError);
 
           // フォールバック: 直接SpeechSynthesisを試行
-          console.log("🔊 音声合成デバッグ: フォールバック処理開始");
           if ("speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(aiResponse);
             utterance.lang = "ja-JP";
@@ -187,39 +170,17 @@ export default function Home() {
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            utterance.onstart = () => {
-              console.log("🔊 フォールバック音声合成: 開始");
-            };
-
-            utterance.onend = () => {
-              console.log("🔊 フォールバック音声合成: 終了");
-            };
-
-            utterance.onerror = (event) => {
-              console.error("🔊 フォールバック音声合成: エラー", event);
-            };
-
-            window.speechSynthesis.cancel(); // 既存の音声をクリア
+            window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
-            console.log("🔊 フォールバック音声合成: 実行");
-          } else {
-            console.error(
-              "🔊 音声合成デバッグ: ブラウザが音声合成をサポートしていません"
-            );
           }
         }
-
-        console.log(
-          `🎭 感情分析完了: ${emotion.type} (強度: ${emotion.intensity})`
-        );
       } else {
-        console.warn("🎭 感情分析結果が無効:", result.error);
         // デフォルト感情を設定
         setCurrentEmotion("neutral");
         setEmotionIntensity(0.3);
       }
     } catch (error) {
-      console.error("🎭 感情分析エラー:", error);
+      console.error("感情分析エラー:", error);
       // エラー時はニュートラルに設定
       setCurrentEmotion("neutral");
       setEmotionIntensity(0.2);

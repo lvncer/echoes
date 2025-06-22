@@ -43,15 +43,12 @@ export class IntegratedLipSyncService {
     // TTS音声合成イベントの監視
     this.speechSynthesis.setEventListeners({
       onSpeechStart: () => {
-        console.log("TTS音声開始イベント受信");
         this.handleTTSSpeechStart();
       },
       onSpeechEnd: () => {
-        console.log("TTS音声終了イベント受信");
         this.handleTTSSpeechEnd();
       },
       onError: (error: string) => {
-        console.error("TTS音声エラー:", error);
         this.handleTTSSpeechEnd();
       },
     });
@@ -65,17 +62,12 @@ export class IntegratedLipSyncService {
     emotion?: EmotionType
   ): Promise<void> {
     if (!this.isAutoMode) {
-      console.log("⚠️ 自動モードが無効のため、AI応答リップシンクをスキップ");
       return;
     }
 
     try {
-      console.log("🔊 AI応答リップシンク開始準備");
-      console.log(`📝 応答テキスト: "${responseText.substring(0, 100)}..."`);
-
       // 感情解析
       const detectedEmotion = emotion || this.analyzeTextEmotion(responseText);
-      console.log(`🎭 検出された感情: ${detectedEmotion}`);
 
       // 感情表現を適用
       await this.applyEmotion(detectedEmotion);
@@ -83,10 +75,9 @@ export class IntegratedLipSyncService {
       // TTS音声の準備
       await this.prepareTTSLipSync();
 
-      // 🔧 音声合成サービスの状態を確認
+      // 音声合成サービスの状態を確認
       const speechSynthesisSupported =
         this.speechSynthesis.isSynthesisSupported();
-      console.log(`🔍 音声合成サポート状況: ${speechSynthesisSupported}`);
 
       if (!speechSynthesisSupported) {
         console.error("❌ 音声合成がサポートされていません");
@@ -94,15 +85,12 @@ export class IntegratedLipSyncService {
       }
 
       // TTS音声開始（リップシンクは自動で開始される）
-      console.log("🔊 音声合成開始実行");
       const success = this.speechSynthesis.speak(responseText);
-      console.log(`🔍 音声合成開始結果: ${success}`);
 
       if (success) {
         console.log(
-          `✅ AI応答リップシンク開始成功: ${responseText.substring(0, 50)}...`
+          `✅ AI応答リップシンク開始: ${responseText.substring(0, 50)}...`
         );
-        console.log(`🎭 適用された感情: ${detectedEmotion}`);
 
         // 音声合成の状態を定期的にチェック
         this.startSpeechStatusMonitoring();
@@ -110,16 +98,14 @@ export class IntegratedLipSyncService {
         console.error("❌ 音声合成の開始に失敗しました");
         this.isTTSSpeaking = false;
 
-        // 🔧 フォールバック: ブラウザの標準音声合成を直接試行
-        console.log("🔄 フォールバック: 標準音声合成を試行");
+        // フォールバック: ブラウザの標準音声合成を直接試行
         this.fallbackToStandardSpeech(responseText);
       }
     } catch (error) {
       console.error("❌ AI応答リップシンク開始エラー:", error);
       this.isTTSSpeaking = false;
 
-      // 🔧 フォールバック処理
-      console.log("🔄 エラー時フォールバック: 標準音声合成を試行");
+      // フォールバック処理
       this.fallbackToStandardSpeech(responseText);
     }
   }
@@ -130,20 +116,17 @@ export class IntegratedLipSyncService {
   private fallbackToStandardSpeech(text: string): void {
     try {
       if ("speechSynthesis" in window) {
-        console.log("🔄 標準SpeechSynthesis APIを使用");
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "ja-JP";
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
 
         utterance.onstart = () => {
-          console.log("🔊 標準音声合成開始");
           this.isTTSSpeaking = true;
           this.startTTSAnalysis();
         };
 
         utterance.onend = () => {
-          console.log("🔊 標準音声合成終了");
           this.handleTTSSpeechEnd();
         };
 
@@ -153,7 +136,6 @@ export class IntegratedLipSyncService {
         };
 
         window.speechSynthesis.speak(utterance);
-        console.log("✅ 標準音声合成開始成功");
       } else {
         console.error("❌ 標準SpeechSynthesis APIも利用できません");
       }
@@ -176,14 +158,12 @@ export class IntegratedLipSyncService {
 
       if (this.isTTSSpeaking && !isSpeaking) {
         // 音声合成が終了したが、内部状態がまだ話し中の場合
-        console.log("🔍 音声合成終了を検知 - 状態を更新");
         this.handleTTSSpeechEnd();
       } else if (this.isTTSSpeaking && monitorCount < maxChecks) {
         // まだ話している場合は継続監視
         setTimeout(checkStatus, 200);
       } else if (monitorCount >= maxChecks) {
         // タイムアウト - 強制終了
-        console.warn("⚠️ 音声合成監視タイムアウト - 強制終了");
         this.forceStopTTS();
       }
     };
@@ -196,7 +176,6 @@ export class IntegratedLipSyncService {
    * TTS音声を強制停止
    */
   private forceStopTTS(): void {
-    console.log("🛑 TTS音声強制停止");
     this.isTTSSpeaking = false;
     this.speechSynthesis.stop();
     this.stopTTSAnalysis();
@@ -215,8 +194,6 @@ export class IntegratedLipSyncService {
       } else {
         await this.basicLipSync.startLipSync(stream);
       }
-
-      console.log(`マイクロフォンリップシンク開始 (${this.currentMode}モード)`);
     } catch (error) {
       console.error("マイクロフォンリップシンク開始エラー:", error);
       throw error;
@@ -246,23 +223,15 @@ export class IntegratedLipSyncService {
   /**
    * TTS音声開始時の処理
    */
-  private async handleTTSSpeechStart(): Promise<void> {
+  private handleTTSSpeechStart(): void {
     this.isTTSSpeaking = true;
-    console.log("TTS音声開始 - リップシンク開始");
-
-    // TTS音声の解析を開始
-    await this.startTTSAnalysis();
   }
 
   /**
    * TTS音声終了時の処理
    */
   private handleTTSSpeechEnd(): void {
-    console.log("🔊 TTS音声終了イベント受信");
     this.isTTSSpeaking = false;
-
-    // TTS解析を停止
-    this.stopTTSAnalysis();
 
     // 表情を徐々にニュートラルに戻す
     setTimeout(() => {
