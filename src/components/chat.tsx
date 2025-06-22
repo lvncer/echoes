@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, memo } from "react";
-import { useAIStore } from "../stores/ai-store";
+import { useAIStore } from "../lib/stores/ai-store";
 import type { ChatMessage } from "../lib/types/ai";
 
 const Chat = memo(function Chat() {

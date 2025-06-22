@@ -15,7 +15,7 @@ import {
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useModelStore } from "@/stores/model-store";
+import { useModelStore } from "@/lib/stores/model-store";
 import { loadModel } from "@/lib/3d/loaders";
 
 export default function SettingsPage() {

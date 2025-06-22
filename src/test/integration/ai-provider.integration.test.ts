@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { GeminiService } from "../../lib/services/gemini";
 import { OpenAIService } from "../../lib/services/openai";
-import { useAIStore } from "../../stores/ai-store";
+import { useAIStore } from "../../lib/stores/ai-store";
 import type { AIProviderConfig, ChatMessage } from "../../lib/types/ai";
 
 // AIサービスのモック

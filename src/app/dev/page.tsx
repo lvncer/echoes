@@ -24,7 +24,7 @@ import { ErrorBoundary } from "@/components/error/error-boundary";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimationController } from "@/lib/services/animation-controller";
-import { useModelStore } from "@/stores/model-store";
+import { useModelStore } from "@/lib/stores/model-store";
 
 // アニメーションコントローラーの初期化
 declare global {
