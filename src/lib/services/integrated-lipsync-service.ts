@@ -48,7 +48,7 @@ export class IntegratedLipSyncService {
       onSpeechEnd: () => {
         this.handleTTSSpeechEnd();
       },
-      onError: (error: string) => {
+      onError: () => {
         this.handleTTSSpeechEnd();
       },
     });
