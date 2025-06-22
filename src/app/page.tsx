@@ -150,11 +150,60 @@ export default function Home() {
 
         // 感情ブリッジサービスに感情変化を通知
         const emotionBridge = getEmotionBridge();
-        await emotionBridge.handleAIResponseWithSpeech(
-          aiResponse,
+
+        // Phase 3: 音声合成の問題をデバッグ - 詳細ログ追加
+        console.log("🔊 音声合成デバッグ: handleAIResponseWithSpeech開始");
+        console.log("🔊 音声合成デバッグ: テキスト長:", aiResponse.length);
+        console.log(
+          "🔊 音声合成デバッグ: 感情:",
           emotion.type,
+          "強度:",
           emotion.intensity
         );
+
+        try {
+          await emotionBridge.handleAIResponseWithSpeech(
+            aiResponse,
+            emotion.type,
+            emotion.intensity
+          );
+          console.log("🔊 音声合成デバッグ: handleAIResponseWithSpeech完了");
+        } catch (speechError) {
+          console.error(
+            "🔊 音声合成デバッグ: handleAIResponseWithSpeech失敗:",
+            speechError
+          );
+
+          // フォールバック: 直接SpeechSynthesisを試行
+          console.log("🔊 音声合成デバッグ: フォールバック処理開始");
+          if ("speechSynthesis" in window) {
+            const utterance = new SpeechSynthesisUtterance(aiResponse);
+            utterance.lang = "ja-JP";
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            utterance.onstart = () => {
+              console.log("🔊 フォールバック音声合成: 開始");
+            };
+
+            utterance.onend = () => {
+              console.log("🔊 フォールバック音声合成: 終了");
+            };
+
+            utterance.onerror = (event) => {
+              console.error("🔊 フォールバック音声合成: エラー", event);
+            };
+
+            window.speechSynthesis.cancel(); // 既存の音声をクリア
+            window.speechSynthesis.speak(utterance);
+            console.log("🔊 フォールバック音声合成: 実行");
+          } else {
+            console.error(
+              "🔊 音声合成デバッグ: ブラウザが音声合成をサポートしていません"
+            );
+          }
+        }
 
         console.log(
           `🎭 感情分析完了: ${emotion.type} (強度: ${emotion.intensity})`
@@ -214,12 +263,17 @@ export default function Home() {
       onListeningEnd: () => {
         setIsListening(false);
         setIsRecording(false);
+        setCurrentTranscript(""); // 音声認識終了時にトランスクリプトをクリア
         console.log("🎤 音声入力終了");
       },
       onTranscriptReceived: (transcript: string, isFinal: boolean) => {
         setCurrentTranscript(transcript);
         if (isFinal) {
           console.log("📝 音声認識完了:", transcript);
+          // 最終結果受信時にトランスクリプトを少し遅延してクリア
+          setTimeout(() => {
+            setCurrentTranscript("");
+          }, 1000);
         }
       },
       onAIResponseReceived: (response: string) => {
@@ -229,17 +283,52 @@ export default function Home() {
       },
       onSpeechStart: () => {
         console.log("🔊 音声合成開始");
+        // 音声合成開始時は確実にリスニング状態を解除
+        setIsListening(false);
+        setIsRecording(false);
       },
       onSpeechEnd: () => {
         console.log("🔊 音声合成終了");
+        // 音声合成終了時も状態を確実にリセット
+        setIsListening(false);
+        setIsRecording(false);
       },
       onError: (error: AudioError) => {
         setError(error.message);
         console.error("❌ 音声チャットエラー:", error);
+        // エラー時は全ての状態をリセット
+        setIsListening(false);
+        setIsRecording(false);
+        setCurrentTranscript("");
       },
       onStatusChange: (newStatus: AudioChatStatus) => {
         setStatus(newStatus);
         console.log("📊 ステータス変更:", newStatus);
+
+        // ステータス変更に基づいて状態を同期
+        switch (newStatus) {
+          case "listening":
+            setIsListening(true);
+            setIsRecording(true);
+            break;
+          case "processing":
+            setIsListening(false);
+            setIsRecording(false);
+            break;
+          case "speaking":
+            setIsListening(false);
+            setIsRecording(false);
+            break;
+          case "idle":
+            setIsListening(false);
+            setIsRecording(false);
+            break;
+          case "error":
+            setIsListening(false);
+            setIsRecording(false);
+            setCurrentTranscript("");
+            break;
+        }
       },
     }),
     [handleEmotionAnalysis]
@@ -521,6 +610,53 @@ export default function Home() {
                 >
                   😐 リセット
                 </button>
+
+                {/* Phase 3: 音声合成テスト機能 */}
+                <div className="mt-3 pt-2 border-t border-gray-200">
+                  <div className="text-xs text-gray-600 font-medium mb-2">
+                    音声合成テスト
+                  </div>
+                  <button
+                    onClick={() => {
+                      console.log("🔊 音声合成テスト開始");
+                      const testText = "こんにちは。音声合成のテストです。";
+
+                      if ("speechSynthesis" in window) {
+                        const utterance = new SpeechSynthesisUtterance(
+                          testText
+                        );
+                        utterance.lang = "ja-JP";
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1.0;
+                        utterance.volume = 1.0;
+
+                        utterance.onstart = () => {
+                          console.log("🔊 テスト音声: 開始");
+                        };
+
+                        utterance.onend = () => {
+                          console.log("🔊 テスト音声: 終了");
+                        };
+
+                        utterance.onerror = (event) => {
+                          console.error("🔊 テスト音声: エラー", event);
+                        };
+
+                        window.speechSynthesis.cancel();
+                        window.speechSynthesis.speak(utterance);
+                        console.log("🔊 テスト音声: 実行");
+                      } else {
+                        console.error("🔊 音声合成がサポートされていません");
+                        alert(
+                          "お使いのブラウザは音声合成をサポートしていません"
+                        );
+                      }
+                    }}
+                    className="w-full text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded transition-colors"
+                  >
+                    🔊 音声テスト
+                  </button>
+                </div>
               </div>
             </div>
           </div>
