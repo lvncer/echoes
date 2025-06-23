@@ -323,6 +323,19 @@ export class AdvancedLipSyncService {
         this.targetBlendShapes
       );
     }
+
+    // 緊急対応: 即座にブレンドシェイプを適用（スムージングをバイパス）
+    if (Object.keys(adjustedBlendShapes).length > 0) {
+      this.currentBlendShapes = { ...adjustedBlendShapes };
+
+      // デバッグ: 緊急適用ログ（20%確率）
+      if (Math.random() < 0.2) {
+        const applyInfo = Object.entries(adjustedBlendShapes)
+          .map(([shape, weight]) => `${shape}:${weight.toFixed(2)}`)
+          .join(", ");
+        console.log(`⚡ 緊急適用: {${applyInfo}}`);
+      }
+    }
   }
 
   /**

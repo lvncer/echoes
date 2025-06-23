@@ -555,20 +555,6 @@ export default function Home() {
               )}
             </div>
           </div>
-
-          {/* 簡単な使い方説明 */}
-          <div className="text-center mt-3">
-            <p className="text-xs text-gray-500">
-              音声で話すと感情分析・3Dアニメーション・音声応答が同時に動作します
-              •
-              <Link
-                href="/settings"
-                className="text-blue-600 hover:underline ml-1"
-              >
-                詳細設定はこちら
-              </Link>
-            </p>
-          </div>
         </div>
       </footer>
     </main>
