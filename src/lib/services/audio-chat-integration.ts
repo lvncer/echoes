@@ -292,22 +292,27 @@ export class AudioChatIntegrationService {
 
       // リップシンク機能が有効な場合、マイクストリームを使用してリップシンクを開始
       if (this.isLipSyncEnabled) {
+        console.log("🎤 音声認識開始 - リップシンク連携開始");
         if (this.currentMicStream) {
+          console.log("🔄 既存ストリームでリップシンク開始");
           // 既存のストリームを使用
           integratedLipSyncService
             .startMicrophoneLipSync(this.currentMicStream)
             .then(() => {
-              console.log("🎤 マイク入力リップシンク開始（既存ストリーム）");
+              console.log("✅ マイク入力リップシンク開始（既存ストリーム）");
             })
             .catch((error) => {
-              console.warn("マイク入力リップシンク開始エラー:", error);
+              console.warn("❌ マイク入力リップシンク開始エラー:", error);
               // エラーの場合は新しいストリームを取得してリトライ
               this.retryLipSyncWithNewStream();
             });
         } else {
+          console.log("🔄 新規ストリーム取得でリップシンク開始");
           // ストリームが無い場合は新しく取得
           this.retryLipSyncWithNewStream();
         }
+      } else {
+        console.log("⚠️ リップシンク機能が無効です");
       }
 
       return true;

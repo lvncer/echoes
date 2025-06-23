@@ -41,18 +41,22 @@ export class LipSyncService {
           "⚠️ リップシンク: 利用可能なブレンドシェイプが見つかりません"
         );
       }
+      console.log("🔄 音声解析サービス開始中...");
       await audioAnalysisService.startAnalysis(stream);
 
       // 音量コールバックを設定
+      console.log("🔗 音量コールバック設定中...");
       audioAnalysisService.setVolumeCallback((volume) => {
         this.processVolumeLevel(volume);
       });
 
       // 音量閾値を設定
+      console.log(`⚙️ 音量閾値設定: ${this.volumeThreshold}`);
       audioAnalysisService.setVolumeThreshold(this.volumeThreshold);
 
       // アニメーションループを開始
       this.isActive = true;
+      console.log("🎬 アニメーションループ開始...");
       this.startAnimationLoop();
 
       console.log(
@@ -102,6 +106,17 @@ export class LipSyncService {
     // 音量から基本音素を推定
     this.currentPhoneme =
       AudioAnalysisService.volumeToBasicPhoneme(adjustedVolume);
+
+    // デバッグ: 音量処理をログ出力（2%確率）
+    if (Math.random() < 0.02) {
+      console.log(
+        `🎤 音量処理: ${volume.toFixed(
+          3
+        )} → 口開度: ${this.targetMouthOpening.toFixed(2)} (音素: ${
+          this.currentPhoneme
+        })`
+      );
+    }
   }
 
   /**
