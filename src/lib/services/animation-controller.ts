@@ -103,41 +103,18 @@ export class AnimationController {
    */
   public setVRMModel(model: VRM): void {
     this.vrmModel = model;
-    console.log("🎭 AnimationController: VRMモデルを設定しました");
-    console.log("🎭 VRMモデル詳細:", {
-      hasExpressionManager: !!model.expressionManager,
-      hasHumanoid: !!model.humanoid,
-      sceneName: model.scene.name,
-      sceneChildren: model.scene.children.length,
-    });
 
     // 利用可能なブレンドシェイプ名を確認
     if (model.expressionManager) {
       const expressions = model.expressionManager.expressions;
       const expressionNames = Object.keys(expressions);
-      console.log("🎭 利用可能なブレンドシェイプ:", expressionNames);
-
-      // 各ブレンドシェイプの詳細を確認
-      console.log(`🎭 ブレンドシェイプ総数: ${expressionNames.length}`);
 
       // VRMExpressionManagerの詳細情報を取得
       const manager = model.expressionManager as unknown as {
         expressionMap?: Record<string, unknown>;
       };
       if (manager.expressionMap) {
-        console.log("🎭 ExpressionMap:", Object.keys(manager.expressionMap));
-        Object.entries(manager.expressionMap).forEach(([key, value]) => {
-          const expr = value as {
-            expressionName?: string;
-            isBinary?: boolean;
-            weight?: number;
-          };
-          console.log(`🎭 Expression [${key}]:`, {
-            expressionName: expr.expressionName,
-            isBinary: expr.isBinary,
-            weight: expr.weight,
-          });
-        });
+        Object.entries(manager.expressionMap);
       }
 
       // 瞬き関連のブレンドシェイプを特に確認
@@ -176,11 +153,9 @@ export class AnimationController {
     // 自動アニメーションを開始
     if (this.settings.autoBlinking.enabled) {
       this.startAutoBlinking();
-      console.log("🎭 自動瞬きアニメーション開始要求");
     }
     if (this.settings.breathing.enabled) {
       this.startBreathingAnimation();
-      console.log("🎭 呼吸アニメーション開始要求");
     }
   }
 
@@ -193,11 +168,8 @@ export class AnimationController {
 
     const humanoid = this.vrmModel.humanoid;
     if (!humanoid) {
-      console.warn("🎭 Humanoidボーンが見つかりません");
       return;
     }
-
-    console.log("🧍 デフォルト姿勢を自然な状態に調整開始");
 
     // ジェスチャーアニメーションで使用されているボーン名と設定値を参考にした自然な立ち姿勢
     const naturalPoseAdjustments = {
@@ -263,8 +235,6 @@ export class AnimationController {
 
     const humanoid = this.vrmModel.humanoid;
     if (!humanoid) return;
-
-    console.log("🦴 利用可能なHumanoidボーン一覧:");
 
     // VRMのHumanoidボーン名を確認
     const humanoidBoneNames = [
@@ -379,12 +349,6 @@ export class AnimationController {
     this.activeAnimations.set(animationId, instance);
     this.events.onAnimationStart?.(animationId);
 
-    // アニメーション開始ログ（開発環境のみ）
-    if (process.env.NODE_ENV === "development") {
-    console.log(
-      `🎭 アニメーション開始: ${animation.name} (ID: ${animationId})`
-    );
-    }
     return animationId;
   }
 
@@ -443,9 +407,6 @@ export class AnimationController {
     };
 
     scheduleNextBlink();
-    if (process.env.NODE_ENV === "development") {
-    console.log("👁️ 自動瞬きを開始しました");
-    }
   }
 
   /**
@@ -455,9 +416,6 @@ export class AnimationController {
     if (this.autoBlinkTimer) {
       clearTimeout(this.autoBlinkTimer);
       this.autoBlinkTimer = null;
-      if (process.env.NODE_ENV === "development") {
-      console.log("👁️ 自動瞬きを停止しました");
-      }
     }
   }
 
@@ -505,9 +463,6 @@ export class AnimationController {
       breathingAnimation,
       AnimationPriority.LOW
     );
-    if (process.env.NODE_ENV === "development") {
-    console.log("🫁 呼吸アニメーションを開始しました");
-    }
   }
 
   /**
@@ -517,9 +472,6 @@ export class AnimationController {
     if (this.breathingAnimationId) {
       this.stopAnimation(this.breathingAnimationId);
       this.breathingAnimationId = null;
-      if (process.env.NODE_ENV === "development") {
-      console.log("🫁 呼吸アニメーションを停止しました");
-      }
     }
   }
 
@@ -528,38 +480,20 @@ export class AnimationController {
    */
   public analyzeAndPlayEmotionAnimation(text: string): void {
     if (!this.isEnabled || !this.settings.emotionAnimations.enabled) {
-      console.log(
-        "🎭 AnimationController: 感情アニメーション無効化されています"
-      );
       return;
     }
-
-    console.log(`🎭 感情解析開始: "${text}"`);
 
     // 感情解析
     const analysis = emotionAnalyzer.analyzeWithContext(text);
     this.lastEmotionAnalysis = analysis;
 
-    console.log(`🎭 感情解析結果:`, {
-      emotion: analysis.emotion,
-      intensity: analysis.intensity.toFixed(2),
-      confidence: analysis.confidence.toFixed(2),
-      keywords: analysis.keywords,
-    });
-
     // 信頼度が低い場合はスキップ
     if (analysis.confidence < 0.4) {
-      console.log(
-        `🎭 AnimationController: 感情解析の信頼度が低いためスキップ (${analysis.confidence.toFixed(
-          2
-        )})`
-      );
       return;
     }
 
     // ニュートラルの場合は現在の感情アニメーションを停止
     if (analysis.emotion === "neutral") {
-      console.log("🎭 ニュートラル感情検出 - 現在のアニメーション停止");
       this.stopCurrentEmotionAnimation();
       return;
     }
@@ -571,9 +505,6 @@ export class AnimationController {
     );
 
     if (!emotionAnimation) {
-      console.warn(
-        `🎭 AnimationController: 感情アニメーションが見つかりません: ${analysis.emotion}`
-      );
       return;
     }
 
@@ -583,12 +514,6 @@ export class AnimationController {
     // 新しいアニメーション開始前にブレンドシェイプをクリア
     this.resetEmotionBlendShapes();
 
-    console.log(
-      `🎭 感情アニメーション実行開始: ${
-        analysis.emotion
-      } (強度: ${analysis.intensity.toFixed(2)})`
-    );
-
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
@@ -596,17 +521,13 @@ export class AnimationController {
     );
 
     // ジェスチャーアニメーションを実行
-    const gestureAnimationId = this.playAnimation(
+    this.playAnimation(
       emotionAnimation.animations.gesture,
       AnimationPriority.NORMAL
     );
 
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
-
-    console.log(
-      `🎭 感情アニメーション実行完了 - 表情ID: ${facialAnimationId}, ジェスチャーID: ${gestureAnimationId}`
-    );
 
     // イベント通知
     if (this.events.onEmotionAnimationStart) {
@@ -634,17 +555,11 @@ export class AnimationController {
     emotion: "neutral" | "happy" | "sad" | "angry" | "surprised",
     intensity: number = 1.0
   ): void {
-    console.log(
-      `🎭 感情アニメーション実行開始: ${emotion} (強度: ${intensity})`
-    );
-
     if (!this.isEnabled) {
-      console.warn("🎭 AnimationController: 無効化されています");
       return;
     }
 
     if (!this.vrmModel) {
-      console.warn("🎭 AnimationController: VRMモデルが設定されていません");
       return;
     }
 
@@ -652,16 +567,12 @@ export class AnimationController {
     this.stopCurrentEmotionAnimation();
 
     if (emotion === "neutral") {
-      console.log("🎭 ニュートラル状態に戻しました");
       return;
     }
 
     const emotionAnimation = getEmotionAnimation(emotion, intensity);
 
     if (!emotionAnimation) {
-      console.warn(
-        `🎭 AnimationController: 感情アニメーションが見つかりません: ${emotion}`
-      );
       return;
     }
 
@@ -682,8 +593,6 @@ export class AnimationController {
 
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
-
-    console.log(`🎭 ${emotion}感情アニメーション開始`);
   }
 
   /**
@@ -700,26 +609,17 @@ export class AnimationController {
     gestureType: GestureType,
     intensity: number = 1.0
   ): void {
-    console.log(
-      `🤲 ジェスチャーアニメーション実行開始: ${gestureType} (強度: ${intensity})`
-    );
-
     if (!this.vrmModel) {
-      console.warn("🎭 AnimationController: VRMモデルが設定されていません");
       return;
     }
 
     if (!this.isEnabled) {
-      console.warn("🎭 AnimationController: 無効化されています");
       return;
     }
 
     const gestureAnimation = getGestureAnimation(gestureType);
 
     if (!gestureAnimation) {
-      console.warn(
-        `🎭 AnimationController: ジェスチャーアニメーションが見つかりません: ${gestureType}`
-      );
       return;
     }
 
@@ -845,8 +745,6 @@ export class AnimationController {
         // ブレンドシェイプが存在しない場合は無視
       }
     });
-
-    console.log("🎭 感情ブレンドシェイプをリセットしました");
   }
 
   /**
@@ -884,7 +782,6 @@ export class AnimationController {
    */
   public resetToNaturalPose(): void {
     if (!this.vrmModel) {
-      console.warn("🎭 VRMモデルが設定されていません");
       return;
     }
 

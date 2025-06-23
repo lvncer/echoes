@@ -20,9 +20,9 @@ export class AdvancedLipSyncService {
   private currentBlendShapes: Record<string, number> = {};
 
   // 設定パラメータ
-  private sensitivity = 1.0; // 感度調整
+  private sensitivity = 2.0; // 感度調整（1.0 → 2.0に上げる）
   private responsiveness = 0.4; // 応答性（低いほど滑らか）
-  private confidenceThreshold = 0.3; // 信頼度閾値
+  private confidenceThreshold = 0.1; // 信頼度閾値（0.3 → 0.1に下げる）
   private blendShapeSmoothing = 0.8; // ブレンドシェイプスムージング
 
   // 音素遷移制御

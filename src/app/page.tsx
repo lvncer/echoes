@@ -64,7 +64,6 @@ declare global {
 const initializeAnimationController = () => {
   if (typeof window !== "undefined" && !window.__animationController) {
     window.__animationController = new AnimationController();
-    console.log("🎭 アニメーションコントローラーを初期化しました");
   }
 };
 

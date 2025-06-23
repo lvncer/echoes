@@ -65,10 +65,6 @@ export function EmotionChat() {
           const emotion = emotions[0];
           setEmotion(emotion);
 
-          console.log(
-            `🎭 新しい感情設定: ${emotion.type} (強度: ${emotion.intensity})`
-          );
-
           // Phase 2: 音声合成統合機能を使用
           const emotionBridge = getEmotionBridge();
           await emotionBridge.handleAIResponseWithSpeech(
@@ -76,7 +72,6 @@ export function EmotionChat() {
             emotion.type,
             emotion.intensity
           );
-          console.log("🔊 AI応答音声合成統合処理完了");
         }
         setMessages((prev) => [...prev, `AI: ${text}`]);
 
@@ -173,7 +168,7 @@ export function EmotionChat() {
             <p>メッセージを送信して</p>
             <p>感情表現を確認してみましょう</p>
             <div className="mt-4 text-xs text-gray-400">
-              <p>🎭 感情表現 + 🔊 音声合成 + 😴 アイドル動作</p>
+              <p>感情表現 + 音声合成 + アイドル動作</p>
               <p>すべてが統合されて動作します</p>
             </div>
           </div>

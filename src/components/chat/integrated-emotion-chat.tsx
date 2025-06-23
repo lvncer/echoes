@@ -367,7 +367,7 @@ export function IntegratedEmotionChat() {
       {/* 右側: チャット機能 */}
       <div className="w-96 border-l border-gray-200 bg-white flex flex-col">
         <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">🎭 感情チャット</h2>
+          <h2 className="text-lg font-semibold">感情チャット</h2>
           <p className="text-sm text-gray-600 mt-1">
             AI応答で感情表現と音声合成が連動します
           </p>

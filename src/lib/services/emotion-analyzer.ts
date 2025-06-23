@@ -238,12 +238,6 @@ export class EmotionAnalyzer {
       this.analysisHistory.shift();
     }
 
-    console.log(
-      `🎭 EmotionAnalyzer: ${result.emotion} (強度: ${result.intensity.toFixed(
-        2
-      )}, 信頼度: ${result.confidence.toFixed(2)})`
-    );
-
     return result;
   }
 

@@ -430,7 +430,6 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
-      console.log(`🎭 AI応答音声合成開始: "${text.substring(0, 50)}..."`);
       this.setStatus("speaking");
 
       // アニメーション制御サービスで感情解析とアニメーション実行

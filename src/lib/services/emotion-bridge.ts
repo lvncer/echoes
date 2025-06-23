@@ -286,10 +286,6 @@ export class EmotionBridgeService {
       return;
     }
 
-    console.log(
-      `🎭 AI応答統合処理開始: ${text.substring(0, 30)}... (${emotion})`
-    );
-
     // 音声キューに追加
     this.speechQueue.push({ text, emotion, intensity });
 
@@ -316,10 +312,7 @@ export class EmotionBridgeService {
 
       // 2. 音声合成とリップシンクを開始
       await integratedLipSyncService.startAIResponseLipSync(text, emotion);
-
-      console.log(`🎭 AI応答統合処理完了: ${emotion} + 音声合成`);
-    } catch (error) {
-      console.error("🎭 AI応答統合処理エラー:", error);
+    } catch {
       this.isSpeaking = false;
       // エラー時は次のキューを処理
       this.processNextSpeechQueue();
