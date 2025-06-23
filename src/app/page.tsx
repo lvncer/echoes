@@ -10,42 +10,6 @@ import { AnimationController } from "@/lib/services/animation-controller";
 import { getEmotionBridge } from "@/lib/services/emotion-bridge";
 import { generateEmotionalResponse } from "@/app/actions/emotion-actions";
 import Link from "next/link";
-
-// カメラデバッグパネルコンポーネント
-function CameraDebugPanel() {
-  const { sceneConfig, resetToDefaults } = useModelStore();
-
-  const handleResetSettings = () => {
-    // ローカルストレージをクリア
-    localStorage.removeItem("echoes-model-store");
-    // 設定をデフォルトにリセット
-    resetToDefaults();
-    // ページをリロード
-    window.location.reload();
-  };
-
-  return (
-    <div className="absolute top-4 right-4 z-20">
-      <div className="bg-white/90 border border-gray-200 rounded-lg p-3 text-xs">
-        <div className="font-semibold mb-2">🎥 カメラ設定</div>
-        <div>位置: [{sceneConfig.cameraPosition.join(", ")}]</div>
-        <div>ターゲット: [{sceneConfig.cameraTarget.join(", ")}]</div>
-        <div className="mt-2">
-          <button
-            onClick={handleResetSettings}
-            className="text-blue-600 hover:text-blue-800 underline text-xs"
-          >
-            設定をリセット
-          </button>
-        </div>
-        <div className="mt-1 text-gray-600">
-          ブラウザの開発者ツールでログを確認
-        </div>
-      </div>
-    </div>
-  );
-}
-
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -446,9 +410,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
-        {/* カメラ位置デバッグパネル（開発環境のみ） */}
-        {process.env.NODE_ENV === "development" && <CameraDebugPanel />}
 
         {/* 音声認識結果表示 */}
         {currentTranscript && (

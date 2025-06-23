@@ -22,7 +22,7 @@ export class AdvancedLipSyncService {
   // 設定パラメータ
   private sensitivity = 2.0; // 感度調整（1.0 → 2.0に上げる）
   private responsiveness = 0.4; // 応答性（低いほど滑らか）
-  private confidenceThreshold = 0.1; // 信頼度閾値（0.3 → 0.1に下げる）
+  private confidenceThreshold = 0.05; // 信頼度閾値（0.1 → 0.05にさらに下げる）
   private blendShapeSmoothing = 0.8; // ブレンドシェイプスムージング
 
   // 音素遷移制御
@@ -109,7 +109,8 @@ export class AdvancedLipSyncService {
     // 信頼度チェック
     if (result.confidence < this.confidenceThreshold) {
       // 信頼度が低い場合は無音として処理
-      if (Math.random() < 0.02) {
+      if (Math.random() < 0.1) {
+        // 確率を上げて診断
         console.log(
           `⚠️ 信頼度不足: ${result.confidence.toFixed(2)} < ${
             this.confidenceThreshold
@@ -118,6 +119,15 @@ export class AdvancedLipSyncService {
       }
       this.updatePhoneme("sil", 0, result.formants);
       return;
+    }
+
+    // デバッグ: 信頼度チェック通過をログ出力（10%確率）
+    if (Math.random() < 0.1) {
+      console.log(
+        `✅ 信頼度チェック通過: ${result.confidence.toFixed(2)} >= ${
+          this.confidenceThreshold
+        } → ${result.phoneme}`
+      );
     }
 
     // 音素履歴を更新
