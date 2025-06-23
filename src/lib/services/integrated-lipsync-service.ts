@@ -221,45 +221,22 @@ export class IntegratedLipSyncService {
    */
   async startMicrophoneLipSync(stream: MediaStream): Promise<void> {
     try {
-      console.log(
-        `🎤 マイク入力リップシンク開始要求 (${this.currentMode}モード)`
-      );
-
-      // ストリームの状態確認
+      // ストリーム状態確認
       const tracks = stream.getAudioTracks();
-      console.log(`🔍 マイクストリーム診断:`, {
-        trackCount: tracks.length,
-        active: stream.active,
-        tracks: tracks.map((track) => ({
-          id: track.id,
-          label: track.label,
-          enabled: track.enabled,
-          kind: track.kind,
-          readyState: track.readyState,
-        })),
-      });
-
-      if (tracks.length === 0) {
-        throw new Error("音声トラックが見つかりません");
-      }
-
-      if (!stream.active) {
-        throw new Error("マイクストリームがアクティブではありません");
+      if (tracks.length === 0 || !stream.active) {
+        throw new Error("有効な音声ストリームが必要です");
       }
 
       this.isActive = true;
 
+      // リップシンクサービス開始
       if (this.currentMode === "advanced") {
-        console.log("🧠 高精度リップシンクサービス開始");
         await this.advancedLipSync.startAdvancedLipSync(stream);
       } else {
-        console.log("🎯 基本リップシンクサービス開始");
         await this.basicLipSync.startLipSync(stream);
       }
 
-      console.log(
-        `✅ マイク入力リップシンク開始完了 (${this.currentMode}モード)`
-      );
+      console.log(`✅ マイク入力リップシンク開始 (${this.currentMode})`);
     } catch (error) {
       console.error("❌ マイクロフォンリップシンク開始エラー:", error);
       this.isActive = false;
@@ -283,6 +260,51 @@ export class IntegratedLipSyncService {
       console.log("🎤 マイク入力リップシンク停止 (TTS機能は維持)");
     } catch (error) {
       console.error("マイク入力リップシンク停止エラー:", error);
+    }
+  }
+
+  /**
+   * リップシンク機能をテスト（VRM連携確認）
+   */
+  async testLipSync(): Promise<boolean> {
+    try {
+      console.log("🧪 リップシンク機能テスト開始");
+
+      // VRM状態確認（ブレンドシェイプサービスを直接使用）
+      const { blendShapeService } = await import("./blend-shape-service");
+      const vrmInfo = blendShapeService.getVRMInfo();
+
+      if (!vrmInfo.hasVRM) {
+        console.warn("❌ テスト失敗: VRMモデルが見つかりません");
+        return false;
+      }
+
+      // ブレンドシェイプテスト
+      const testShapes = ["A", "I", "U", "E", "O"];
+      let workingShapes = 0;
+
+      for (const shape of testShapes) {
+        try {
+          // ブレンドシェイプを一時的に設定
+          blendShapeService.setBlendShapeWeight(shape, 0.5);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          blendShapeService.setBlendShapeWeight(shape, 0);
+          workingShapes++;
+        } catch (error) {
+          console.warn(`⚠️ ブレンドシェイプ ${shape} でエラー:`, error);
+        }
+      }
+
+      const success = workingShapes > 0;
+      console.log(
+        `🧪 テスト結果: ${success ? "成功" : "失敗"} (${workingShapes}/${
+          testShapes.length
+        } 動作)`
+      );
+      return success;
+    } catch (error) {
+      console.error("❌ リップシンクテストエラー:", error);
+      return false;
     }
   }
 

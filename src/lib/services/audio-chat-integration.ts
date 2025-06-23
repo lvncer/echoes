@@ -243,8 +243,9 @@ export class AudioChatIntegrationService {
 
     // リップシンク機能確認
     if (this.isLipSyncEnabled) {
-      const lipSyncStatus = integratedLipSyncService.getStatus();
-      console.log("💋 リップシンク機能状態:", lipSyncStatus);
+      console.log("🧪 リップシンク機能テスト実行中...");
+      const testResult = await integratedLipSyncService.testLipSync();
+      console.log(`💋 リップシンク機能: ${testResult ? "正常" : "異常"}`);
     }
 
     console.log("✅ 環境診断完了");

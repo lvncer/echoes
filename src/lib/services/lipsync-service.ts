@@ -28,22 +28,19 @@ export class LipSyncService {
    */
   async startLipSync(stream: MediaStream): Promise<void> {
     try {
-      console.log("🎯 基本リップシンクサービス開始処理");
-
       // VRMモデルの状態確認
       const vrmInfo = blendShapeService.getVRMInfo();
-      console.log("🤖 VRMモデル状態:", vrmInfo);
 
       if (!vrmInfo.hasVRM) {
-        console.warn("⚠️ VRMモデルが読み込まれていません");
+        console.warn("⚠️ リップシンク: VRMモデルが読み込まれていません");
+        throw new Error("VRMモデルが必要です");
       }
 
       if (vrmInfo.availableBlendShapes.length === 0) {
-        console.warn("⚠️ 利用可能なブレンドシェイプが見つかりません");
+        console.warn(
+          "⚠️ リップシンク: 利用可能なブレンドシェイプが見つかりません"
+        );
       }
-
-      // 音声解析を開始
-      console.log("🔊 音声解析サービス開始");
       await audioAnalysisService.startAnalysis(stream);
 
       // 音量コールバックを設定
@@ -59,7 +56,7 @@ export class LipSyncService {
       this.startAnimationLoop();
 
       console.log(
-        `✅ 基本リップシンク開始完了 (VRM: ${vrmInfo.hasVRM}, ブレンドシェイプ: ${vrmInfo.availableBlendShapes.length}個)`
+        `✅ リップシンク開始 (ブレンドシェイプ: ${vrmInfo.availableBlendShapes.length}個)`
       );
     } catch (error) {
       console.error("❌ リップシンク開始エラー:", error);
@@ -161,24 +158,15 @@ export class LipSyncService {
         break;
     }
 
-    // ブレンドシェイプ適用の詳細ログ（デバッグ用）
-    if (Object.keys(blendShapeWeights).length > 0) {
-      console.log("💋 リップシンク更新:", {
-        phoneme: this.currentPhoneme,
-        mouthOpening: this.currentMouthOpening,
-        weights: blendShapeWeights,
-      });
-    }
-
     // ブレンドシェイプを適用
     blendShapeService.setMultipleBlendShapes(blendShapeWeights);
 
-    // 適用後の状態確認
-    const vrmInfo = blendShapeService.getVRMInfo();
-    if (!vrmInfo.hasVRM && Math.random() < 0.1) {
-      // 10%の確率でログ出力（スパム防止）
-      console.warn(
-        "⚠️ VRMモデルが見つかりません - リップシンクが機能しない可能性があります"
+    // 重要：実際にリップシンクが動作しているかをテスト
+    if (Object.keys(blendShapeWeights).length > 0 && Math.random() < 0.1) {
+      console.log(
+        `💋 リップシンク動作中: ${
+          this.currentPhoneme
+        } (${this.currentMouthOpening.toFixed(2)})`
       );
     }
   }

@@ -58,21 +58,13 @@ export class VRMBlendShapeService {
       // 設定後の値を確認
       const actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
 
-      // デバッグログ（設定値と実際の値を比較）
-      if (actualName !== name) {
-        console.log(
-          `ブレンドシェイプマッピング: ${name} → ${actualName} = ${clampedWeight} (実際: ${actualValue})`
-        );
-      } else {
-        console.log(
-          `ブレンドシェイプ設定: ${name} = ${clampedWeight} (実際: ${actualValue})`
-        );
-      }
-
-      // 値が正しく設定されていない場合は警告
-      if (Math.abs(actualValue - clampedWeight) > 0.01) {
+      // 値が正しく設定されていない場合のみ警告
+      if (
+        Math.abs(actualValue - clampedWeight) > 0.01 &&
+        Math.random() < 0.05
+      ) {
         console.warn(
-          `⚠️ ブレンドシェイプ値の不一致: ${actualName} 設定=${clampedWeight}, 実際=${actualValue}`
+          `⚠️ ブレンドシェイプ不一致: ${actualName} 設定=${clampedWeight}, 実際=${actualValue}`
         );
       }
     } catch (error) {
