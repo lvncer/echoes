@@ -160,19 +160,8 @@ export default function Home() {
             emotion.intensity
           );
         } catch (speechError) {
-          console.error("音声合成エラー:", speechError);
-
-          // フォールバック: 直接SpeechSynthesisを試行
-          if ("speechSynthesis" in window) {
-            const utterance = new SpeechSynthesisUtterance(aiResponse);
-            utterance.lang = "ja-JP";
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
-
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
-          }
+          console.error("統合感情ブリッジ音声合成エラー:", speechError);
+          // 統合リップシンクサービスが内部でフォールバック処理を行うため、ここでは重複処理を削除
         }
       } else {
         // デフォルト感情を設定

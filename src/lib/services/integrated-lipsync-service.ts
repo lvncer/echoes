@@ -84,6 +84,12 @@ export class IntegratedLipSyncService {
         return;
       }
 
+      // 既存の音声を停止（重複防止）
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      this.speechSynthesis.stop();
+
       // TTS音声開始（リップシンクは自動で開始される）
       const success = this.speechSynthesis.speak(responseText);
 
@@ -115,18 +121,25 @@ export class IntegratedLipSyncService {
    */
   private fallbackToStandardSpeech(text: string): void {
     try {
+      console.log("⚠️ フォールバック: 標準音声合成を使用");
+
       if ("speechSynthesis" in window) {
+        // 既存の音声を停止（重複防止）
+        window.speechSynthesis.cancel();
+
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "ja-JP";
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
 
         utterance.onstart = () => {
+          console.log("🎤 フォールバック音声合成開始");
           this.isTTSSpeaking = true;
           this.startTTSAnalysis();
         };
 
         utterance.onend = () => {
+          console.log("🎤 フォールバック音声合成終了");
           this.handleTTSSpeechEnd();
         };
 
@@ -135,7 +148,12 @@ export class IntegratedLipSyncService {
           this.handleTTSSpeechEnd();
         };
 
-        window.speechSynthesis.speak(utterance);
+        // 少し遅延してから開始（重複防止）
+        setTimeout(() => {
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.speak(utterance);
+          }
+        }, 100);
       } else {
         console.error("❌ 標準SpeechSynthesis APIも利用できません");
       }

@@ -236,22 +236,46 @@ export class AudioChatIntegrationService {
       // 音声認識を開始
       this.speechRecognition.start();
 
-      // マイクストリームが利用可能な場合、リップシンクも開始
-      if (this.isLipSyncEnabled && this.currentMicStream) {
-        integratedLipSyncService
-          .startMicrophoneLipSync(this.currentMicStream)
-          .then(() => {
-            console.log("🎤 マイク入力リップシンク開始");
-          })
-          .catch((error) => {
-            console.warn("マイク入力リップシンク開始エラー:", error);
-          });
+      // リップシンク機能が有効な場合、マイクストリームを使用してリップシンクを開始
+      if (this.isLipSyncEnabled) {
+        if (this.currentMicStream) {
+          // 既存のストリームを使用
+          integratedLipSyncService
+            .startMicrophoneLipSync(this.currentMicStream)
+            .then(() => {
+              console.log("🎤 マイク入力リップシンク開始（既存ストリーム）");
+            })
+            .catch((error) => {
+              console.warn("マイク入力リップシンク開始エラー:", error);
+              // エラーの場合は新しいストリームを取得してリトライ
+              this.retryLipSyncWithNewStream();
+            });
+        } else {
+          // ストリームが無い場合は新しく取得
+          this.retryLipSyncWithNewStream();
+        }
       }
 
       return true;
     } catch (error) {
       console.error("音声認識開始エラー:", error);
       return false;
+    }
+  }
+
+  /**
+   * 新しいマイクストリームでリップシンクをリトライ
+   */
+  private async retryLipSyncWithNewStream(): Promise<void> {
+    try {
+      console.log("🔄 新しいマイクストリームでリップシンクを再試行");
+      const newStream = await this.getMicrophoneStream();
+      this.currentMicStream = newStream;
+
+      await integratedLipSyncService.startMicrophoneLipSync(newStream);
+      console.log("🎤 マイク入力リップシンク開始（新規ストリーム）");
+    } catch (error) {
+      console.error("新しいストリームでのリップシンク開始エラー:", error);
     }
   }
 
