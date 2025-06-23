@@ -66,6 +66,22 @@ export class IntegratedLipSyncService {
     }
 
     try {
+      // 重複実行チェック
+      if (this.isTTSSpeaking) {
+        console.log("⚠️ TTS音声が既に実行中です - 停止してから開始");
+        await new Promise<void>((resolve) => {
+          const checkStop = () => {
+            if (!this.isTTSSpeaking) {
+              resolve();
+            } else {
+              setTimeout(checkStop, 100);
+            }
+          };
+          this.forceStopTTS();
+          setTimeout(checkStop, 100);
+        });
+      }
+
       // 感情解析
       const detectedEmotion = emotion || this.analyzeTextEmotion(responseText);
 

@@ -161,8 +161,26 @@ export class LipSyncService {
         break;
     }
 
+    // ブレンドシェイプ適用の詳細ログ（デバッグ用）
+    if (Object.keys(blendShapeWeights).length > 0) {
+      console.log("💋 リップシンク更新:", {
+        phoneme: this.currentPhoneme,
+        mouthOpening: this.currentMouthOpening,
+        weights: blendShapeWeights,
+      });
+    }
+
     // ブレンドシェイプを適用
     blendShapeService.setMultipleBlendShapes(blendShapeWeights);
+
+    // 適用後の状態確認
+    const vrmInfo = blendShapeService.getVRMInfo();
+    if (!vrmInfo.hasVRM && Math.random() < 0.1) {
+      // 10%の確率でログ出力（スパム防止）
+      console.warn(
+        "⚠️ VRMモデルが見つかりません - リップシンクが機能しない可能性があります"
+      );
+    }
   }
 
   /**
