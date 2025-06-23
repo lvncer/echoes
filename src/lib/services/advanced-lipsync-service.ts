@@ -97,9 +97,25 @@ export class AdvancedLipSyncService {
   private processPhonemeResult(result: PhonemeAnalysisResult): void {
     if (!this.isActive) return;
 
+    // デバッグ: 音素解析結果をログ出力（5%確率）
+    if (Math.random() < 0.05) {
+      console.log(
+        `🎤 音素解析: ${result.phoneme} (信頼度: ${result.confidence.toFixed(
+          2
+        )}, F1: ${result.formants.f1.toFixed(0)}Hz)`
+      );
+    }
+
     // 信頼度チェック
     if (result.confidence < this.confidenceThreshold) {
       // 信頼度が低い場合は無音として処理
+      if (Math.random() < 0.02) {
+        console.log(
+          `⚠️ 信頼度不足: ${result.confidence.toFixed(2)} < ${
+            this.confidenceThreshold
+          } → 無音処理`
+        );
+      }
       this.updatePhoneme("sil", 0, result.formants);
       return;
     }
@@ -109,6 +125,15 @@ export class AdvancedLipSyncService {
 
     // 音素遷移の安定性をチェック
     const stablePhoneme = this.getStablePhoneme();
+
+    // デバッグ: 音素変化をログ出力（3%確率）
+    if (Math.random() < 0.03 && stablePhoneme !== this.currentPhoneme) {
+      console.log(
+        `🔄 音素変化: ${
+          this.currentPhoneme
+        } → ${stablePhoneme} (信頼度: ${result.confidence.toFixed(2)})`
+      );
+    }
 
     // 音素を更新
     this.updatePhoneme(stablePhoneme, result.confidence, result.formants);
@@ -357,6 +382,16 @@ export class AdvancedLipSyncService {
     }
 
     blendShapeService.setMultipleBlendShapes(activeBlendShapes);
+
+    // デバッグ: ブレンドシェイプ適用をログ出力（10%確率）
+    if (Object.keys(activeBlendShapes).length > 0 && Math.random() < 0.1) {
+      const shapeInfo = Object.entries(activeBlendShapes)
+        .map(([shape, weight]) => `${shape}:${weight.toFixed(2)}`)
+        .join(", ");
+      console.log(
+        `💋 高精度リップシンク動作中: ${this.currentPhoneme} → {${shapeInfo}}`
+      );
+    }
   }
 
   /**

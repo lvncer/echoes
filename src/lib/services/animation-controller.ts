@@ -396,10 +396,6 @@ export class AnimationController {
     if (instance) {
       this.activeAnimations.delete(animationId);
       this.events.onAnimationEnd?.(animationId);
-      // アニメーション停止ログ（開発環境のみ）
-      if (process.env.NODE_ENV === "development") {
-      console.log(`🛑 アニメーション停止: ${instance.sequence.name}`);
-      }
 
       // 感情アニメーションの場合は、ブレンドシェイプをリセット
       if (animationId === this.currentEmotionAnimationId) {

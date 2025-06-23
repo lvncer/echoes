@@ -245,6 +245,17 @@ export class PhonemeAnalysisService {
       // 音素検出
       const phoneme = this.detectPhoneme(formants, volume);
 
+      // デバッグ: 音素解析詳細をログ出力（3%確率）
+      if (Math.random() < 0.03) {
+        console.log(
+          `🔊 音素解析詳細: 音量=${volume.toFixed(3)}, F1=${formants.f1.toFixed(
+            0
+          )}Hz, F2=${formants.f2.toFixed(0)}Hz → ${
+            phoneme.name
+          } (${phoneme.confidence.toFixed(2)})`
+        );
+      }
+
       // 結果をコールバック
       if (this.analysisCallback) {
         const result: PhonemeAnalysisResult = {
