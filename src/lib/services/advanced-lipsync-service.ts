@@ -226,8 +226,14 @@ export class AdvancedLipSyncService {
 
     if (!phonemeConfig) {
       // 設定がない場合は無音
+      console.log(`⚠️ 音素設定なし: ${this.currentPhoneme}`);
       this.targetBlendShapes = {};
       return;
+    }
+
+    // デバッグ: 音素設定を確認（10%確率）
+    if (Math.random() < 0.1) {
+      console.log(`🎯 音素設定取得: ${this.currentPhoneme}`, phonemeConfig.blendShapeMapping);
     }
 
     // 基本ブレンドシェイプを設定（利用可能なもののみ）
@@ -237,14 +243,29 @@ export class AdvancedLipSyncService {
     // 利用可能なブレンドシェイプのみを使用
     for (const [shape, weight] of Object.entries(baseBlendShapes)) {
       if (this.isBlendShapeAvailable(shape)) {
-        adjustedBlendShapes[shape] =
-          weight * this.sensitivity * this.confidence;
+        const finalWeight = weight * this.sensitivity * this.confidence;
+        adjustedBlendShapes[shape] = finalWeight;
+        
+        // デバッグ: ブレンドシェイプ計算詳細（10%確率）
+        if (Math.random() < 0.1) {
+          console.log(`🎯 ブレンドシェイプ計算: ${shape} = ${weight} * ${this.sensitivity} * ${this.confidence} = ${finalWeight}`);
+        }
       } else {
         // 利用可能でない場合は代替ブレンドシェイプを探す
         const alternative = this.findAlternativeBlendShape(shape);
         if (alternative) {
-          adjustedBlendShapes[alternative] =
-            weight * this.sensitivity * this.confidence;
+          const finalWeight = weight * this.sensitivity * this.confidence;
+          adjustedBlendShapes[alternative] = finalWeight;
+          
+          // デバッグ: 代替ブレンドシェイプ使用（10%確率）
+          if (Math.random() < 0.1) {
+            console.log(`🔄 代替ブレンドシェイプ: ${shape} → ${alternative} = ${finalWeight}`);
+          }
+        } else {
+          // デバッグ: 利用不可ブレンドシェイプ（5%確率）
+          if (Math.random() < 0.05) {
+            console.log(`❌ 利用不可: ${shape} (代替なし)`);
+          }
         }
       }
     }
@@ -254,14 +275,9 @@ export class AdvancedLipSyncService {
 
     this.targetBlendShapes = adjustedBlendShapes;
 
-    // デバッグログ（5秒間隔で出力）
-    const now = Date.now();
-    if (now - this.lastLogTime > 5000) {
-      console.log(
-        `音素: ${this.currentPhoneme}, ターゲット:`,
-        this.targetBlendShapes
-      );
-      this.lastLogTime = now;
+    // デバッグ: 最終ターゲット確認（10%確率）
+    if (Math.random() < 0.1 && Object.keys(adjustedBlendShapes).length > 0) {
+      console.log(`🎯 最終ターゲット: ${this.currentPhoneme}`, this.targetBlendShapes);
     }
   }
 
