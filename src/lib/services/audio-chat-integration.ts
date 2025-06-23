@@ -168,6 +168,9 @@ export class AudioChatIntegrationService {
         return true;
       }
 
+      // 環境診断を実行
+      await this.performEnvironmentCheck();
+
       // マイクアクセス許可を取得
       const hasPermission = await this.audioInput.requestMicrophoneAccess(
         this.config.audioInput
@@ -195,6 +198,56 @@ export class AudioChatIntegrationService {
       });
       return false;
     }
+  }
+
+  /**
+   * 環境診断を実行
+   */
+  private async performEnvironmentCheck(): Promise<void> {
+    console.log("🔍 環境診断開始");
+
+    // ブラウザ機能サポート確認
+    const hasGetUserMedia =
+      navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+    const hasSpeechRecognition =
+      "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
+    const hasSpeechSynthesis = "speechSynthesis" in window;
+    const hasAudioContext =
+      "AudioContext" in window || "webkitAudioContext" in window;
+
+    console.log("🌐 ブラウザサポート状況:", {
+      getUserMedia: hasGetUserMedia,
+      speechRecognition: hasSpeechRecognition,
+      speechSynthesis: hasSpeechSynthesis,
+      audioContext: hasAudioContext,
+      userAgent: navigator.userAgent,
+    });
+
+    // 利用可能な音声デバイス確認
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioInputs = devices.filter(
+        (device) => device.kind === "audioinput"
+      );
+      console.log(
+        "🎙️ 利用可能な音声入力デバイス:",
+        audioInputs.map((device) => ({
+          deviceId: device.deviceId,
+          label: device.label || "未知のデバイス",
+          kind: device.kind,
+        }))
+      );
+    } catch (error) {
+      console.warn("⚠️ デバイス列挙エラー:", error);
+    }
+
+    // リップシンク機能確認
+    if (this.isLipSyncEnabled) {
+      const lipSyncStatus = integratedLipSyncService.getStatus();
+      console.log("💋 リップシンク機能状態:", lipSyncStatus);
+    }
+
+    console.log("✅ 環境診断完了");
   }
 
   /**
@@ -407,16 +460,24 @@ export class AudioChatIntegrationService {
    */
   private waitForSpeechCompletion(text: string): Promise<void> {
     return new Promise((resolve) => {
-      // タイムアウト設定（テキストの長さに基づいて動的に設定）
-      const estimatedDuration = Math.max(8000, text.length * 200); // 最低8秒、文字数×200ms
+      // タイムアウト設定（より余裕を持った設定に変更）
+      const estimatedDuration = Math.max(15000, text.length * 300); // 最低15秒、文字数×300ms
+      console.log(
+        `🕐 音声合成完了監視開始: 推定時間 ${Math.round(
+          estimatedDuration / 1000
+        )}秒 (テキスト長: ${text.length}文字)`
+      );
 
       const timeout = setTimeout(() => {
+        console.log("⏰ 音声合成タイムアウト - 正常終了");
         this.setStatus("idle");
         resolve();
       }, estimatedDuration);
 
       let checkCount = 0;
-      const maxChecks = Math.floor(estimatedDuration / 200);
+      const maxChecks = Math.floor(estimatedDuration / 500); // チェック間隔を500msに延長
+      let consecutiveStoppedChecks = 0; // 連続して停止状態と判定された回数
+      const requiredStoppedChecks = 3; // 停止判定に必要な連続回数
 
       // 音声合成の完了を監視
       const checkCompletion = () => {
@@ -431,23 +492,43 @@ export class AudioChatIntegrationService {
           lipSyncStatus.isTTSSpeaking || isSpeaking || isStandardSpeaking;
 
         if (!isAnySpeaking) {
-          // 音声合成が完了した
-          clearTimeout(timeout);
-          this.setStatus("idle");
-          resolve();
-        } else if (checkCount >= maxChecks) {
+          consecutiveStoppedChecks++;
+          console.log(
+            `🔍 音声停止チェック ${consecutiveStoppedChecks}/${requiredStoppedChecks} (${checkCount}/${maxChecks})`
+          );
+
+          // 連続して停止状態が検出された場合のみ完了とみなす
+          if (consecutiveStoppedChecks >= requiredStoppedChecks) {
+            console.log("✅ 音声合成完了確認 - 正常終了");
+            clearTimeout(timeout);
+            this.setStatus("idle");
+            resolve();
+            return;
+          }
+        } else {
+          // 音声が検出された場合はカウンターをリセット
+          if (consecutiveStoppedChecks > 0) {
+            console.log(
+              `🎤 音声検出 - 停止カウンターリセット (${consecutiveStoppedChecks} → 0)`
+            );
+          }
+          consecutiveStoppedChecks = 0;
+        }
+
+        if (checkCount >= maxChecks) {
           // 最大チェック回数に達した
+          console.log("⏰ 最大チェック回数到達 - 強制終了");
           clearTimeout(timeout);
           this.setStatus("idle");
           resolve();
         } else {
-          // まだ話している場合は200ms後に再チェック
-          setTimeout(checkCompletion, 200);
+          // まだ話している場合は500ms後に再チェック
+          setTimeout(checkCompletion, 500);
         }
       };
 
       // 少し遅延してからチェック開始（音声合成の開始を待つ）
-      setTimeout(checkCompletion, 1000);
+      setTimeout(checkCompletion, 2000); // 開始待機時間も2秒に延長
     });
   }
 

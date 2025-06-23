@@ -28,7 +28,22 @@ export class LipSyncService {
    */
   async startLipSync(stream: MediaStream): Promise<void> {
     try {
+      console.log("🎯 基本リップシンクサービス開始処理");
+
+      // VRMモデルの状態確認
+      const vrmInfo = blendShapeService.getVRMInfo();
+      console.log("🤖 VRMモデル状態:", vrmInfo);
+
+      if (!vrmInfo.hasVRM) {
+        console.warn("⚠️ VRMモデルが読み込まれていません");
+      }
+
+      if (vrmInfo.availableBlendShapes.length === 0) {
+        console.warn("⚠️ 利用可能なブレンドシェイプが見つかりません");
+      }
+
       // 音声解析を開始
+      console.log("🔊 音声解析サービス開始");
       await audioAnalysisService.startAnalysis(stream);
 
       // 音量コールバックを設定
@@ -43,9 +58,12 @@ export class LipSyncService {
       this.isActive = true;
       this.startAnimationLoop();
 
-      console.log("リップシンク開始");
+      console.log(
+        `✅ 基本リップシンク開始完了 (VRM: ${vrmInfo.hasVRM}, ブレンドシェイプ: ${vrmInfo.availableBlendShapes.length}個)`
+      );
     } catch (error) {
-      console.error("リップシンク開始エラー:", error);
+      console.error("❌ リップシンク開始エラー:", error);
+      this.isActive = false;
       throw error;
     }
   }

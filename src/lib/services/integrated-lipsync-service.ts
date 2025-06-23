@@ -205,17 +205,48 @@ export class IntegratedLipSyncService {
    */
   async startMicrophoneLipSync(stream: MediaStream): Promise<void> {
     try {
+      console.log(
+        `🎤 マイク入力リップシンク開始要求 (${this.currentMode}モード)`
+      );
+
+      // ストリームの状態確認
+      const tracks = stream.getAudioTracks();
+      console.log(`🔍 マイクストリーム診断:`, {
+        trackCount: tracks.length,
+        active: stream.active,
+        tracks: tracks.map((track) => ({
+          id: track.id,
+          label: track.label,
+          enabled: track.enabled,
+          kind: track.kind,
+          readyState: track.readyState,
+        })),
+      });
+
+      if (tracks.length === 0) {
+        throw new Error("音声トラックが見つかりません");
+      }
+
+      if (!stream.active) {
+        throw new Error("マイクストリームがアクティブではありません");
+      }
+
       this.isActive = true;
 
       if (this.currentMode === "advanced") {
+        console.log("🧠 高精度リップシンクサービス開始");
         await this.advancedLipSync.startAdvancedLipSync(stream);
       } else {
+        console.log("🎯 基本リップシンクサービス開始");
         await this.basicLipSync.startLipSync(stream);
       }
 
-      console.log(`🎤 マイク入力リップシンク開始 (${this.currentMode}モード)`);
+      console.log(
+        `✅ マイク入力リップシンク開始完了 (${this.currentMode}モード)`
+      );
     } catch (error) {
-      console.error("マイクロフォンリップシンク開始エラー:", error);
+      console.error("❌ マイクロフォンリップシンク開始エラー:", error);
+      this.isActive = false;
       throw error;
     }
   }
