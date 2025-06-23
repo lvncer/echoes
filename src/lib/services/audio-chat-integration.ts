@@ -66,6 +66,10 @@ export class AudioChatIntegrationService {
   private isActive = false;
   private lastStatusLogTime = 0;
 
+  // リップシンク連動制御
+  private isLipSyncEnabled = true;
+  private currentMicStream: MediaStream | null = null;
+
   constructor(config: AudioChatConfig, callbacks: AudioChatCallbacks = {}) {
     this.config = config;
     this.callbacks = callbacks;
@@ -176,8 +180,13 @@ export class AudioChatIntegrationService {
         return false;
       }
 
+      // マイクストリームを取得
+      this.currentMicStream = await this.getMicrophoneStream();
+
       this.isActive = true;
       this.setStatus("idle");
+
+      console.log("🎤 音声チャット開始 - リップシンク準備完了");
       return true;
     } catch (error) {
       this.handleError({
@@ -198,27 +207,64 @@ export class AudioChatIntegrationService {
     this.speechSynthesis.stop();
     this.audioInput.stopRecording();
 
+    // リップシンクを停止
+    if (this.isLipSyncEnabled) {
+      integratedLipSyncService.stopLipSync();
+    }
+
+    // マイクストリームを停止
+    if (this.currentMicStream) {
+      this.currentMicStream.getTracks().forEach((track) => track.stop());
+      this.currentMicStream = null;
+    }
+
     this.isActive = false;
     this.setStatus("idle");
+    console.log("🎤 音声チャット停止 - リップシンク停止");
   }
 
   /**
-   * 音声入力開始（プッシュトゥトーク）
+   * 音声認識開始（リップシンクも同時開始）
    */
   public startListening(): boolean {
-    if (!this.isActive || this.status !== "idle") {
+    if (!this.isActive) {
+      console.warn("音声チャットが開始されていません");
       return false;
     }
 
-    return this.speechRecognition.start();
+    try {
+      // 音声認識を開始
+      this.speechRecognition.start();
+
+      // マイクストリームが利用可能な場合、リップシンクも開始
+      if (this.isLipSyncEnabled && this.currentMicStream) {
+        integratedLipSyncService
+          .startMicrophoneLipSync(this.currentMicStream)
+          .then(() => {
+            console.log("🎤 マイク入力リップシンク開始");
+          })
+          .catch((error) => {
+            console.warn("マイク入力リップシンク開始エラー:", error);
+          });
+      }
+
+      return true;
+    } catch (error) {
+      console.error("音声認識開始エラー:", error);
+      return false;
+    }
   }
 
   /**
-   * 音声入力停止
+   * 音声認識停止（リップシンクも停止）
    */
   public stopListening(): void {
-    if (this.status === "listening") {
-      this.speechRecognition.stop();
+    this.speechRecognition.stop();
+
+    // マイク入力リップシンクを停止（TTS用は維持）
+    if (this.isLipSyncEnabled) {
+      integratedLipSyncService.stopMicrophoneLipSync();
+      console.log("🎤 マイク入力リップシンク停止");
     }
   }
 
@@ -464,5 +510,39 @@ export class AudioChatIntegrationService {
     this.audioInput.cleanup();
     this.speechRecognition.cleanup();
     this.speechSynthesis.cleanup();
+  }
+
+  /**
+   * マイクストリームを取得
+   */
+  private async getMicrophoneStream(): Promise<MediaStream> {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          ...this.config.audioInput,
+        },
+      });
+    } catch (error) {
+      console.error("マイクストリーム取得エラー:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * リップシンク機能の有効/無効を設定
+   */
+  public setLipSyncEnabled(enabled: boolean): void {
+    this.isLipSyncEnabled = enabled;
+    console.log(`🎤 リップシンク機能: ${enabled ? "有効" : "無効"}`);
+  }
+
+  /**
+   * リップシンク機能の状態を取得
+   */
+  public isLipSyncFunctionEnabled(): boolean {
+    return this.isLipSyncEnabled;
   }
 }

@@ -194,6 +194,8 @@ export class IntegratedLipSyncService {
       } else {
         await this.basicLipSync.startLipSync(stream);
       }
+
+      console.log(`🎤 マイク入力リップシンク開始 (${this.currentMode}モード)`);
     } catch (error) {
       console.error("マイクロフォンリップシンク開始エラー:", error);
       throw error;
@@ -201,23 +203,46 @@ export class IntegratedLipSyncService {
   }
 
   /**
-   * リップシンク停止
+   * マイク入力リップシンク停止（TTS機能は維持）
+   */
+  stopMicrophoneLipSync(): void {
+    try {
+      // マイク入力のリップシンクのみ停止
+      if (this.currentMode === "advanced") {
+        this.advancedLipSync.stopAdvancedLipSync();
+      } else {
+        this.basicLipSync.stopLipSync();
+      }
+
+      // TTS機能は維持するため、isActiveは維持
+      console.log("🎤 マイク入力リップシンク停止 (TTS機能は維持)");
+    } catch (error) {
+      console.error("マイク入力リップシンク停止エラー:", error);
+    }
+  }
+
+  /**
+   * リップシンク完全停止（すべての機能を停止）
    */
   stopLipSync(): void {
     this.isActive = false;
 
-    // 各サービスを停止
-    this.advancedLipSync.stopAdvancedLipSync();
-    this.basicLipSync.stopLipSync();
-    this.speechSynthesis.stop();
+    // TTS発話を停止
+    if (this.isTTSSpeaking) {
+      this.speechSynthesis.stop();
+      this.isTTSSpeaking = false;
+    }
 
     // TTS解析を停止
     this.stopTTSAnalysis();
 
+    // マイク入力リップシンクを停止
+    this.stopMicrophoneLipSync();
+
     // 表情をリセット
     this.resetExpression();
 
-    console.log("統合リップシンク停止");
+    console.log("🔇 統合リップシンク完全停止");
   }
 
   /**

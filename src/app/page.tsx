@@ -314,6 +314,11 @@ export default function Home() {
     try {
       console.log("🎤 音声チャットサービス初期化開始");
       const service = new AudioChatIntegrationService(defaultConfig, callbacks);
+
+      // リップシンク機能を有効にする
+      service.setLipSyncEnabled(true);
+      console.log("🎤 リップシンク機能有効化");
+
       const success = await service.startAudioChat();
 
       if (success) {
@@ -321,7 +326,7 @@ export default function Home() {
         setIsInitialized(true);
         setIsVoiceChatActive(true);
         setError(null);
-        console.log("✅ 音声チャットサービス初期化完了");
+        console.log("✅ 音声チャットサービス初期化完了（リップシンク有効）");
       } else {
         throw new Error("音声チャットの初期化に失敗しました");
       }
