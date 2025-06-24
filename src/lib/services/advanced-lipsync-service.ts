@@ -237,11 +237,11 @@ export class AdvancedLipSyncService {
           };
 
           const candidates = numberMappings[shape] || [];
-          let _foundNumberAlternative = false;
+          let _foundNumberCandidate = false;
           for (const candidate of candidates) {
             if (this.isBlendShapeAvailable(candidate)) {
               adjustedBlendShapes[candidate] = finalWeight;
-              _foundNumberAlternative = true;
+              _foundNumberCandidate = true;
               break;
             }
           }
