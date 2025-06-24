@@ -7,7 +7,7 @@ import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
-import Link from "next/link";
+import { SettingsModal } from "@/components/settings/settings-modal";
 
 // カメラデバッグパネルコンポーネント
 function CameraDebugPanel() {
@@ -107,6 +107,7 @@ const initializeAnimationController = () => {
 
 export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // 音声チャット関連の状態
   const [audioChatService, setAudioChatService] =
@@ -314,16 +315,15 @@ export default function Home() {
                 v1.0.0
               </span>
             </div>
-            <Link href="/settings">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                設定
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              設定
+            </Button>
           </div>
         </div>
       </header>
@@ -374,12 +374,13 @@ export default function Home() {
                 <br />
                 音声会話を始めましょう
               </p>
-              <Link href="/settings">
-                <Button className="w-full flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  モデルを読み込む
-                </Button>
-              </Link>
+              <Button
+                onClick={() => setIsSettingsOpen(true)}
+                className="w-full flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                モデルを読み込む
+              </Button>
               <div className="mt-3 text-xs text-gray-500">
                 設定ページでVRM、glTF、GLBファイルを選択
               </div>
@@ -445,16 +446,18 @@ export default function Home() {
           <div className="text-center mt-3">
             <p className="text-xs text-gray-500">
               3Dモデルと音声で会話できます •
-              <Link
-                href="/settings"
+              <button
+                onClick={() => setIsSettingsOpen(true)}
                 className="text-blue-600 hover:underline ml-1"
               >
                 詳細設定はこちら
-              </Link>
+              </button>
             </p>
           </div>
         </div>
       </footer>
+
+      <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </main>
   );
 }
