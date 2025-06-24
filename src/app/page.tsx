@@ -67,7 +67,6 @@ const initializeAnimationController = () => {
 
 export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
 
   // 音声チャット関連の状態
   const [audioChatService, setAudioChatService] =
@@ -130,13 +129,11 @@ export default function Home() {
     () => ({
       onListeningStart: () => {
         setIsListening(true);
-        setIsRecording(true);
         setError(null);
         console.log("🎤 音声入力開始");
       },
       onListeningEnd: () => {
         setIsListening(false);
-        setIsRecording(false);
         console.log("🎤 音声入力終了");
       },
       onTranscriptReceived: (transcript: string, isFinal: boolean) => {
@@ -197,7 +194,6 @@ export default function Home() {
       setIsInitialized(false);
       setIsVoiceChatActive(false);
       setIsListening(false);
-      setIsRecording(false);
       setCurrentTranscript("");
       setError(null);
     }
@@ -267,16 +263,16 @@ export default function Home() {
 
   return (
     <main className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-        {/* ヘッダー */}
+      {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b flex-shrink-0">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Box className="w-8 h-8 text-blue-600" />
+            <div className="flex items-center gap-3">
+              <Box className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">Echoes</h1>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              v1.0.0
-            </span>
+                v1.0.0
+              </span>
             </div>
             <Link href="/settings">
               <Button
@@ -290,7 +286,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        </header>
+      </header>
 
       {/* メインコンテンツ: 3Dビューアー */}
       <div className="flex-1 relative overflow-hidden">
@@ -350,7 +346,7 @@ export default function Home() {
             </div>
           </div>
         )}
-          </div>
+      </div>
 
       {/* 音声操作UI */}
       <footer className="bg-white border-t shadow-lg flex-shrink-0">
@@ -375,16 +371,16 @@ export default function Home() {
             {/* 音声入力状態表示 */}
             <div className="flex items-center gap-2 min-w-[200px]">
               {isVoiceChatActive ? (
-                status === "listening" || isRecording ? (
+                status === "listening" ? (
                   <div className="flex items-center gap-2 text-red-600">
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="font-medium">録音中...</span>
-                            </div>
+                  </div>
                 ) : status === "processing" ? (
                   <div className="flex items-center gap-2 text-yellow-600">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
                     <span className="font-medium">AI処理中...</span>
-                          </div>
+                  </div>
                 ) : status === "speaking" ? (
                   <div className="flex items-center gap-2 text-green-600">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -418,7 +414,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-        </footer>
+      </footer>
     </main>
   );
 }
