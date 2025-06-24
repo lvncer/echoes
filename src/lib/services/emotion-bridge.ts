@@ -48,7 +48,6 @@ export class EmotionBridgeService {
    */
   private initializeAnimationController(): void {
     this.animationController = new AnimationController();
-    console.log("🌉 EmotionBridgeService: AnimationController初期化完了");
   }
 
   /**
@@ -57,7 +56,6 @@ export class EmotionBridgeService {
   private setupSpeechIntegration(): void {
     // 統合リップシンクサービスの状態監視
     this.monitorSpeechStatus();
-    console.log("🔊 EmotionBridgeService: 音声合成統合初期化完了");
   }
 
   /**
@@ -83,7 +81,6 @@ export class EmotionBridgeService {
     };
 
     checkIdleState();
-    console.log("😴 EmotionBridgeService: アイドル監視開始");
   }
 
   /**
@@ -108,9 +105,6 @@ export class EmotionBridgeService {
     const randomAnimation =
       idleAnimations[Math.floor(Math.random() * idleAnimations.length)];
 
-    console.log(
-      `😴 アイドルアニメーション: ${randomAnimation.emotion} (強度: ${randomAnimation.intensity})`
-    );
 
     // 短時間の微細なアニメーション
     this.animationController.playEmotionAnimation(
@@ -146,7 +140,6 @@ export class EmotionBridgeService {
       // TTS音声終了検知
       if (this.isSpeaking && !lipSyncStatus.isTTSSpeaking) {
         this.isSpeaking = false;
-        console.log("🔊 音声合成終了検知 - 次の音声キューを処理");
         this.processNextSpeechQueue();
       }
 
@@ -163,7 +156,6 @@ export class EmotionBridgeService {
   public setVRMModel(vrm: VRM): void {
     if (this.animationController) {
       this.animationController.setVRMModel(vrm);
-      console.log("🌉 EmotionBridgeService: VRMモデル設定完了");
     }
   }
 
@@ -187,7 +179,6 @@ export class EmotionBridgeService {
       return;
     }
 
-    console.log(`🌉 感情変化検出: ${emotion} (強度: ${intensity})`);
 
     // Phase 3: 感情遷移の自然化
     if (
@@ -204,7 +195,6 @@ export class EmotionBridgeService {
     // Phase 2: 統合リップシンクサービスにも感情を通知
     if (this.isSpeechIntegrationEnabled) {
       integratedLipSyncService.setEmotionIntensity(intensity);
-      console.log("🔊 統合リップシンクサービスに感情強度を通知");
     }
 
     // 現在の状態を更新
@@ -227,7 +217,6 @@ export class EmotionBridgeService {
     }
 
     this.isTransitioning = true;
-    console.log(`🌊 感情遷移開始: ${this.currentEmotion} → ${targetEmotion}`);
 
     // 段階的な遷移（3段階）
     const steps = 3;
@@ -249,11 +238,6 @@ export class EmotionBridgeService {
           currentIntensity
         );
 
-        console.log(
-          `🌊 遷移ステップ ${currentStep}/${steps}: ${
-            this.currentEmotion
-          } (強度: ${currentIntensity.toFixed(2)})`
-        );
 
         this.transitionTimer = setTimeout(executeTransitionStep, stepDuration);
       } else {
@@ -263,9 +247,6 @@ export class EmotionBridgeService {
           targetIntensity
         );
         this.isTransitioning = false;
-        console.log(
-          `🌊 感情遷移完了: ${targetEmotion} (強度: ${targetIntensity})`
-        );
       }
     };
 
@@ -324,7 +305,6 @@ export class EmotionBridgeService {
    */
   public setEmotionTransitionEnabled(enabled: boolean): void {
     this.emotionTransitionEnabled = enabled;
-    console.log(`🌊 感情遷移機能: ${enabled ? "有効" : "無効"}に設定`);
   }
 
   /**
@@ -332,7 +312,6 @@ export class EmotionBridgeService {
    */
   public setTransitionDuration(duration: number): void {
     this.transitionDuration = Math.max(500, Math.min(5000, duration)); // 0.5-5秒の範囲
-    console.log(`🌊 感情遷移時間: ${this.transitionDuration}ms に設定`);
   }
 
   /**
@@ -340,9 +319,6 @@ export class EmotionBridgeService {
    */
   public setIdleAnimationEnabled(enabled: boolean): void {
     this.idleAnimationEnabled = enabled;
-    console.log(
-      `😴 アイドルアニメーション: ${enabled ? "有効" : "無効"}に設定`
-    );
   }
 
   /**
@@ -350,7 +326,6 @@ export class EmotionBridgeService {
    */
   public setIdleThreshold(threshold: number): void {
     this.idleThreshold = Math.max(5000, threshold); // 最低5秒
-    console.log(`😴 アイドル閾値: ${this.idleThreshold}ms に設定`);
   }
 
   /**
@@ -358,7 +333,6 @@ export class EmotionBridgeService {
    */
   public setSpeechIntegrationEnabled(enabled: boolean): void {
     this.isSpeechIntegrationEnabled = enabled;
-    console.log(`🔊 音声統合機能: ${enabled ? "有効" : "無効"}に設定`);
   }
 
   /**
@@ -367,7 +341,6 @@ export class EmotionBridgeService {
   public clearSpeechQueue(): void {
     this.speechQueue = [];
     this.isSpeaking = false;
-    console.log("🔊 音声キューをクリア");
   }
 
   /**
@@ -375,7 +348,6 @@ export class EmotionBridgeService {
    */
   public setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
-    console.log(`🌉 EmotionBridgeService: ${enabled ? "有効" : "無効"}に設定`);
   }
 
   /**
@@ -437,7 +409,6 @@ export class EmotionBridgeService {
     this.currentEmotion = null;
     this.currentIntensity = 0;
     this.clearSpeechQueue();
-    console.log("🌉 EmotionBridgeService: 破棄完了");
   }
 }
 

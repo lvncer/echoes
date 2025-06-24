@@ -121,8 +121,7 @@ export class AudioInputService {
       source.connect(this.analyser);
 
       this.startAudioLevelMonitoring();
-    } catch (error) {
-      console.error("音声解析器の設定に失敗:", error);
+    } catch (_error) {
     }
   }
 
@@ -173,7 +172,6 @@ export class AudioInputService {
       this.mediaRecorder.onstop = () => {
         // const blob = new Blob(chunks, { type: "audio/wav" });
         // 必要に応じて録音データを処理（将来の拡張用）
-        console.log("録音完了:", chunks.length, "chunks");
       };
 
       this.mediaRecorder.start();
@@ -212,7 +210,6 @@ export class AudioInputService {
   private handleError(message: string): void {
     this.state.error = message;
     this.events.onError?.(message);
-    console.error("AudioInputService Error:", message);
   }
 
   /**

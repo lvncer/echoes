@@ -24,9 +24,6 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   const isDevelopment = process.env.NODE_ENV === "development";
 
   React.useEffect(() => {
-    // エラーログを記録
-    console.error("Global error page:", error);
-
     // 本番環境では外部エラー監視サービスに送信
     if (process.env.NODE_ENV === "production") {
       // TODO: Sentry、LogRocket等のエラー監視サービスに送信
@@ -34,9 +31,8 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
     }
   }, [error]);
 
-  const reportErrorToService = (error: Error) => {
+  const reportErrorToService = (_error: Error) => {
     // 外部エラー監視サービスへの送信ロジック
-    console.log("Error reported to monitoring service:", error);
   };
 
   const getErrorMessage = (error: Error): string => {

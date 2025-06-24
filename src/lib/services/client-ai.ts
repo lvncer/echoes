@@ -35,7 +35,6 @@ export class ClientAIService {
         processingTime: data.processingTime,
       };
     } catch (error) {
-      console.error("AI応答生成エラー:", error);
 
       // ユーザーフレンドリーなエラーメッセージ
       let userMessage = "AI応答の生成に失敗しました。";

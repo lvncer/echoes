@@ -8,8 +8,7 @@ export async function generateEmotionalResponse(userInput: string) {
   try {
     const result = await emotionService.generateResponse(userInput);
     return { success: true, data: result };
-  } catch (error) {
-    console.error("Emotion generation failed:", error);
+  } catch (_error) {
     return { success: false, error: "Failed to generate response" };
   }
 }

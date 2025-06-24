@@ -32,8 +32,7 @@ export class OpenAIService {
         apiKey: this.config.apiKey,
         baseURL: this.config.baseUrl,
       });
-    } catch (error) {
-      console.error("OpenAI クライアントの初期化に失敗しました:", error);
+    } catch (_error) {
     }
   }
 
@@ -111,13 +110,7 @@ export class OpenAIService {
         processingTime,
       };
     } catch (error) {
-      console.error("OpenAI API エラー:", error);
-      console.error("エラーの型:", typeof error);
-      console.error("エラーの詳細:", JSON.stringify(error, null, 2));
-
       if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
         throw this.createError("API_ERROR", error.message, error);
       }
 
@@ -179,7 +172,6 @@ export class OpenAIService {
         }
       }
     } catch (error) {
-      console.error("OpenAI ストリーミング エラー:", error);
       throw this.createError(
         "STREAM_ERROR",
         "ストリーミング応答でエラーが発生しました",
@@ -251,8 +243,7 @@ export class OpenAIService {
         .filter((model) => model.id.includes("gpt"))
         .map((model) => model.id)
         .sort();
-    } catch (error) {
-      console.error("モデル一覧の取得に失敗しました:", error);
+    } catch (_error) {
       return ["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"];
     }
   }

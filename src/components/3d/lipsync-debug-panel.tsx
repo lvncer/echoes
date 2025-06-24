@@ -119,7 +119,7 @@
 //       // パフォーマンス監視
 //       updatePerformanceMetrics();
 //     } catch (error) {
-//       console.error("デバッグパネル更新エラー:", error);
+//
 //     }
 //   }, []);
 
@@ -200,14 +200,14 @@
 //    */
 //   const runIntegratedTest = async () => {
 //     try {
-//       console.log("統合テスト開始...");
+//
 
 //       // ブレンドシェイプテスト
 //       await blendShapeService.testBlendShapes();
 
-//       console.log("統合テスト完了");
+//
 //     } catch (error) {
-//       console.error("統合テストエラー:", error);
+//
 //     }
 //   };
 
@@ -223,7 +223,7 @@
 //     // ブレンドシェイプをリセット
 //     blendShapeService.resetAllBlendShapes();
 
-//     console.log("システムリセット完了");
+//
 //   };
 
 //   if (!isVisible) {

@@ -29,11 +29,9 @@ export class AIService {
         break;
       case "anthropic":
         // 将来実装
-        console.warn("Anthropic はまだ実装されていません");
         break;
       case "local":
         // 将来実装
-        console.warn("ローカル LLM はまだ実装されていません");
         break;
       default:
         throw new Error(
@@ -91,8 +89,6 @@ export class AIService {
           );
       }
     } catch (error) {
-      console.error("AI 応答生成エラー:", error);
-      console.error("エラーの詳細:", JSON.stringify(error, null, 2));
 
       if (this.isAIError(error)) {
         throw error;
@@ -165,8 +161,7 @@ export class AIService {
         default:
           return false;
       }
-    } catch (error) {
-      console.error("接続テストエラー:", error);
+    } catch (_error) {
       return false;
     }
   }
@@ -191,8 +186,7 @@ export class AIService {
         default:
           return [];
       }
-    } catch (error) {
-      console.error("モデル一覧取得エラー:", error);
+    } catch (_error) {
       return [];
     }
   }

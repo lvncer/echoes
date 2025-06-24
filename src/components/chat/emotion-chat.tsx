@@ -23,7 +23,6 @@ export function EmotionChat() {
   // 感情ブリッジサービスの初期化
   useEffect(() => {
     getEmotionBridge(); // 初期化のみ実行
-    console.log("🌉 EmotionChat: 感情ブリッジサービス初期化");
 
     return () => {
       // クリーンアップは必要に応じて実装
@@ -81,8 +80,6 @@ export function EmotionChat() {
         throw new Error(result.error || "応答の生成に失敗しました");
       }
     } catch (err) {
-      console.error("AI応答エラー:", err);
-
       const errorMessage =
         err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(errorMessage);

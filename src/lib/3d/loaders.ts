@@ -132,7 +132,6 @@ export async function loadVRMModel(
 
     return { success: true, model: modelInfo };
   } catch (error) {
-    console.error("VRM読み込みエラー:", error);
 
     let errorMessage = "VRMファイルの読み込みに失敗しました";
 
@@ -222,7 +221,6 @@ export async function loadGLTFModel(
 
     return { success: true, model: modelInfo };
   } catch (error) {
-    console.error("glTF読み込みエラー:", error);
 
     let errorMessage = "glTF/GLBファイルの読み込みに失敗しました";
 
@@ -318,7 +316,6 @@ export function getModelInfo(model: Model3D): {
       });
     }
   } catch (error) {
-    console.warn("モデル情報の取得に失敗:", error);
   }
 
   return { vertices, faces, materials, textures };
@@ -341,6 +338,5 @@ export function setupLoadingProgress(
   };
 
   loadingManager.onError = (url) => {
-    console.error("ローディングエラー:", url);
   };
 }

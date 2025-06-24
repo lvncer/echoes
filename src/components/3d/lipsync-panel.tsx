@@ -56,7 +56,6 @@ export function LipSyncPanel({ className }: LipSyncPanelProps) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "不明なエラー";
       setError(`リップシンク開始エラー: ${errorMessage}`);
-      console.error("リップシンク開始エラー:", err);
     }
   };
 

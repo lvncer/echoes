@@ -199,9 +199,7 @@ export class PhonemeAnalysisService {
       // 分析ループを開始
       this.startAnalysisLoop();
 
-      console.log("音素解析開始");
     } catch (error) {
-      console.error("音素解析開始エラー:", error);
       throw error;
     }
   }
@@ -220,8 +218,6 @@ export class PhonemeAnalysisService {
 
     this.analyser = null;
     this.dataArray = null;
-
-    console.log("音素解析停止");
   }
 
   /**
@@ -245,18 +241,6 @@ export class PhonemeAnalysisService {
       // 音素検出
       const phoneme = this.detectPhoneme(formants, volume);
 
-      // デバッグ: 音素解析詳細をログ出力（5%確率に増加）
-      if (Math.random() < 0.05) {
-        console.log(
-          `🔊 音素解析詳細: 音量=${volume.toFixed(
-            3
-          )} (無音閾値=0.001), F1=${formants.f1.toFixed(
-            0
-          )}Hz, F2=${formants.f2.toFixed(0)}Hz → ${
-            phoneme.name
-          } (${phoneme.confidence.toFixed(2)})`
-        );
-      }
 
       // 結果をコールバック
       if (this.analysisCallback) {

@@ -39,8 +39,7 @@ function getEnvConfig() {
   try {
     const result = envSchema.parse(env);
     return result;
-  } catch (error) {
-    console.error("環境変数の設定に問題があります:", error);
+  } catch (_error) {
     // デフォルト値で続行
     const defaultResult = envSchema.parse({});
     return defaultResult;

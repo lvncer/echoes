@@ -63,16 +63,8 @@ export class GeminiService {
         processingTime,
       };
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const _processingTime = Date.now() - startTime;
 
-      console.error("Gemini API エラー:", {
-        error,
-        processingTime,
-        config: {
-          model: this.config.model,
-          hasApiKey: !!this.config.apiKey,
-        },
-      });
 
       if (error instanceof Error) {
         throw new Error(`Gemini API エラー: ${error.message}`);
@@ -128,8 +120,7 @@ export class GeminiService {
       const response = await result.response;
 
       return !!response.text();
-    } catch (error) {
-      console.error("Gemini 接続テストエラー:", error);
+    } catch (_error) {
       return false;
     }
   }

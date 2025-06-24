@@ -32,38 +32,26 @@ export class LipSyncService {
       const vrmInfo = blendShapeService.getVRMInfo();
 
       if (!vrmInfo.hasVRM) {
-        console.warn("⚠️ リップシンク: VRMモデルが読み込まれていません");
         throw new Error("VRMモデルが必要です");
       }
 
       if (vrmInfo.availableBlendShapes.length === 0) {
-        console.warn(
-          "⚠️ リップシンク: 利用可能なブレンドシェイプが見つかりません"
-        );
       }
-      console.log("🔄 音声解析サービス開始中...");
       await audioAnalysisService.startAnalysis(stream);
 
       // 音量コールバックを設定
-      console.log("🔗 音量コールバック設定中...");
       audioAnalysisService.setVolumeCallback((volume) => {
         this.processVolumeLevel(volume);
       });
 
       // 音量閾値を設定
-      console.log(`⚙️ 音量閾値設定: ${this.volumeThreshold}`);
       audioAnalysisService.setVolumeThreshold(this.volumeThreshold);
 
       // アニメーションループを開始
       this.isActive = true;
-      console.log("🎬 アニメーションループ開始...");
       this.startAnimationLoop();
 
-      console.log(
-        `✅ リップシンク開始 (ブレンドシェイプ: ${vrmInfo.availableBlendShapes.length}個)`
-      );
     } catch (error) {
-      console.error("❌ リップシンク開始エラー:", error);
       this.isActive = false;
       throw error;
     }
@@ -87,7 +75,6 @@ export class LipSyncService {
     // 口を閉じる
     this.resetMouth();
 
-    console.log("リップシンク停止");
   }
 
   /**
@@ -107,16 +94,6 @@ export class LipSyncService {
     this.currentPhoneme =
       AudioAnalysisService.volumeToBasicPhoneme(adjustedVolume);
 
-    // デバッグ: 音量処理をログ出力（2%確率）
-    if (Math.random() < 0.02) {
-      console.log(
-        `🎤 音量処理: ${volume.toFixed(
-          3
-        )} → 口開度: ${this.targetMouthOpening.toFixed(2)} (音素: ${
-          this.currentPhoneme
-        })`
-      );
-    }
   }
 
   /**
@@ -176,14 +153,6 @@ export class LipSyncService {
     // ブレンドシェイプを適用
     blendShapeService.setMultipleBlendShapes(blendShapeWeights);
 
-    // 重要：実際にリップシンクが動作しているかをテスト
-    if (Object.keys(blendShapeWeights).length > 0 && Math.random() < 0.1) {
-      console.log(
-        `💋 リップシンク動作中: ${
-          this.currentPhoneme
-        } (${this.currentMouthOpening.toFixed(2)})`
-      );
-    }
   }
 
   /**
@@ -272,11 +241,9 @@ export class LipSyncService {
   /**
    * TTS音声との同期（将来の拡張用）
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   syncWithTTS(_audioElement: HTMLAudioElement): void {
     // TTS音声の再生に合わせてリップシンクを制御
     // 将来的にはここでTTS音声の解析を行う
-    console.log("TTS同期機能は今後実装予定");
   }
 }
 
