@@ -35,6 +35,16 @@ interface ModelStore extends ModelDisplayState {
   loadDefaultModel: () => Promise<void>;
   initializeDefaultModel: () => Promise<void>;
 
+  // デバッグ・管理機能
+  clearStorage: () => void;
+  getStorageStatus: () => {
+    hasStorage: boolean;
+    modelsCount: number;
+    currentModelId?: string;
+    hasValidCurrentModel: boolean;
+  };
+  forceInitialize: () => Promise<void>;
+
   // アニメーション制御
   playAnimation: (animationName?: string) => void;
   pauseAnimation: () => void;
@@ -259,6 +269,7 @@ export const useModelStore = create<ModelStore>()(
       },
 
       initializeDefaultModel: async () => {
+        console.log("🔧 initializeDefaultModel 開始");
         const state = get();
 
         // デフォルトモデルが既に存在するかチェック
@@ -266,20 +277,58 @@ export const useModelStore = create<ModelStore>()(
           (model) => model.isDefault
         );
 
+        console.log(`📋 現在の状態:
+  - currentModel: ${state.currentModel ? state.currentModel.name : "なし"}
+  - availableModels: ${state.availableModels.length}個
+  - existingDefaultModel: ${existingDefaultModel ? existingDefaultModel.name : "なし"}`);
+
         if (existingDefaultModel) {
-          // 既存のデフォルトモデルを現在のモデルとして設定
-          if (!state.currentModel) {
-            get().setCurrentModel(existingDefaultModel);
-            console.log("既存のデフォルトモデルを設定しました");
+          // VRMオブジェクトが存在するかチェック
+          const hasValidVrmObject = existingDefaultModel.format === "vrm" && existingDefaultModel.vrm;
+          const hasValidGltfObject = (existingDefaultModel.format === "gltf" || existingDefaultModel.format === "glb") && existingDefaultModel.scene;
+          
+          if (hasValidVrmObject || hasValidGltfObject) {
+            // 既存のデフォルトモデルを現在のモデルとして設定
+            if (!state.currentModel) {
+              console.log("🎯 既存のデフォルトモデルをcurrentModelに設定");
+              get().setCurrentModel(existingDefaultModel);
+            } else {
+              console.log("✅ currentModelは既に設定済み");
+            }
+            return;
+          } else {
+            console.log("⚠️ 既存のデフォルトモデルの3Dオブジェクトが無効です。削除して再読み込みします");
+            // 無効なモデルを削除
+            get().removeModel(existingDefaultModel.id);
           }
-          return;
         }
 
-        // 現在のモデルが存在せず、デフォルトモデルも存在しない場合のみ読み込み
-        if (!state.currentModel) {
-          console.log("デフォルトモデルを初期化します");
-          await get().loadDefaultModel();
-        }
+        // currentModelが存在しない、またはデフォルトモデルが存在しない場合は読み込み
+        console.log("🚀 デフォルトモデルを読み込みます");
+        await get().loadDefaultModel();
+      },
+
+      // デバッグ・管理機能
+      clearStorage: () =>
+        set({
+          currentModel: undefined,
+          availableModels: [],
+          isLoading: false,
+          error: undefined,
+          sceneConfig: DEFAULT_SCENE_CONFIG,
+          cameraConfig: DEFAULT_CAMERA_CONFIG,
+          animationState: DEFAULT_ANIMATION_STATE,
+        }),
+
+      getStorageStatus: () => ({
+        hasStorage: get().availableModels.length > 0,
+        modelsCount: get().availableModels.length,
+        currentModelId: get().currentModel?.id,
+        hasValidCurrentModel: get().currentModel !== undefined,
+      }),
+
+      forceInitialize: async () => {
+        await get().initializeDefaultModel();
       },
 
       // アニメーション制御
@@ -350,6 +399,8 @@ export const useModelStore = create<ModelStore>()(
       // 復元時の処理
       onRehydrateStorage: () => (state) => {
         if (state) {
+          console.log("🔄 ストア復元開始");
+          
           // 復元時は読み込み状態をリセット
           state.isLoading = false;
           state.error = undefined;
@@ -371,6 +422,12 @@ export const useModelStore = create<ModelStore>()(
                 : model.lastUsed,
           }));
 
+          console.log(`🎯 復元されたモデル数: ${state.availableModels.length}`);
+          state.availableModels.forEach((model, index) => {
+            const hasVrm = model.format === "vrm" ? !!model.vrm : !!model.scene;
+            console.log(`  ${index + 1}. ${model.name} (${model.format}) - 3Dオブジェクト: ${hasVrm ? "有" : "無"}`);
+          });
+
           // currentModelの復元処理を改善
           const storedState = state as ModelDisplayState & { currentModelId?: string };
           if (storedState.currentModelId) {
@@ -379,24 +436,44 @@ export const useModelStore = create<ModelStore>()(
               (model) => model.id === storedState.currentModelId
             );
             if (restoredModel) {
-              state.currentModel = restoredModel;
-              console.log("復元時にモデルを復元しました:", restoredModel.name);
-            } else {
-              // 該当するモデルが見つからない場合はデフォルトモデルを設定
-              const defaultModel = state.availableModels.find((model) => model.isDefault);
-              if (defaultModel) {
-                state.currentModel = defaultModel;
-                console.log("復元時にデフォルトモデルを設定しました:", defaultModel.name);
+              // VRMオブジェクトが失われている場合はcurrentModelを設定しない
+              const isVrmWithoutObject = restoredModel.format === "vrm" && !restoredModel.vrm;
+              const isGltfWithoutObject = (restoredModel.format === "gltf" || restoredModel.format === "glb") && !restoredModel.scene;
+              
+              if (isVrmWithoutObject || isGltfWithoutObject) {
+                console.log(`⚠️ モデル "${restoredModel.name}" の3Dオブジェクトが失われています`);
+                // 3Dオブジェクトが失われたモデルは削除
+                state.availableModels = state.availableModels.filter(m => m.id !== restoredModel.id);
+                state.currentModel = undefined;
+              } else {
+                state.currentModel = restoredModel;
+                console.log("✅ 復元時にモデルを復元しました:", restoredModel.name);
               }
-            }
-          } else if (!state.currentModel) {
-            // currentModelIdが保存されていない場合はデフォルトモデルを設定
-            const defaultModel = state.availableModels.find((model) => model.isDefault);
-            if (defaultModel) {
-              state.currentModel = defaultModel;
-              console.log("復元時にデフォルトモデルを設定しました:", defaultModel.name);
+            } else {
+              console.log("❌ 指定されたモデルが見つかりません");
+              state.currentModel = undefined;
             }
           }
+
+          // currentModelが設定されていない場合は、デフォルトモデルを探す
+          if (!state.currentModel) {
+            const defaultModel = state.availableModels.find((model) => model.isDefault);
+            if (defaultModel) {
+              const isVrmWithoutObject = defaultModel.format === "vrm" && !defaultModel.vrm;
+              const isGltfWithoutObject = (defaultModel.format === "gltf" || defaultModel.format === "glb") && !defaultModel.scene;
+              
+              if (!isVrmWithoutObject && !isGltfWithoutObject) {
+                state.currentModel = defaultModel;
+                console.log("🎯 復元時にデフォルトモデルを設定しました:", defaultModel.name);
+              } else {
+                console.log("⚠️ デフォルトモデルの3Dオブジェクトが失われています");
+                // 3Dオブジェクトが失われたデフォルトモデルは削除
+                state.availableModels = state.availableModels.filter(m => m.id !== defaultModel.id);
+              }
+            }
+          }
+
+          console.log(`📊 復元完了 - currentModel: ${state.currentModel ? state.currentModel.name : "なし"}`);
 
         }
       },

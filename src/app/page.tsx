@@ -11,7 +11,14 @@ import Link from "next/link";
 
 // カメラデバッグパネルコンポーネント
 function CameraDebugPanel() {
-  const { sceneConfig, resetToDefaults } = useModelStore();
+  const { 
+    sceneConfig, 
+    resetToDefaults, 
+    getStorageStatus, 
+    clearStorage, 
+    forceInitialize,
+    currentModel,
+  } = useModelStore();
 
   const handleResetSettings = () => {
     // ローカルストレージをクリア
@@ -22,21 +29,55 @@ function CameraDebugPanel() {
     window.location.reload();
   };
 
+  const handleClearStorage = async () => {
+    clearStorage();
+    localStorage.removeItem("echoes-model-store");
+    console.log("🗑️ ストレージをクリアしました");
+  };
+
+  const handleForceInit = async () => {
+    await forceInitialize();
+    console.log("🔄 強制初期化を実行しました");
+  };
+
+  const status = getStorageStatus();
+
   return (
     <div className="absolute top-4 right-4 z-20">
-      <div className="bg-white/90 border border-gray-200 rounded-lg p-3 text-xs">
+      <div className="bg-white/95 border border-gray-200 rounded-lg p-3 text-xs space-y-2">
         <div className="font-semibold mb-2">🎥 カメラ設定</div>
         <div>位置: [{sceneConfig.cameraPosition.join(", ")}]</div>
         <div>ターゲット: [{sceneConfig.cameraTarget.join(", ")}]</div>
-        <div className="mt-2">
+        
+        <div className="border-t pt-2 mt-2">
+          <div className="font-semibold mb-1">📊 モデル状態</div>
+          <div>利用可能: {status.modelsCount}個</div>
+          <div>現在のモデル: {currentModel ? currentModel.name : "なし"}</div>
+          <div>有効性: {status.hasValidCurrentModel ? "✅" : "❌"}</div>
+        </div>
+
+        <div className="border-t pt-2 mt-2 space-y-1">
           <button
             onClick={handleResetSettings}
-            className="text-blue-600 hover:text-blue-800 underline text-xs"
+            className="text-blue-600 hover:text-blue-800 underline text-xs block"
           >
             設定をリセット
           </button>
+          <button
+            onClick={handleClearStorage}
+            className="text-orange-600 hover:text-orange-800 underline text-xs block"
+          >
+            ストレージクリア
+          </button>
+          <button
+            onClick={handleForceInit}
+            className="text-green-600 hover:text-green-800 underline text-xs block"
+          >
+            モデル強制初期化
+          </button>
         </div>
-        <div className="mt-1 text-gray-600">
+        
+        <div className="text-gray-600 text-xs">
           ブラウザの開発者ツールでログを確認
         </div>
       </div>
@@ -77,7 +118,12 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
 
   // モデルストアからデフォルトモデル初期化関数を取得
-  const { initializeDefaultModel, currentModel } = useModelStore();
+  const { 
+    initializeDefaultModel, 
+    currentModel, 
+    getStorageStatus,
+    forceInitialize,
+  } = useModelStore();
 
   // 初期化処理
   useEffect(() => {
@@ -87,13 +133,25 @@ export default function Home() {
 
   // アプリケーション起動時にデフォルトモデルを初期化
   useEffect(() => {
+    const initializeModel = async () => {
+      console.log("🏠 ルートページ: モデル初期化開始");
+      
+      const status = getStorageStatus();
+      console.log("📊 ストレージ状態:", status);
+      
+      if (!status.hasValidCurrentModel) {
+        console.log("⚠️ 有効なcurrentModelが存在しません。初期化を実行します");
+        await forceInitialize();
+      } else {
+        console.log("✅ 有効なcurrentModelが存在します");
+      }
+    };
+
     // 少し遅延させてストアの復元を待つ
-    const timer = setTimeout(() => {
-      initializeDefaultModel();
-    }, 100);
+    const timer = setTimeout(initializeModel, 200);
 
     return () => clearTimeout(timer);
-  }, [initializeDefaultModel]);
+  }, [initializeDefaultModel, getStorageStatus, forceInitialize]);
 
   // デフォルト音声チャット設定
   const defaultConfig: AudioChatConfig = useMemo(
