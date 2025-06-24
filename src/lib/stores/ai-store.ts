@@ -140,7 +140,6 @@ export const useAIStore = create<AIStore>()(
         const { aiService, messages } = get();
 
         if (!aiService) {
-          console.error("AI サービスが初期化されていません");
           return;
         }
 
@@ -184,7 +183,6 @@ export const useAIStore = create<AIStore>()(
             }
           }
         } catch (error) {
-          console.error("AI 応答生成エラー:", error);
 
           // エラーの種類に応じてメッセージを変更
           let errorContent = "エラーが発生しました。設定を確認してください。";
@@ -235,8 +233,7 @@ export const useAIStore = create<AIStore>()(
 
         try {
           return await aiService.testConnection();
-        } catch (error) {
-          console.error("接続テストエラー:", error);
+        } catch (_error) {
           return false;
         }
       },

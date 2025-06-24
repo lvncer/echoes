@@ -246,7 +246,6 @@ export class SpeechRecognitionService {
     const message = getLocalizedErrorMessage(errorType);
     this.state.error = message;
     this.events.onError?.(message);
-    console.error("SpeechRecognition エラー:", message);
   }
 
   /**

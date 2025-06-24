@@ -172,12 +172,10 @@ export const useModelStore = create<ModelStore>()(
       // デフォルトモデル読み込み
       loadDefaultModel: async () => {
         try {
-          console.log("デフォルトモデルの読み込みを開始します");
           set({ isLoading: true, error: undefined });
 
           // デフォルトモデルのパス
           const defaultModelPath = "/models/test/AliciaSolid.vrm";
-          console.log("デフォルトモデルパス:", defaultModelPath);
 
           // ファイルをfetchで取得
           const response = await fetch(defaultModelPath);
@@ -187,7 +185,6 @@ export const useModelStore = create<ModelStore>()(
             );
           }
 
-          console.log("デフォルトモデルファイルの取得に成功");
 
           // Blobからファイルオブジェクトを作成
           const blob = await response.blob();
@@ -195,12 +192,6 @@ export const useModelStore = create<ModelStore>()(
             type: "application/octet-stream",
           });
 
-          console.log(
-            "ファイルオブジェクト作成完了:",
-            file.name,
-            file.size,
-            "bytes"
-          );
 
           // モデルを読み込み
           const result = await loadModel(file);
@@ -217,12 +208,6 @@ export const useModelStore = create<ModelStore>()(
             get().addModel(defaultModel);
             get().setCurrentModel(defaultModel);
 
-            console.log("デフォルトモデルを読み込みました:", defaultModel.name);
-            console.log("モデル形式:", defaultModel.format);
-            console.log(
-              "VRMオブジェクト:",
-              defaultModel.format === "vrm" ? "存在" : "なし"
-            );
           } else {
             throw new Error(
               result.error || "デフォルトモデルの読み込みに失敗しました"
@@ -233,11 +218,6 @@ export const useModelStore = create<ModelStore>()(
             error instanceof Error
               ? error.message
               : "デフォルトモデルの読み込みエラー";
-          console.error(
-            "デフォルトモデルの読み込みに失敗しました:",
-            errorMessage,
-            error
-          );
           set({ error: errorMessage });
         } finally {
           set({ isLoading: false });
@@ -249,12 +229,8 @@ export const useModelStore = create<ModelStore>()(
 
         // 現在のモデルが存在しない場合のみデフォルトモデルを読み込み
         if (!state.currentModel) {
-          console.log(
-            "現在のモデルが存在しないため、デフォルトモデルを読み込みます"
-          );
           await get().loadDefaultModel();
         } else {
-          console.log("現在のモデルが存在します:", state.currentModel.name);
         }
       },
 
@@ -346,10 +322,6 @@ export const useModelStore = create<ModelStore>()(
                 : model.lastUsed,
           }));
 
-          console.log(
-            "ストア復元完了 - 利用可能なモデル数:",
-            state.availableModels.length
-          );
         }
       },
     }

@@ -118,12 +118,11 @@ export class AnimationController {
       }
 
       // 瞬き関連のブレンドシェイプを特に確認
-      const blinkExpressions = expressionNames.filter(
+      const _blinkExpressions = expressionNames.filter(
         (name) =>
           name.toLowerCase().includes("blink") ||
           name.toLowerCase().includes("eye")
       );
-      console.log("👁️ 瞬き関連ブレンドシェイプ:", blinkExpressions);
 
       // 標準的なVRMブレンドシェイプ名をテスト
       const standardBlendShapes = [
@@ -139,7 +138,6 @@ export class AnimationController {
         try {
           const value = model.expressionManager!.getValue(name);
           if (value !== undefined) {
-            console.log(`✅ 標準ブレンドシェイプ発見: ${name} = ${value}`);
           }
         } catch {
           // 存在しない場合は無視
@@ -193,8 +191,8 @@ export class AnimationController {
       Head: { rotation: [0, 0, 0] },
     };
 
-    let adjustedBones = 0;
-    let failedBones = 0;
+    let _adjustedBones = 0;
+    let _failedBones = 0;
 
     // 各ボーンに自然な姿勢を適用
     Object.entries(naturalPoseAdjustments).forEach(([boneName, transform]) => {
@@ -206,25 +204,16 @@ export class AnimationController {
             bone.rotation.x = transform.rotation[0];
             bone.rotation.y = transform.rotation[1];
             bone.rotation.z = transform.rotation[2];
-            adjustedBones++;
-            console.log(
-              `✅ デフォルト姿勢調整: ${boneName}`,
-              transform.rotation
-            );
+            _adjustedBones++;
           }
-        } catch (error) {
-          console.warn(`⚠️ デフォルト姿勢調整失敗: ${boneName}`, error);
-          failedBones++;
+        } catch (_error) {
+          _failedBones++;
         }
       } else {
-        console.warn(`⚠️ ボーンが見つかりません: ${boneName}`);
-        failedBones++;
+        _failedBones++;
       }
     });
 
-    console.log(
-      `🧍 デフォルト姿勢調整完了: 成功=${adjustedBones}, 失敗=${failedBones}`
-    );
   }
 
   /**
@@ -273,15 +262,6 @@ export class AnimationController {
       }
     });
 
-    console.log(`✅ 利用可能: ${availableBones.join(", ")}`);
-    console.log(`❌ 利用不可: ${unavailableBones.join(", ")}`);
-    console.log(
-      `📊 利用可能率: ${availableBones.length}/${
-        humanoidBoneNames.length
-      } (${Math.round(
-        (availableBones.length / humanoidBoneNames.length) * 100
-      )}%)`
-    );
   }
 
   /**
@@ -323,7 +303,6 @@ export class AnimationController {
     priority: number = AnimationPriority.NORMAL
   ): string {
     if (!this.isEnabled || !this.vrmModel) {
-      console.warn("⚠️ AnimationController: アニメーション再生不可");
       return "";
     }
 
@@ -641,7 +620,6 @@ export class AnimationController {
     );
     this.currentGestureAnimationId = gestureAnimationId;
 
-    console.log(`🤲 ${gestureType}ジェスチャー開始`);
 
     // イベント通知
     this.events.onGestureAnimationStart?.(gestureType, intensity);
@@ -774,7 +752,6 @@ export class AnimationController {
       }
     });
 
-    console.log("🦴 ボーン変形をリセットしました");
   }
 
   /**
@@ -785,7 +762,6 @@ export class AnimationController {
       return;
     }
 
-    console.log("🧍 デフォルト姿勢をリセット中...");
 
     // 現在のボーン変形をリセット
     this.resetBoneTransforms();
@@ -793,7 +769,6 @@ export class AnimationController {
     // 自然な姿勢を再適用
     this.applyNaturalDefaultPose();
 
-    console.log("🧍 デフォルト姿勢のリセット完了");
   }
 
   /**
@@ -804,7 +779,6 @@ export class AnimationController {
     const blinkShapes = this.detectBlinkBlendShapes();
 
     if (blinkShapes.length === 0) {
-      console.warn("⚠️ 瞬きブレンドシェイプが見つかりません");
       return;
     }
 
@@ -1157,16 +1131,11 @@ export class AnimationController {
           const expressionNames = Object.keys(expressions);
 
           if (!expressionNames.includes(shapeName)) {
-            console.warn(`⚠️ ブレンドシェイプが存在しません: ${shapeName}`);
-            console.log(
-              `📋 利用可能なブレンドシェイプ: ${expressionNames.join(", ")}`
-            );
             return;
           }
 
           expressionManager.setValue(shapeName, value);
         } else {
-          console.warn(`⚠️ ExpressionManagerが見つかりません`);
         }
       });
     }
@@ -1208,17 +1177,7 @@ export class AnimationController {
             bone.scale.set(...transform.scale);
           }
 
-          console.log(`🦴 ボーン変形適用成功: ${boneName}`, {
-            position: transform.position,
-            rotation: transform.rotation,
-            scale: transform.scale,
-            bonePosition: [bone.position.x, bone.position.y, bone.position.z],
-            boneRotation: [bone.rotation.x, bone.rotation.y, bone.rotation.z],
-          });
         } else {
-          console.warn(
-            `⚠️ ボーン変形失敗: ${boneName} - ボーンが見つかりません`
-          );
         }
       });
     }
@@ -1576,8 +1535,6 @@ export class AnimationController {
 
     this.activeAnimations.clear();
     this.vrmModel = null;
-
-    console.log("🧹 AnimationController: クリーンアップ完了");
   }
 }
 

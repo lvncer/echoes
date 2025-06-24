@@ -89,11 +89,6 @@ export class SpeechSynthesisService {
 
       this.config.voice = japaneseVoice;
 
-      if (japaneseVoice) {
-        console.log(
-          `🎤 選択された音声: ${japaneseVoice.name} (${japaneseVoice.lang})`
-        );
-      }
     }
   }
 
@@ -147,7 +142,6 @@ export class SpeechSynthesisService {
     }
 
     if (!text || text.trim().length === 0) {
-      console.warn("⚠️ 空のテキストが指定されました");
       return false;
     }
 
@@ -178,7 +172,6 @@ export class SpeechSynthesisService {
       return false;
     }
 
-    console.log(`📝 長いテキストを${chunks.length}個のチャンクに分割`);
 
     // 最初のチャンクを再生
     this.speakChunks(chunks, 0);
@@ -232,17 +225,10 @@ export class SpeechSynthesisService {
    */
   private speakChunks(chunks: string[], index: number): void {
     if (index >= chunks.length) {
-      console.log("🎤 全チャンクの再生完了");
-      return;
+        return;
     }
 
     const chunk = chunks[index];
-    console.log(
-      `🎤 チャンク ${index + 1}/${chunks.length} を再生: "${chunk.substring(
-        0,
-        30
-      )}..."`
-    );
 
     // 次のチャンクを再生するためのコールバックを設定
     const originalOnSpeechEnd = this.events.onSpeechEnd;
@@ -293,7 +279,6 @@ export class SpeechSynthesisService {
 
       // イベントリスナーを設定
       utterance.onstart = () => {
-        console.log("🎤 SpeechSynthesis: 音声開始");
         this.state.isSpeaking = true;
         this.clearError();
         this.events.onSpeechStart?.();
@@ -301,7 +286,6 @@ export class SpeechSynthesisService {
         // タイムアウトを設定
         timeoutId = setTimeout(() => {
           if (!isCompleted) {
-            console.warn("⚠️ 音声合成タイムアウト - 強制停止");
             this.forceStop();
           }
         }, timeoutDuration);
@@ -314,7 +298,6 @@ export class SpeechSynthesisService {
             !this.synthesis.pending
           ) {
             if (!isCompleted) {
-              console.log("🔍 音声合成が予期せず停止 - 終了処理を実行");
               this.handleUnexpectedStop();
             }
           }
@@ -322,7 +305,6 @@ export class SpeechSynthesisService {
       };
 
       utterance.onend = () => {
-        console.log("🎤 SpeechSynthesis: 音声終了");
         isCompleted = true;
         this.state.isSpeaking = false;
         this.currentUtterance = null;
@@ -341,11 +323,9 @@ export class SpeechSynthesisService {
       };
 
       utterance.onerror = (event) => {
-        console.warn("🚨 SpeechSynthesis: エラー発生", event.error);
 
         // interruptedエラーは正常な停止として扱う
         if (event.error === "interrupted") {
-          console.log("🔄 音声合成が中断されました（正常）");
           isCompleted = true;
           this.state.isSpeaking = false;
           this.currentUtterance = null;
@@ -370,11 +350,9 @@ export class SpeechSynthesisService {
       };
 
       utterance.onpause = () => {
-        console.log("⏸️ SpeechSynthesis: 一時停止");
       };
 
       utterance.onresume = () => {
-        console.log("▶️ SpeechSynthesis: 再開");
       };
 
       this.currentUtterance = utterance;
@@ -382,17 +360,11 @@ export class SpeechSynthesisService {
       // ブラウザ制限の確認
       const limitations = getBrowserLimitations();
       if (limitations.requiresUserGesture) {
-        console.log("👆 ユーザージェスチャーが必要です");
 
         // ユーザージェスチャーが必要な場合のフォールバック処理
         return this.handleUserGestureRequired(utterance, text);
       }
 
-      console.log(
-        `🎤 音声合成開始: "${text.substring(0, 50)}${
-          text.length > 50 ? "..." : ""
-        }"`
-      );
 
       if (!this.synthesis) {
         this.handleError("not-supported", "音声合成サービスが利用できません");
@@ -411,7 +383,6 @@ export class SpeechSynthesisService {
 
       return true;
     } catch (error) {
-      console.error("🚨 音声合成開始エラー:", error);
       this.handleError("audio-capture", `音声合成開始エラー: ${error}`);
       return false;
     }
@@ -421,7 +392,6 @@ export class SpeechSynthesisService {
    * 予期しない停止の処理
    */
   private handleUnexpectedStop(): void {
-    console.log("🔧 予期しない停止を検出 - 終了処理を実行");
     this.state.isSpeaking = false;
     this.currentUtterance = null;
     this.events.onSpeechEnd?.();
@@ -432,9 +402,8 @@ export class SpeechSynthesisService {
    */
   private handleUserGestureRequired(
     utterance: SpeechSynthesisUtterance,
-    text: string
+    _text: string
   ): boolean {
-    console.log("🎯 ユーザージェスチャー必須モード - 直接実行を試行");
 
     if (!this.synthesis) {
       this.handleError("not-supported", "音声合成サービスが利用できません");
@@ -451,14 +420,8 @@ export class SpeechSynthesisService {
       // 直接実行を試行（ユーザージェスチャーコンテキスト内）
       this.synthesis.speak(utterance);
 
-      console.log(
-        `🎤 ユーザージェスチャーモード音声開始: "${text.substring(0, 50)}${
-          text.length > 50 ? "..." : ""
-        }"`
-      );
       return true;
     } catch (error) {
-      console.error("❌ ユーザージェスチャーモード音声開始エラー:", error);
       this.handleError(
         "audio-capture",
         `ユーザージェスチャーモード音声開始エラー: ${error}`
@@ -471,7 +434,6 @@ export class SpeechSynthesisService {
    * 強制停止
    */
   private forceStop(): void {
-    console.log("🛑 音声合成を強制停止");
     this.state.isSpeaking = false;
     this.currentUtterance = null;
 
@@ -488,7 +450,6 @@ export class SpeechSynthesisService {
   public stop(): void {
     try {
       if (this.synthesis && this.state.isSpeaking) {
-        console.log("🛑 SpeechSynthesis: 音声停止開始");
 
         // 現在の発話を取得
         const currentUtterance = this.currentUtterance;
@@ -502,14 +463,11 @@ export class SpeechSynthesisService {
 
         // 終了イベントを発火（ただし、既に終了していない場合のみ）
         if (currentUtterance) {
-          console.log("🛑 SpeechSynthesis: 音声停止完了");
           this.events.onSpeechEnd?.();
         }
       } else {
-        console.log("🛑 SpeechSynthesis: 停止対象なし");
       }
-    } catch (error) {
-      console.warn("⚠️ SpeechSynthesis停止時エラー:", error);
+    } catch (_error) {
       // エラーが発生しても状態はリセット
       this.state.isSpeaking = false;
       this.currentUtterance = null;
@@ -574,12 +532,6 @@ export class SpeechSynthesisService {
    * 音声合成エラーを処理
    */
   private handleSynthesisError(event: SpeechSynthesisErrorEvent): void {
-    console.warn("🚨 SpeechSynthesis Error Event:", {
-      error: event.error,
-      type: event.type,
-      target: event.target,
-      timeStamp: event.timeStamp,
-    });
 
     let errorType = "unknown";
     let detailedMessage = "";
@@ -630,11 +582,9 @@ export class SpeechSynthesisService {
         break;
       case "canceled":
         // キャンセルは正常な動作なのでエラーとして扱わない
-        console.log("🔄 音声合成がキャンセルされました（正常）");
         return;
       case "interrupted":
         // 中断は正常な動作なのでエラーとして扱わない
-        console.log("🔄 音声合成が中断されました（正常）");
         return;
       default:
         errorType = "unknown";
@@ -662,12 +612,6 @@ export class SpeechSynthesisService {
 
     this.state.error = message;
     this.events.onError?.(message);
-
-    console.error("🚨 SpeechSynthesisService Error:", {
-      type: errorType,
-      message: message,
-      timestamp: new Date().toISOString(),
-    });
   }
 
   /**

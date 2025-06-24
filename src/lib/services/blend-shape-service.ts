@@ -16,11 +16,6 @@ export class VRMBlendShapeService {
     this.vrm = vrm;
     this.resetAllBlendShapes();
 
-    // デバッグ: 利用可能なブレンドシェイプを確認
-    console.log(
-      "VRM設定完了。利用可能なブレンドシェイプ:",
-      this.getAvailableBlendShapes()
-    );
   }
 
   /**
@@ -35,7 +30,6 @@ export class VRMBlendShapeService {
    */
   setBlendShapeWeight(name: string, weight: number): void {
     if (!this.vrm?.expressionManager) {
-      console.warn("VRM expressionManager is not available");
       return;
     }
 
@@ -56,19 +50,10 @@ export class VRMBlendShapeService {
       this.vrm.expressionManager.update();
 
       // 設定後の値を確認
-      const actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
+      const _actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
 
-      // 値が正しく設定されていない場合のみ警告
-      if (
-        Math.abs(actualValue - clampedWeight) > 0.01 &&
-        Math.random() < 0.05
-      ) {
-        console.warn(
-          `⚠️ ブレンドシェイプ不一致: ${actualName} 設定=${clampedWeight}, 実際=${actualValue}`
-        );
-      }
-    } catch (error) {
-      console.warn(`Failed to set blend shape ${name}:`, error);
+    } catch (_error) {
+      // Ignore blend shape setting errors
     }
   }
 
@@ -232,14 +217,9 @@ export class VRMBlendShapeService {
         }
       }
 
-      // デバッグログは初回のみ出力
-      if (availableShapes.length > 0 && !this.hasLoggedAvailableShapes) {
-        console.log("利用可能なブレンドシェイプ:", availableShapes);
-        this.hasLoggedAvailableShapes = true;
-      }
+      this.hasLoggedAvailableShapes = true;
       return availableShapes;
-    } catch (error) {
-      console.warn("Failed to get available blend shapes:", error);
+    } catch (_error) {
       return [];
     }
   }
@@ -301,8 +281,8 @@ export class VRMBlendShapeService {
       });
 
       this.vrm.expressionManager.update();
-    } catch (error) {
-      console.warn("Failed to reset blend shapes:", error);
+    } catch (_error) {
+      // Ignore reset errors
     }
   }
 
@@ -311,55 +291,29 @@ export class VRMBlendShapeService {
    */
   setMultipleBlendShapes(weights: Record<string, number>): void {
     if (!this.vrm?.expressionManager) {
-      console.warn("⚠️ ブレンドシェイプ設定失敗: VRM未読み込み");
       return;
     }
 
-    // デバッグ: 受信したウェイト情報（15%確率）
-    if (Math.random() < 0.15 && Object.keys(weights).length > 0) {
-      const weightInfo = Object.entries(weights)
-        .map(([key, weight]) => `${key}:${weight.toFixed(2)}`)
-        .join(", ");
-      console.log(`🎯 ブレンドシェイプ受信: {${weightInfo}}`);
-    }
 
     try {
-      let actuallySet = 0;
+      let _actuallySet = 0;
       Object.entries(weights).forEach(([name, weight]) => {
         const clampedWeight = Math.max(0, Math.min(1, weight));
 
         try {
           this.vrm!.expressionManager!.setValue(name, clampedWeight);
           this.currentWeights[name] = clampedWeight;
-          actuallySet++;
+          _actuallySet++;
 
-          // デバッグ: 個別設定成功（10%確率）
-          if (Math.random() < 0.1) {
-            console.log(`✅ ブレンドシェイプ設定: ${name} = ${clampedWeight}`);
-          }
-        } catch (error) {
-          // デバッグ: 個別設定失敗（50%確率）
-          if (Math.random() < 0.5) {
-            console.warn(
-              `❌ ブレンドシェイプ設定失敗: ${name} = ${clampedWeight}`,
-              error
-            );
-          }
+        } catch (_error) {
+          // Ignore individual blend shape errors
         }
       });
 
       this.vrm.expressionManager.update();
 
-      // デバッグ: 設定結果サマリー（15%確率）
-      if (Math.random() < 0.15 && actuallySet > 0) {
-        console.log(
-          `🎯 ブレンドシェイプ設定完了: ${actuallySet}/${
-            Object.keys(weights).length
-          } 成功`
-        );
-      }
-    } catch (error) {
-      console.warn("❌ 複数ブレンドシェイプ設定エラー:", error);
+    } catch (_error) {
+      // Ignore multiple blend shape errors
     }
   }
 
@@ -493,10 +447,6 @@ export class VRMBlendShapeService {
     const successCount = results.filter((r) => r.available).length;
     const success = successCount > 0;
 
-    console.log(
-      `ブレンドシェイプテスト完了: ${successCount}/${results.length} 成功`
-    );
-    console.table(results);
 
     return {
       success,
@@ -509,11 +459,8 @@ export class VRMBlendShapeService {
    */
   async runDemoAnimation(): Promise<void> {
     if (!this.vrm?.expressionManager) {
-      console.warn("VRMモデルが利用できません");
       return;
     }
-
-    console.log("デモアニメーション開始...");
 
     const shapes = ["A", "I", "U", "E", "O"];
     const duration = 1000; // 1秒
@@ -542,7 +489,6 @@ export class VRMBlendShapeService {
       }
     }
 
-    console.log("デモアニメーション完了");
   }
 }
 

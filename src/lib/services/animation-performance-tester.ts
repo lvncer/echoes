@@ -41,7 +41,6 @@ export class AnimationPerformanceTester {
    * 全パフォーマンステストを実行
    */
   public async runFullTestSuite(): Promise<PerformanceTestSuite> {
-    console.log("🧪 AnimationPerformanceTester: パフォーマンステスト開始");
 
     const testResults: PerformanceTestResult[] = [];
 
@@ -80,9 +79,6 @@ export class AnimationPerformanceTester {
       maxMemoryUsage: Math.max(...testResults.map((r) => r.maxMemoryUsage)),
     };
 
-    console.log(
-      `🧪 パフォーマンステスト完了: ${passedTests}/${testResults.length} 成功`
-    );
 
     return {
       testResults,
@@ -95,7 +91,6 @@ export class AnimationPerformanceTester {
    * 基本アニメーション（瞬き・呼吸）のパフォーマンステスト
    */
   private async testBasicAnimations(): Promise<PerformanceTestResult> {
-    console.log("🧪 基本アニメーションテスト開始");
 
     // テスト開始
     this.animationController.startAutoBlinking();
@@ -119,7 +114,6 @@ export class AnimationPerformanceTester {
    * 感情アニメーションのパフォーマンステスト
    */
   private async testEmotionAnimations(): Promise<PerformanceTestResult> {
-    console.log("🧪 感情アニメーションテスト開始");
 
     const emotions: Array<"neutral" | "happy" | "sad" | "angry" | "surprised"> =
       ["neutral", "happy", "sad", "angry", "surprised"];
@@ -142,7 +136,6 @@ export class AnimationPerformanceTester {
    * ジェスチャーアニメーションのパフォーマンステスト
    */
   private async testGestureAnimations(): Promise<PerformanceTestResult> {
-    console.log("🧪 ジェスチャーアニメーションテスト開始");
 
     const gestures = getAllGestures();
 
@@ -164,7 +157,6 @@ export class AnimationPerformanceTester {
    * 同時実行アニメーションのパフォーマンステスト
    */
   private async testConcurrentAnimations(): Promise<PerformanceTestResult> {
-    console.log("🧪 同時実行アニメーションテスト開始");
 
     const result = await this.runPerformanceTest(
       "同時実行アニメーション",
@@ -193,7 +185,6 @@ export class AnimationPerformanceTester {
    * 長時間実行テスト
    */
   private async testLongRunning(): Promise<PerformanceTestResult> {
-    console.log("🧪 長時間実行テスト開始");
 
     const originalTestDuration = this.testDuration;
     this.testDuration = 10000; // 10秒間
@@ -226,7 +217,6 @@ export class AnimationPerformanceTester {
    * メモリリークテスト
    */
   private async testMemoryLeak(): Promise<PerformanceTestResult> {
-    console.log("🧪 メモリリークテスト開始");
 
     const initialMemory = this.getCurrentMemoryUsage();
 

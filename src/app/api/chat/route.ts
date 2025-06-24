@@ -65,8 +65,6 @@ export async function POST(request: NextRequest) {
       processingTime: response.processingTime,
     });
   } catch (error) {
-    console.error("Chat API エラー:", error);
-
     // クォータエラーの場合は分かりやすいメッセージを返す
     if (error && typeof error === "object" && "code" in error) {
       if (error.code === "insufficient_quota") {

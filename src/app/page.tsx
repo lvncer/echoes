@@ -61,7 +61,6 @@ declare global {
 const initializeAnimationController = () => {
   if (typeof window !== "undefined" && !window.__animationController) {
     window.__animationController = new AnimationController();
-    console.log("🎭 アニメーションコントローラーを初期化しました");
   }
 };
 
@@ -90,7 +89,6 @@ export default function Home() {
   useEffect(() => {
     // 少し遅延させてストアの復元を待つ
     const timer = setTimeout(() => {
-      console.log("デフォルトモデル初期化を実行");
       initializeDefaultModel();
     }, 100);
 
@@ -130,34 +128,24 @@ export default function Home() {
       onListeningStart: () => {
         setIsListening(true);
         setError(null);
-        console.log("🎤 音声入力開始");
       },
       onListeningEnd: () => {
         setIsListening(false);
-        console.log("🎤 音声入力終了");
       },
-      onTranscriptReceived: (transcript: string, isFinal: boolean) => {
+      onTranscriptReceived: (transcript: string, _isFinal: boolean) => {
         setCurrentTranscript(transcript);
-        if (isFinal) {
-          console.log("📝 音声認識完了:", transcript);
-        }
       },
-      onAIResponseReceived: (response: string) => {
-        console.log("🤖 AI応答受信:", response);
+      onAIResponseReceived: (_response: string) => {
       },
       onSpeechStart: () => {
-        console.log("🔊 音声合成開始");
       },
       onSpeechEnd: () => {
-        console.log("🔊 音声合成終了");
       },
       onError: (error: AudioError) => {
         setError(error.message);
-        console.error("❌ 音声チャットエラー:", error);
       },
       onStatusChange: (newStatus: AudioChatStatus) => {
         setStatus(newStatus);
-        console.log("📊 ステータス変更:", newStatus);
       },
     }),
     []
@@ -166,7 +154,6 @@ export default function Home() {
   // 音声チャットサービス初期化
   const initializeAudioChat = useCallback(async () => {
     try {
-      console.log("🎤 音声チャットサービス初期化開始");
       const service = new AudioChatIntegrationService(defaultConfig, callbacks);
       const success = await service.startAudioChat();
 
@@ -175,21 +162,18 @@ export default function Home() {
         setIsInitialized(true);
         setIsVoiceChatActive(true);
         setError(null);
-        console.log("✅ 音声チャットサービス初期化完了");
       } else {
         throw new Error("音声チャットの初期化に失敗しました");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "初期化エラー";
       setError(errorMessage);
-      console.error("❌ 音声チャット初期化エラー:", err);
     }
   }, [defaultConfig, callbacks]);
 
   // 音声チャット停止
   const stopAudioChat = useCallback(() => {
     if (audioChatService) {
-      console.log("🛑 音声チャットサービス停止");
       audioChatService.stopAudioChat();
       setIsInitialized(false);
       setIsVoiceChatActive(false);
@@ -202,7 +186,6 @@ export default function Home() {
   // プッシュトゥトーク開始
   const startListening = useCallback(() => {
     if (audioChatService && status === "idle") {
-      console.log("🎤 プッシュトゥトーク開始");
       const success = audioChatService.startListening();
       if (!success) {
         setError("音声入力を開始できませんでした");
@@ -213,7 +196,6 @@ export default function Home() {
   // プッシュトゥトーク終了
   const stopListening = useCallback(() => {
     if (audioChatService && isListening) {
-      console.log("🎤 プッシュトゥトーク終了");
       audioChatService.stopListening();
     }
   }, [audioChatService, isListening]);

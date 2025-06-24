@@ -40,8 +40,7 @@ export class EmotionService {
       });
 
       return this.parseResponse(text);
-    } catch (error) {
-      console.error("Failed to generate emotional response:", error);
+    } catch (_error) {
       throw new Error("Failed to generate emotional response");
     }
   }
@@ -66,7 +65,6 @@ export class EmotionService {
 
       // Validate intensity range
       if (isNaN(intensity) || intensity < 0 || intensity > 1) {
-        console.warn(`Invalid emotion intensity: ${match[2]}, skipping`);
         cleanText = cleanText.replace(match[0], "");
         continue;
       }

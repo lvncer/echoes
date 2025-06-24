@@ -133,9 +133,6 @@ export class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // エラーログを記録
-    console.error("Error Boundary caught an error:", error, errorInfo);
-
     // カスタムエラーハンドラーを呼び出し
     this.props.onError?.(error, errorInfo);
 
@@ -153,10 +150,9 @@ export class ErrorBoundary extends React.Component<
     }
   }
 
-  private reportErrorToService(error: Error, errorInfo: React.ErrorInfo) {
+  private reportErrorToService(_error: Error, _errorInfo: React.ErrorInfo) {
     // 外部エラー監視サービスへの送信ロジック
     // 例: Sentry.captureException(error, { contexts: { react: errorInfo } });
-    console.log("Error reported to monitoring service:", { error, errorInfo });
   }
 
   private resetError = () => {

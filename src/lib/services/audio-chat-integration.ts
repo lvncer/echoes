@@ -160,7 +160,6 @@ export class AudioChatIntegrationService {
   public async startAudioChat(): Promise<boolean> {
     try {
       if (this.isActive) {
-        console.warn("音声チャットは既に開始されています");
         return true;
       }
 
@@ -227,24 +226,18 @@ export class AudioChatIntegrationService {
    */
   private async handleFinalTranscript(transcript: string): Promise<void> {
     try {
-      console.log(`📝 音声認識完了: "${transcript}"`);
       this.setStatus("processing");
 
       // AI応答を取得
-      console.log("🤖 AI応答取得開始");
       const aiResponse = await this.getAIResponse(transcript);
-      console.log(`🤖 AI応答取得完了: "${aiResponse.substring(0, 50)}..."`);
       this.callbacks.onAIResponseReceived?.(aiResponse);
 
       // 音声合成で応答を再生
-      console.log("🔊 音声合成開始");
       await this.speakResponse(aiResponse);
-      console.log("🔊 音声合成完了 - 処理終了");
 
       // 確実にアイドル状態に戻す
       this.setStatus("idle");
     } catch (error) {
-      console.error("❌ AI応答処理エラー:", error);
       this.handleError({
         type: "ai-response-failed",
         message: `AI応答の取得に失敗しました: ${error}`,
@@ -303,7 +296,6 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
-      console.log(`🎭 AI応答アニメーション連動開始: "${text.substring(0, 50)}..."`);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
       if (typeof window !== "undefined") {
@@ -313,28 +305,20 @@ export class AudioChatIntegrationService {
           };
         };
         if (windowWithController.__animationController) {
-          console.log("🎭 アニメーションコントローラー発見 - 感情解析実行");
           windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
             text
           );
-          console.log("🎭 感情解析・アニメーション実行完了");
         } else {
-          console.warn("⚠️ アニメーションコントローラーが見つかりません");
         }
       } else {
-        console.warn("⚠️ ブラウザ環境ではありません - アニメーション連動スキップ");
       }
 
       // 統合リップシンクサービスでAI応答リップシンクを開始
-      console.log("🔊 統合リップシンクサービス開始");
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // 音声合成の完了を監視するためのPromiseを作成
-      console.log("🔊 音声合成完了待機開始");
       await this.waitForSpeechCompletion(text);
-      console.log("🔊 音声合成完了");
     } catch (error) {
-      console.error("❌ AI応答音声合成エラー:", error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,
@@ -347,14 +331,11 @@ export class AudioChatIntegrationService {
    */
   private waitForSpeechCompletion(text: string): Promise<void> {
     return new Promise((resolve) => {
-      console.log(`音声合成完了待機開始: "${text.substring(0, 30)}..."`);
 
       // タイムアウト設定（テキストの長さに基づいて動的に設定）
       const estimatedDuration = Math.max(5000, text.length * 150); // 最低5秒、文字数×150ms
-      console.log(`推定音声時間: ${estimatedDuration}ms`);
 
       const timeout = setTimeout(() => {
-        console.warn("⚠️ 音声合成のタイムアウト - 強制的に完了とみなします");
         this.setStatus("idle"); // 強制的にアイドル状態に戻す
         resolve();
       }, estimatedDuration);
@@ -374,21 +355,16 @@ export class AudioChatIntegrationService {
           checkCount >= maxChecks - 5 ||
           checkCount % 10 === 0
         ) {
-          console.log(
-            `🔍 音声状態チェック[${checkCount}/${maxChecks}]: TTS=${status.isTTSSpeaking}, Speech=${isSpeaking}, Status=${this.status}`
-          );
         }
 
         if (!status.isTTSSpeaking && !isSpeaking) {
           // 音声合成が完了した
           clearTimeout(timeout);
-          console.log("✅ 音声合成完了を検知 - アイドル状態に移行");
           this.setStatus("idle");
           resolve();
         } else if (checkCount >= maxChecks) {
           // 最大チェック回数に達した
           clearTimeout(timeout);
-          console.warn("⚠️ 最大チェック回数に達しました - 強制完了");
           this.setStatus("idle");
           resolve();
         } else {
@@ -407,9 +383,8 @@ export class AudioChatIntegrationService {
    */
   private setStatus(newStatus: AudioChatStatus): void {
     if (this.status !== newStatus) {
-      const oldStatus = this.status;
+      const _oldStatus = this.status;
       this.status = newStatus;
-      console.log(`音声チャット状態変更: ${oldStatus} → ${newStatus}`);
       this.callbacks.onStatusChange?.(newStatus);
     }
   }
@@ -420,7 +395,6 @@ export class AudioChatIntegrationService {
   private handleError(error: AudioError): void {
     this.setStatus("error");
     this.callbacks.onError?.(error);
-    console.error("AudioChatIntegration エラー:", error);
   }
 
   /**
