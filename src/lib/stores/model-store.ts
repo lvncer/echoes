@@ -338,6 +338,8 @@ export const useModelStore = create<ModelStore>()(
           vrm: undefined,
           scene: undefined,
         })),
+        // currentModelのIDのみ保存
+        currentModelId: state.currentModel?.id,
         sceneConfig: state.sceneConfig,
         cameraConfig: state.cameraConfig,
         animationState: {
@@ -351,7 +353,6 @@ export const useModelStore = create<ModelStore>()(
           // 復元時は読み込み状態をリセット
           state.isLoading = false;
           state.error = undefined;
-          state.currentModel = undefined;
 
           // アニメーション状態をリセット
           state.animationState.isPlaying = false;
@@ -369,6 +370,33 @@ export const useModelStore = create<ModelStore>()(
                 ? new Date(model.lastUsed)
                 : model.lastUsed,
           }));
+
+          // currentModelの復元処理を改善
+          const storedState = state as ModelDisplayState & { currentModelId?: string };
+          if (storedState.currentModelId) {
+            // 保存されたcurrentModelIdから復元
+            const restoredModel = state.availableModels.find(
+              (model) => model.id === storedState.currentModelId
+            );
+            if (restoredModel) {
+              state.currentModel = restoredModel;
+              console.log("復元時にモデルを復元しました:", restoredModel.name);
+            } else {
+              // 該当するモデルが見つからない場合はデフォルトモデルを設定
+              const defaultModel = state.availableModels.find((model) => model.isDefault);
+              if (defaultModel) {
+                state.currentModel = defaultModel;
+                console.log("復元時にデフォルトモデルを設定しました:", defaultModel.name);
+              }
+            }
+          } else if (!state.currentModel) {
+            // currentModelIdが保存されていない場合はデフォルトモデルを設定
+            const defaultModel = state.availableModels.find((model) => model.isDefault);
+            if (defaultModel) {
+              state.currentModel = defaultModel;
+              console.log("復元時にデフォルトモデルを設定しました:", defaultModel.name);
+            }
+          }
 
         }
       },
