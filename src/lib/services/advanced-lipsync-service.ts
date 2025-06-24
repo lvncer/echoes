@@ -20,9 +20,9 @@ export class AdvancedLipSyncService {
   private currentBlendShapes: Record<string, number> = {};
 
   // 設定パラメータ
-  private sensitivity = 1.0; // 感度調整
+  private sensitivity = 2.0; // 感度調整（1.0 → 2.0に上げる）
   private responsiveness = 0.4; // 応答性（低いほど滑らか）
-  private confidenceThreshold = 0.3; // 信頼度閾値
+  private confidenceThreshold = 0.05; // 信頼度閾値（0.1 → 0.05にさらに下げる）
   private blendShapeSmoothing = 0.8; // ブレンドシェイプスムージング
 
   // 音素遷移制御
@@ -97,11 +97,37 @@ export class AdvancedLipSyncService {
   private processPhonemeResult(result: PhonemeAnalysisResult): void {
     if (!this.isActive) return;
 
+    // デバッグ: 音素解析結果をログ出力（5%確率）
+    if (Math.random() < 0.05) {
+      console.log(
+        `🎤 音素解析: ${result.phoneme} (信頼度: ${result.confidence.toFixed(
+          2
+        )}, F1: ${result.formants.f1.toFixed(0)}Hz)`
+      );
+    }
+
     // 信頼度チェック
     if (result.confidence < this.confidenceThreshold) {
       // 信頼度が低い場合は無音として処理
+      if (Math.random() < 0.1) {
+        // 確率を上げて診断
+        console.log(
+          `⚠️ 信頼度不足: ${result.confidence.toFixed(2)} < ${
+            this.confidenceThreshold
+          } → 無音処理`
+        );
+      }
       this.updatePhoneme("sil", 0, result.formants);
       return;
+    }
+
+    // デバッグ: 信頼度チェック通過をログ出力（10%確率）
+    if (Math.random() < 0.1) {
+      console.log(
+        `✅ 信頼度チェック通過: ${result.confidence.toFixed(2)} >= ${
+          this.confidenceThreshold
+        } → ${result.phoneme}`
+      );
     }
 
     // 音素履歴を更新
@@ -109,6 +135,15 @@ export class AdvancedLipSyncService {
 
     // 音素遷移の安定性をチェック
     const stablePhoneme = this.getStablePhoneme();
+
+    // デバッグ: 音素変化をログ出力（3%確率）
+    if (Math.random() < 0.03 && stablePhoneme !== this.currentPhoneme) {
+      console.log(
+        `🔄 音素変化: ${
+          this.currentPhoneme
+        } → ${stablePhoneme} (信頼度: ${result.confidence.toFixed(2)})`
+      );
+    }
 
     // 音素を更新
     this.updatePhoneme(stablePhoneme, result.confidence, result.formants);
@@ -176,6 +211,15 @@ export class AdvancedLipSyncService {
     this.confidence = confidence;
     this.formants = formants;
 
+    // デバッグ: 音素更新の詳細（10%確率）
+    if (Math.random() < 0.1 && phoneme !== "sil") {
+      console.log(
+        `🎯 音素更新: ${phoneme} (信頼度: ${confidence.toFixed(2)}, 感度: ${
+          this.sensitivity
+        })`
+      );
+    }
+
     // 音素に対応するブレンドシェイプを計算
     this.calculateTargetBlendShapes();
   }
@@ -191,8 +235,17 @@ export class AdvancedLipSyncService {
 
     if (!phonemeConfig) {
       // 設定がない場合は無音
+      console.log(`⚠️ 音素設定なし: ${this.currentPhoneme}`);
       this.targetBlendShapes = {};
       return;
+    }
+
+    // デバッグ: 音素設定を確認（10%確率）
+    if (Math.random() < 0.1) {
+      console.log(
+        `🎯 音素設定取得: ${this.currentPhoneme}`,
+        phonemeConfig.blendShapeMapping
+      );
     }
 
     // 基本ブレンドシェイプを設定（利用可能なもののみ）
@@ -202,14 +255,58 @@ export class AdvancedLipSyncService {
     // 利用可能なブレンドシェイプのみを使用
     for (const [shape, weight] of Object.entries(baseBlendShapes)) {
       if (this.isBlendShapeAvailable(shape)) {
-        adjustedBlendShapes[shape] =
-          weight * this.sensitivity * this.confidence;
+        const finalWeight = weight * this.sensitivity * this.confidence;
+        adjustedBlendShapes[shape] = finalWeight;
+
+        // デバッグ: ブレンドシェイプ計算詳細（10%確率）
+        if (Math.random() < 0.1) {
+          console.log(
+            `🎯 ブレンドシェイプ計算: ${shape} = ${weight} * ${this.sensitivity} * ${this.confidence} = ${finalWeight}`
+          );
+        }
       } else {
         // 利用可能でない場合は代替ブレンドシェイプを探す
         const alternative = this.findAlternativeBlendShape(shape);
         if (alternative) {
-          adjustedBlendShapes[alternative] =
-            weight * this.sensitivity * this.confidence;
+          const finalWeight = weight * this.sensitivity * this.confidence;
+          adjustedBlendShapes[alternative] = finalWeight;
+
+          // デバッグ: 代替ブレンドシェイプ使用（10%確率）
+          if (Math.random() < 0.1) {
+            console.log(
+              `🔄 代替ブレンドシェイプ: ${shape} → ${alternative} = ${finalWeight}`
+            );
+          }
+        } else {
+          // 緊急対応: 数字形式で強制試行
+          let foundNumberAlternative = false;
+          const finalWeight = weight * this.sensitivity * this.confidence;
+
+          // 音素から数字へのマッピング（推測）
+          const numberMappings: Record<string, string[]> = {
+            A: ["0", "10"],
+            I: ["1", "11"],
+            U: ["2", "12"],
+            E: ["3", "13"],
+            O: ["4", "14"],
+          };
+
+          const candidates = numberMappings[shape] || [];
+          for (const candidate of candidates) {
+            if (this.isBlendShapeAvailable(candidate)) {
+              adjustedBlendShapes[candidate] = finalWeight;
+              foundNumberAlternative = true;
+              console.log(
+                `🔢 数字形式マッピング: ${shape} → ${candidate} = ${finalWeight}`
+              );
+              break;
+            }
+          }
+
+          // デバッグ: 利用不可ブレンドシェイプ（代替なしの場合のみ）
+          if (!foundNumberAlternative && Math.random() < 0.05) {
+            console.log(`❌ 利用不可: ${shape} (代替なし)`);
+          }
         }
       }
     }
@@ -219,14 +316,25 @@ export class AdvancedLipSyncService {
 
     this.targetBlendShapes = adjustedBlendShapes;
 
-    // デバッグログ（5秒間隔で出力）
-    const now = Date.now();
-    if (now - this.lastLogTime > 5000) {
+    // デバッグ: 最終ターゲット確認（10%確率）
+    if (Math.random() < 0.1 && Object.keys(adjustedBlendShapes).length > 0) {
       console.log(
-        `音素: ${this.currentPhoneme}, ターゲット:`,
+        `🎯 最終ターゲット: ${this.currentPhoneme}`,
         this.targetBlendShapes
       );
-      this.lastLogTime = now;
+    }
+
+    // 緊急対応: 即座にブレンドシェイプを適用（スムージングをバイパス）
+    if (Object.keys(adjustedBlendShapes).length > 0) {
+      this.currentBlendShapes = { ...adjustedBlendShapes };
+
+      // デバッグ: 緊急適用ログ（20%確率）
+      if (Math.random() < 0.2) {
+        const applyInfo = Object.entries(adjustedBlendShapes)
+          .map(([shape, weight]) => `${shape}:${weight.toFixed(2)}`)
+          .join(", ");
+        console.log(`⚡ 緊急適用: {${applyInfo}}`);
+      }
     }
   }
 
@@ -242,26 +350,48 @@ export class AdvancedLipSyncService {
    */
   private findAlternativeBlendShape(shape: string): string | null {
     const alternatives: Record<string, string[]> = {
-      // 標準形式 → VRM 1.0形式を優先
-      A: ["aa", "あ", "mouth_a", "Mouth_A", "a"],
-      I: ["ih", "い", "mouth_i", "Mouth_I", "i"],
-      U: ["ou", "う", "mouth_u", "Mouth_U", "u"],
-      E: ["ee", "え", "mouth_e", "Mouth_E", "e"],
-      O: ["oh", "お", "mouth_o", "Mouth_O", "o"],
+      // 標準形式 → 多様な形式を優先
+      A: ["aa", "あ", "mouth_a", "Mouth_A", "a", "0", "10"],
+      I: ["ih", "い", "mouth_i", "Mouth_I", "i", "1", "11"],
+      U: ["ou", "う", "mouth_u", "Mouth_U", "u", "2", "12"],
+      E: ["ee", "え", "mouth_e", "Mouth_E", "e", "3", "13"],
+      O: ["oh", "お", "mouth_o", "Mouth_O", "o", "4", "14"],
 
-      // VRM 1.0形式 → 標準形式
-      aa: ["A", "あ", "mouth_a", "Mouth_A", "a"],
-      ih: ["I", "い", "mouth_i", "Mouth_I", "i"],
-      ou: ["U", "う", "mouth_u", "Mouth_U", "u"],
-      ee: ["E", "え", "mouth_e", "Mouth_E", "e"],
-      oh: ["O", "お", "mouth_o", "Mouth_O", "o"],
+      // VRM 1.0形式 → 標準形式と数字形式
+      aa: ["A", "あ", "mouth_a", "Mouth_A", "a", "0", "10"],
+      ih: ["I", "い", "mouth_i", "Mouth_I", "i", "1", "11"],
+      ou: ["U", "う", "mouth_u", "Mouth_U", "u", "2", "12"],
+      ee: ["E", "え", "mouth_e", "Mouth_E", "e", "3", "13"],
+      oh: ["O", "お", "mouth_o", "Mouth_O", "o", "4", "14"],
+
+      // 数字形式（推測マッピング）
+      "0": ["A", "aa", "あ", "mouth_a"],
+      "1": ["I", "ih", "い", "mouth_i"],
+      "2": ["U", "ou", "う", "mouth_u"],
+      "3": ["E", "ee", "え", "mouth_e"],
+      "4": ["O", "oh", "お", "mouth_o"],
+      "10": ["A", "aa", "あ", "mouth_a"],
+      "11": ["I", "ih", "い", "mouth_i"],
+      "12": ["U", "ou", "う", "mouth_u"],
+      "13": ["E", "ee", "え", "mouth_e"],
+      "14": ["O", "oh", "お", "mouth_o"],
     };
 
     const possibleAlternatives = alternatives[shape] || [];
     for (const alt of possibleAlternatives) {
       if (this.isBlendShapeAvailable(alt)) {
+        console.log(`🔄 代替ブレンドシェイプ発見: ${shape} → ${alt}`);
         return alt;
       }
+    }
+
+    // デバッグ: 利用可能なブレンドシェイプを表示して手動マッピングを支援
+    if (Math.random() < 0.2) {
+      console.log(
+        `❌ 代替なし: ${shape}, 利用可能: [${this.availableBlendShapes
+          .slice(0, 5)
+          .join(", ")}...]`
+      );
     }
 
     return null;
@@ -357,6 +487,16 @@ export class AdvancedLipSyncService {
     }
 
     blendShapeService.setMultipleBlendShapes(activeBlendShapes);
+
+    // デバッグ: ブレンドシェイプ適用をログ出力（10%確率）
+    if (Object.keys(activeBlendShapes).length > 0 && Math.random() < 0.1) {
+      const shapeInfo = Object.entries(activeBlendShapes)
+        .map(([shape, weight]) => `${shape}:${weight.toFixed(2)}`)
+        .join(", ");
+      console.log(
+        `💋 高精度リップシンク動作中: ${this.currentPhoneme} → {${shapeInfo}}`
+      );
+    }
   }
 
   /**

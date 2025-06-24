@@ -45,9 +45,9 @@ export class AudioAnalysisService {
       this.isAnalyzing = true;
       this.analyze();
 
-      console.log("音声解析開始");
+      console.log("✅ 音声解析開始 - リップシンク連携準備完了");
     } catch (error) {
-      console.error("音声解析開始エラー:", error);
+      console.error("❌ 音声解析開始エラー:", error);
       throw error;
     }
   }
@@ -143,9 +143,25 @@ export class AudioAnalysisService {
       this.currentVolume * this.smoothingFactor +
       rms * (1 - this.smoothingFactor);
 
+    // デバッグ: 音声が検出されているかチェック（5%確率）
+    if (Math.random() < 0.05) {
+      console.log(
+        `🎤 音声レベル: ${this.currentVolume.toFixed(3)} (閾値: ${
+          this.volumeThreshold
+        })`
+      );
+    }
+
     // 閾値以上の場合のみコールバック実行
     if (this.currentVolume > this.volumeThreshold && this.volumeCallback) {
       this.volumeCallback(this.currentVolume);
+
+      // コールバック実行をログ出力（1%確率）
+      if (Math.random() < 0.01) {
+        console.log(
+          `🔊 音声検出: ${this.currentVolume.toFixed(3)} → リップシンク更新`
+        );
+      }
     }
 
     // 次のフレームをスケジュール

@@ -87,15 +87,12 @@ export async function loadVRMModel(
 
     const animationController = getAnimationController();
     animationController.setVRMModel(vrm);
-    console.log("🎭 AnimationController: VRMモデルを設定しました");
 
     // ブレンドシェイプ情報をログ出力（デバッグ用）
     const vrmInfo = blendShapeService.getVRMInfo();
-    console.log("VRM ブレンドシェイプ情報:", vrmInfo);
 
     if (vrmInfo.hasBlendShapeProxy) {
       const availableShapes = blendShapeService.getAvailableBlendShapes();
-      console.log("利用可能なブレンドシェイプ:", availableShapes);
 
       // 基本的なブレンドシェイプの対応状況をテスト
       const basicShapes = [
@@ -112,9 +109,6 @@ export async function loadVRMModel(
       const supportedShapes = basicShapes.filter((shape) =>
         blendShapeService.isBlendShapeAvailable(shape)
       );
-      console.log("対応済みブレンドシェイプ:", supportedShapes);
-    } else {
-      console.warn("このVRMモデルはブレンドシェイプに対応していません");
     }
 
     // VRMモデル情報を作成

@@ -231,13 +231,15 @@ export class AudioChatIntegrationService {
       this.setStatus("processing");
 
       // AI応答を取得
+      console.log("🤖 AI応答取得開始");
       const aiResponse = await this.getAIResponse(transcript);
       console.log(`🤖 AI応答取得完了: "${aiResponse.substring(0, 50)}..."`);
-
       this.callbacks.onAIResponseReceived?.(aiResponse);
 
       // 音声合成で応答を再生
+      console.log("🔊 音声合成開始");
       await this.speakResponse(aiResponse);
+      console.log("🔊 音声合成完了 - 処理終了");
 
       // 確実にアイドル状態に戻す
       this.setStatus("idle");
@@ -301,8 +303,7 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
-      console.log(`🎭 AI応答音声合成開始: "${text.substring(0, 50)}..."`);
-      this.setStatus("speaking");
+      console.log(`🎭 AI応答アニメーション連動開始: "${text.substring(0, 50)}..."`);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
       if (typeof window !== "undefined") {
@@ -312,17 +313,26 @@ export class AudioChatIntegrationService {
           };
         };
         if (windowWithController.__animationController) {
+          console.log("🎭 アニメーションコントローラー発見 - 感情解析実行");
           windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
             text
           );
+          console.log("🎭 感情解析・アニメーション実行完了");
+        } else {
+          console.warn("⚠️ アニメーションコントローラーが見つかりません");
         }
+      } else {
+        console.warn("⚠️ ブラウザ環境ではありません - アニメーション連動スキップ");
       }
 
-      // 統合リップシンクサービスで音声合成とリップシンクを統合処理
+      // 統合リップシンクサービスでAI応答リップシンクを開始
+      console.log("🔊 統合リップシンクサービス開始");
       await integratedLipSyncService.startAIResponseLipSync(text);
 
-      // 音声合成の完了を監視
+      // 音声合成の完了を監視するためのPromiseを作成
+      console.log("🔊 音声合成完了待機開始");
       await this.waitForSpeechCompletion(text);
+      console.log("🔊 音声合成完了");
     } catch (error) {
       console.error("❌ AI応答音声合成エラー:", error);
       this.handleError({
@@ -337,47 +347,58 @@ export class AudioChatIntegrationService {
    */
   private waitForSpeechCompletion(text: string): Promise<void> {
     return new Promise((resolve) => {
+      console.log(`音声合成完了待機開始: "${text.substring(0, 30)}..."`);
+
       // タイムアウト設定（テキストの長さに基づいて動的に設定）
-      const estimatedDuration = Math.max(8000, text.length * 200); // 最低8秒、文字数×200ms
+      const estimatedDuration = Math.max(5000, text.length * 150); // 最低5秒、文字数×150ms
+      console.log(`推定音声時間: ${estimatedDuration}ms`);
 
       const timeout = setTimeout(() => {
-        this.setStatus("idle");
+        console.warn("⚠️ 音声合成のタイムアウト - 強制的に完了とみなします");
+        this.setStatus("idle"); // 強制的にアイドル状態に戻す
         resolve();
       }, estimatedDuration);
 
       let checkCount = 0;
-      const maxChecks = Math.floor(estimatedDuration / 200);
+      const maxChecks = Math.floor(estimatedDuration / 100); // 最大チェック回数
 
       // 音声合成の完了を監視
       const checkCompletion = () => {
         checkCount++;
-        const lipSyncStatus = integratedLipSyncService.getStatus();
+        const status = integratedLipSyncService.getStatus();
         const isSpeaking = this.speechSynthesis.isSpeaking();
-        const isStandardSpeaking =
-          "speechSynthesis" in window ? window.speechSynthesis.speaking : false;
 
-        // 複数の音声合成状態をチェック
-        const isAnySpeaking =
-          lipSyncStatus.isTTSSpeaking || isSpeaking || isStandardSpeaking;
+        // 詳細ログ（最初の5回と最後の5回、その後は10回に1回）
+        if (
+          checkCount <= 5 ||
+          checkCount >= maxChecks - 5 ||
+          checkCount % 10 === 0
+        ) {
+          console.log(
+            `🔍 音声状態チェック[${checkCount}/${maxChecks}]: TTS=${status.isTTSSpeaking}, Speech=${isSpeaking}, Status=${this.status}`
+          );
+        }
 
-        if (!isAnySpeaking) {
+        if (!status.isTTSSpeaking && !isSpeaking) {
           // 音声合成が完了した
           clearTimeout(timeout);
+          console.log("✅ 音声合成完了を検知 - アイドル状態に移行");
           this.setStatus("idle");
           resolve();
         } else if (checkCount >= maxChecks) {
           // 最大チェック回数に達した
           clearTimeout(timeout);
+          console.warn("⚠️ 最大チェック回数に達しました - 強制完了");
           this.setStatus("idle");
           resolve();
         } else {
-          // まだ話している場合は200ms後に再チェック
-          setTimeout(checkCompletion, 200);
+          // まだ話している場合は100ms後に再チェック
+          setTimeout(checkCompletion, 100);
         }
       };
 
       // 少し遅延してからチェック開始（音声合成の開始を待つ）
-      setTimeout(checkCompletion, 1000);
+      setTimeout(checkCompletion, 500);
     });
   }
 

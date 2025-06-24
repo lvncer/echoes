@@ -64,24 +64,16 @@ function VRMViewer({
 
       // ブレンドシェイプサービスにVRMモデルを登録
       blendShapeService.setVRM(model.vrm);
-      console.log("🎭 VRMモデルをブレンドシェイプサービスに登録:", model.name);
 
       // アニメーションコントローラーにVRMモデルを設定
       const animationController = getAnimationController();
       if (animationController) {
         animationController.setVRMModel(model.vrm);
-        console.log(
-          "🎭 VRMモデルをアニメーションコントローラーに設定:",
-          model.name
-        );
-      } else {
-        console.warn("⚠️ アニメーションコントローラーが見つかりません");
       }
 
       // 感情ブリッジサービスにVRMモデルを設定
       const emotionBridge = getEmotionBridge();
       emotionBridge.setVRMModel(model.vrm);
-      console.log("🌉 VRMモデルを感情ブリッジサービスに登録:", model.name);
     }
   }, [model.vrm, model.name]);
 

@@ -58,21 +58,13 @@ export class VRMBlendShapeService {
       // 設定後の値を確認
       const actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
 
-      // デバッグログ（設定値と実際の値を比較）
-      if (actualName !== name) {
-        console.log(
-          `ブレンドシェイプマッピング: ${name} → ${actualName} = ${clampedWeight} (実際: ${actualValue})`
-        );
-      } else {
-        console.log(
-          `ブレンドシェイプ設定: ${name} = ${clampedWeight} (実際: ${actualValue})`
-        );
-      }
-
-      // 値が正しく設定されていない場合は警告
-      if (Math.abs(actualValue - clampedWeight) > 0.01) {
+      // 値が正しく設定されていない場合のみ警告
+      if (
+        Math.abs(actualValue - clampedWeight) > 0.01 &&
+        Math.random() < 0.05
+      ) {
         console.warn(
-          `⚠️ ブレンドシェイプ値の不一致: ${actualName} 設定=${clampedWeight}, 実際=${actualValue}`
+          `⚠️ ブレンドシェイプ不一致: ${actualName} 設定=${clampedWeight}, 実際=${actualValue}`
         );
       }
     } catch (error) {
@@ -319,19 +311,55 @@ export class VRMBlendShapeService {
    */
   setMultipleBlendShapes(weights: Record<string, number>): void {
     if (!this.vrm?.expressionManager) {
+      console.warn("⚠️ ブレンドシェイプ設定失敗: VRM未読み込み");
       return;
     }
 
+    // デバッグ: 受信したウェイト情報（15%確率）
+    if (Math.random() < 0.15 && Object.keys(weights).length > 0) {
+      const weightInfo = Object.entries(weights)
+        .map(([key, weight]) => `${key}:${weight.toFixed(2)}`)
+        .join(", ");
+      console.log(`🎯 ブレンドシェイプ受信: {${weightInfo}}`);
+    }
+
     try {
+      let actuallySet = 0;
       Object.entries(weights).forEach(([name, weight]) => {
         const clampedWeight = Math.max(0, Math.min(1, weight));
-        this.vrm!.expressionManager!.setValue(name, clampedWeight);
-        this.currentWeights[name] = clampedWeight;
+
+        try {
+          this.vrm!.expressionManager!.setValue(name, clampedWeight);
+          this.currentWeights[name] = clampedWeight;
+          actuallySet++;
+
+          // デバッグ: 個別設定成功（10%確率）
+          if (Math.random() < 0.1) {
+            console.log(`✅ ブレンドシェイプ設定: ${name} = ${clampedWeight}`);
+          }
+        } catch (error) {
+          // デバッグ: 個別設定失敗（50%確率）
+          if (Math.random() < 0.5) {
+            console.warn(
+              `❌ ブレンドシェイプ設定失敗: ${name} = ${clampedWeight}`,
+              error
+            );
+          }
+        }
       });
 
       this.vrm.expressionManager.update();
+
+      // デバッグ: 設定結果サマリー（15%確率）
+      if (Math.random() < 0.15 && actuallySet > 0) {
+        console.log(
+          `🎯 ブレンドシェイプ設定完了: ${actuallySet}/${
+            Object.keys(weights).length
+          } 成功`
+        );
+      }
     } catch (error) {
-      console.warn("Failed to set multiple blend shapes:", error);
+      console.warn("❌ 複数ブレンドシェイプ設定エラー:", error);
     }
   }
 

@@ -36,113 +36,113 @@ const PHONEME_CONFIGS: Record<string, PhonemeConfig> = {
     blendShapeMapping: {},
   },
 
-  // 基本母音
+  // 基本母音（音量閾値を大幅に下げる）
   aa: {
     name: "aa", // あ
     f1Range: [600, 900],
     f2Range: [1000, 1400],
-    volumeThreshold: 0.1,
+    volumeThreshold: 0.002, // 0.1 → 0.002
     blendShapeMapping: { A: 1.0 },
   },
   ih: {
     name: "ih", // い
     f1Range: [200, 400],
     f2Range: [2000, 2800],
-    volumeThreshold: 0.1,
+    volumeThreshold: 0.002, // 0.1 → 0.002
     blendShapeMapping: { I: 1.0 },
   },
   ou: {
     name: "ou", // う
     f1Range: [250, 450],
     f2Range: [600, 1000],
-    volumeThreshold: 0.1,
+    volumeThreshold: 0.002, // 0.1 → 0.002
     blendShapeMapping: { U: 1.0 },
   },
   E: {
     name: "E", // え
     f1Range: [400, 600],
     f2Range: [1600, 2200],
-    volumeThreshold: 0.1,
+    volumeThreshold: 0.002, // 0.1 → 0.002
     blendShapeMapping: { E: 1.0 },
   },
   oh: {
     name: "oh", // お
     f1Range: [300, 500],
     f2Range: [700, 1100],
-    volumeThreshold: 0.1,
+    volumeThreshold: 0.002, // 0.1 → 0.002
     blendShapeMapping: { O: 1.0 },
   },
 
-  // 子音（唇音）
+  // 子音（唇音）- 音量閾値を下げる
   PP: {
     name: "PP", // p, b
     f1Range: [100, 300],
     f2Range: [500, 1500],
-    volumeThreshold: 0.05,
+    volumeThreshold: 0.003, // 0.05 → 0.003
     blendShapeMapping: { U: 0.8 }, // 唇を閉じる
   },
   FF: {
     name: "FF", // f, v
     f1Range: [200, 400],
     f2Range: [1000, 2000],
-    volumeThreshold: 0.08,
+    volumeThreshold: 0.003, // 0.08 → 0.003
     blendShapeMapping: { U: 0.6, A: 0.2 },
   },
 
-  // 子音（歯音）
+  // 子音（歯音）- 音量閾値を下げる
   TH: {
     name: "TH", // th
     f1Range: [300, 500],
     f2Range: [1200, 2000],
-    volumeThreshold: 0.06,
+    volumeThreshold: 0.003, // 0.06 → 0.003
     blendShapeMapping: { I: 0.4, A: 0.3 },
   },
   DD: {
     name: "DD", // d, t
     f1Range: [200, 500],
     f2Range: [1400, 2200],
-    volumeThreshold: 0.07,
+    volumeThreshold: 0.003, // 0.07 → 0.003
     blendShapeMapping: { I: 0.6 },
   },
 
-  // 子音（軟口蓋音）
+  // 子音（軟口蓋音）- 音量閾値を下げる
   kk: {
     name: "kk", // k, g
     f1Range: [200, 400],
     f2Range: [800, 1600],
-    volumeThreshold: 0.08,
+    volumeThreshold: 0.003, // 0.08 → 0.003
     blendShapeMapping: { E: 0.5, A: 0.3 },
   },
 
-  // 子音（摩擦音）
+  // 子音（摩擦音）- 音量閾値を下げる
   CH: {
     name: "CH", // ch, j
     f1Range: [300, 600],
     f2Range: [1500, 2500],
-    volumeThreshold: 0.09,
+    volumeThreshold: 0.003, // 0.09 → 0.003
     blendShapeMapping: { I: 0.7, U: 0.3 },
   },
   SS: {
     name: "SS", // s, z
     f1Range: [200, 400],
     f2Range: [2000, 3000],
-    volumeThreshold: 0.08,
+    volumeThreshold: 0.003, // 0.08 → 0.003
     blendShapeMapping: { I: 0.8 },
   },
 
-  // 子音（鼻音・流音）
+  // 子音（鼻音・流音）- 音量閾値を下げる
   nn: {
     name: "nn", // n, m
     f1Range: [200, 500],
     f2Range: [1000, 1800],
-    volumeThreshold: 0.06,
+    volumeThreshold: 0.003, // 0.06 → 0.003
     blendShapeMapping: { A: 0.4, U: 0.2 },
   },
   RR: {
     name: "RR", // r, l
     f1Range: [300, 600],
     f2Range: [900, 1500],
-    volumeThreshold: 0.07,
+    volumeThreshold: 0.003, // 0.07 → 0.003
     blendShapeMapping: { E: 0.6, A: 0.2 },
   },
 };
@@ -245,6 +245,19 @@ export class PhonemeAnalysisService {
       // 音素検出
       const phoneme = this.detectPhoneme(formants, volume);
 
+      // デバッグ: 音素解析詳細をログ出力（5%確率に増加）
+      if (Math.random() < 0.05) {
+        console.log(
+          `🔊 音素解析詳細: 音量=${volume.toFixed(
+            3
+          )} (無音閾値=0.001), F1=${formants.f1.toFixed(
+            0
+          )}Hz, F2=${formants.f2.toFixed(0)}Hz → ${
+            phoneme.name
+          } (${phoneme.confidence.toFixed(2)})`
+        );
+      }
+
       // 結果をコールバック
       if (this.analysisCallback) {
         const result: PhonemeAnalysisResult = {
@@ -335,8 +348,8 @@ export class PhonemeAnalysisService {
   ): { name: string; confidence: number } {
     let bestMatch = { name: "sil", confidence: 0 };
 
-    // 音量が低い場合は無音
-    if (volume < 0.01) {
+    // 音量が低い場合は無音（閾値を大幅に下げる）
+    if (volume < 0.001) {
       return { name: "sil", confidence: 1.0 };
     }
 

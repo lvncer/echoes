@@ -502,9 +502,6 @@ export function getGestureAnimation(
     return bodyGestures[gestureType as keyof typeof bodyGestures];
   }
 
-  console.warn(
-    `🎭 GestureAnimations: 未知のジェスチャータイプ: ${gestureType}`
-  );
   return null;
 }
 

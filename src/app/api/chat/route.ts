@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         message: {
           id: `ai_${Date.now()}`,
           role: "assistant" as const,
-          content: `こんにちは！あなたのメッセージ「${lastMessage.content}」を受け取りました。現在はデモモードで動作しています。実際のAI機能を使用するには、OpenAI APIの設定を完了してください。`,
+          content: `了解しました！「${lastMessage.content}」ですね。何かお手伝いできることはありますか？`,
           timestamp: new Date(),
         },
         tokensUsed: 50,

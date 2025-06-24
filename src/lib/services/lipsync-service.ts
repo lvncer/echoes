@@ -28,24 +28,43 @@ export class LipSyncService {
    */
   async startLipSync(stream: MediaStream): Promise<void> {
     try {
-      // 音声解析を開始
+      // VRMモデルの状態確認
+      const vrmInfo = blendShapeService.getVRMInfo();
+
+      if (!vrmInfo.hasVRM) {
+        console.warn("⚠️ リップシンク: VRMモデルが読み込まれていません");
+        throw new Error("VRMモデルが必要です");
+      }
+
+      if (vrmInfo.availableBlendShapes.length === 0) {
+        console.warn(
+          "⚠️ リップシンク: 利用可能なブレンドシェイプが見つかりません"
+        );
+      }
+      console.log("🔄 音声解析サービス開始中...");
       await audioAnalysisService.startAnalysis(stream);
 
       // 音量コールバックを設定
+      console.log("🔗 音量コールバック設定中...");
       audioAnalysisService.setVolumeCallback((volume) => {
         this.processVolumeLevel(volume);
       });
 
       // 音量閾値を設定
+      console.log(`⚙️ 音量閾値設定: ${this.volumeThreshold}`);
       audioAnalysisService.setVolumeThreshold(this.volumeThreshold);
 
       // アニメーションループを開始
       this.isActive = true;
+      console.log("🎬 アニメーションループ開始...");
       this.startAnimationLoop();
 
-      console.log("リップシンク開始");
+      console.log(
+        `✅ リップシンク開始 (ブレンドシェイプ: ${vrmInfo.availableBlendShapes.length}個)`
+      );
     } catch (error) {
-      console.error("リップシンク開始エラー:", error);
+      console.error("❌ リップシンク開始エラー:", error);
+      this.isActive = false;
       throw error;
     }
   }
@@ -87,6 +106,17 @@ export class LipSyncService {
     // 音量から基本音素を推定
     this.currentPhoneme =
       AudioAnalysisService.volumeToBasicPhoneme(adjustedVolume);
+
+    // デバッグ: 音量処理をログ出力（2%確率）
+    if (Math.random() < 0.02) {
+      console.log(
+        `🎤 音量処理: ${volume.toFixed(
+          3
+        )} → 口開度: ${this.targetMouthOpening.toFixed(2)} (音素: ${
+          this.currentPhoneme
+        })`
+      );
+    }
   }
 
   /**
@@ -145,6 +175,15 @@ export class LipSyncService {
 
     // ブレンドシェイプを適用
     blendShapeService.setMultipleBlendShapes(blendShapeWeights);
+
+    // 重要：実際にリップシンクが動作しているかをテスト
+    if (Object.keys(blendShapeWeights).length > 0 && Math.random() < 0.1) {
+      console.log(
+        `💋 リップシンク動作中: ${
+          this.currentPhoneme
+        } (${this.currentMouthOpening.toFixed(2)})`
+      );
+    }
   }
 
   /**

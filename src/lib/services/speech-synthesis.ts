@@ -342,9 +342,21 @@ export class SpeechSynthesisService {
 
       utterance.onerror = (event) => {
         console.warn("🚨 SpeechSynthesis: エラー発生", event.error);
-        isCompleted = true;
-        this.state.isSpeaking = false;
-        this.currentUtterance = null;
+
+        // interruptedエラーは正常な停止として扱う
+        if (event.error === "interrupted") {
+          console.log("🔄 音声合成が中断されました（正常）");
+          isCompleted = true;
+          this.state.isSpeaking = false;
+          this.currentUtterance = null;
+          this.events.onSpeechEnd?.();
+        } else {
+          // その他のエラーは本当のエラーとして処理
+          isCompleted = true;
+          this.state.isSpeaking = false;
+          this.currentUtterance = null;
+          this.handleSynthesisError(event);
+        }
 
         // タイムアウトとインターバルをクリア
         if (timeoutId) {
@@ -355,8 +367,6 @@ export class SpeechSynthesisService {
           clearInterval(statusCheckInterval);
           statusCheckInterval = null;
         }
-
-        this.handleSynthesisError(event);
       };
 
       utterance.onpause = () => {
@@ -373,6 +383,9 @@ export class SpeechSynthesisService {
       const limitations = getBrowserLimitations();
       if (limitations.requiresUserGesture) {
         console.log("👆 ユーザージェスチャーが必要です");
+
+        // ユーザージェスチャーが必要な場合のフォールバック処理
+        return this.handleUserGestureRequired(utterance, text);
       }
 
       console.log(
@@ -412,6 +425,46 @@ export class SpeechSynthesisService {
     this.state.isSpeaking = false;
     this.currentUtterance = null;
     this.events.onSpeechEnd?.();
+  }
+
+  /**
+   * ユーザージェスチャーが必要な場合の処理
+   */
+  private handleUserGestureRequired(
+    utterance: SpeechSynthesisUtterance,
+    text: string
+  ): boolean {
+    console.log("🎯 ユーザージェスチャー必須モード - 直接実行を試行");
+
+    if (!this.synthesis) {
+      this.handleError("not-supported", "音声合成サービスが利用できません");
+      return false;
+    }
+
+    try {
+      // 既存の音声をキャンセル
+      this.synthesis.cancel();
+
+      // 現在のUtteranceを設定
+      this.currentUtterance = utterance;
+
+      // 直接実行を試行（ユーザージェスチャーコンテキスト内）
+      this.synthesis.speak(utterance);
+
+      console.log(
+        `🎤 ユーザージェスチャーモード音声開始: "${text.substring(0, 50)}${
+          text.length > 50 ? "..." : ""
+        }"`
+      );
+      return true;
+    } catch (error) {
+      console.error("❌ ユーザージェスチャーモード音声開始エラー:", error);
+      this.handleError(
+        "audio-capture",
+        `ユーザージェスチャーモード音声開始エラー: ${error}`
+      );
+      return false;
+    }
   }
 
   /**
