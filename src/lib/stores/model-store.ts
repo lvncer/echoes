@@ -59,9 +59,29 @@ export const useModelStore = create<ModelStore>()(
       setCurrentModel: (model) => set({ currentModel: model }),
 
       addModel: (model) =>
-        set((state) => ({
-          availableModels: [...state.availableModels, model],
-        })),
+        set((state) => {
+          // 重複チェック: 同じIDまたはデフォルトモデルの重複を防ぐ
+          const existingModel = state.availableModels.find(
+            (m) => 
+              m.id === model.id || 
+              (m.isDefault && model.isDefault) ||
+              // 同じファイル名かつサイズが同じ場合も重複とみなす
+              (m.name === model.name && m.size === model.size && m.format === model.format)
+          );
+          
+          if (existingModel) {
+            console.log(`モデルの重複を検出: ${model.name} (ID: ${model.id})`);
+            // 既存モデルの最終使用日時を更新
+            const updatedModels = state.availableModels.map((m) =>
+              m.id === existingModel.id ? { ...m, lastUsed: new Date() } : m
+            );
+            return { ...state, availableModels: updatedModels };
+          }
+
+          return {
+            availableModels: [...state.availableModels, model],
+          };
+        }),
 
       removeModel: (modelId) =>
         set((state) => ({
@@ -172,6 +192,20 @@ export const useModelStore = create<ModelStore>()(
       // デフォルトモデル読み込み
       loadDefaultModel: async () => {
         try {
+          const state = get();
+          
+          // デフォルトモデルが既に存在するかチェック
+          const existingDefaultModel = state.availableModels.find(
+            (model) => model.isDefault
+          );
+          
+          if (existingDefaultModel) {
+            console.log("デフォルトモデルは既に読み込まれています");
+            // 既存のデフォルトモデルを現在のモデルとして設定
+            get().setCurrentModel(existingDefaultModel);
+            return;
+          }
+
           set({ isLoading: true, error: undefined });
 
           // デフォルトモデルのパス
@@ -185,13 +219,11 @@ export const useModelStore = create<ModelStore>()(
             );
           }
 
-
           // Blobからファイルオブジェクトを作成
           const blob = await response.blob();
           const file = new File([blob], "AliciaSolid.vrm", {
             type: "application/octet-stream",
           });
-
 
           // モデルを読み込み
           const result = await loadModel(file);
@@ -204,10 +236,11 @@ export const useModelStore = create<ModelStore>()(
               isDefault: true,
             };
 
-            // ストアに追加
+            // ストアに追加（重複チェック付き）
             get().addModel(defaultModel);
             get().setCurrentModel(defaultModel);
 
+            console.log("デフォルトモデルを正常に読み込みました");
           } else {
             throw new Error(
               result.error || "デフォルトモデルの読み込みに失敗しました"
@@ -219,6 +252,7 @@ export const useModelStore = create<ModelStore>()(
               ? error.message
               : "デフォルトモデルの読み込みエラー";
           set({ error: errorMessage });
+          console.error("デフォルトモデル読み込みエラー:", errorMessage);
         } finally {
           set({ isLoading: false });
         }
@@ -227,10 +261,24 @@ export const useModelStore = create<ModelStore>()(
       initializeDefaultModel: async () => {
         const state = get();
 
-        // 現在のモデルが存在しない場合のみデフォルトモデルを読み込み
+        // デフォルトモデルが既に存在するかチェック
+        const existingDefaultModel = state.availableModels.find(
+          (model) => model.isDefault
+        );
+
+        if (existingDefaultModel) {
+          // 既存のデフォルトモデルを現在のモデルとして設定
+          if (!state.currentModel) {
+            get().setCurrentModel(existingDefaultModel);
+            console.log("既存のデフォルトモデルを設定しました");
+          }
+          return;
+        }
+
+        // 現在のモデルが存在せず、デフォルトモデルも存在しない場合のみ読み込み
         if (!state.currentModel) {
+          console.log("デフォルトモデルを初期化します");
           await get().loadDefaultModel();
-        } else {
         }
       },
 
