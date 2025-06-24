@@ -33,14 +33,19 @@ export default function Page() {
 
 ### テストページ
 
-```text
-http://localhost:3000/emotion-test
+感情システムは以下の方法でテストできます：
+
+```tsx
+// メインページまたは他のページで使用
+import { EmotionChat } from "@/components/chat/emotion-chat";
+// または統合版
+import { IntegratedEmotionChat } from "@/components/chat/integrated-emotion-chat";
 ```
 
 ## 4. 動作確認
 
 1. 開発サーバーを起動
-2. `/emotion-test` にアクセス
+2. 感情チャットコンポーネントを含むページにアクセス
 3. 「嬉しい！」などのメッセージを送信
 4. AI が感情タグ付きで応答することを確認
 
