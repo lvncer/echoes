@@ -224,7 +224,7 @@ export class AdvancedLipSyncService {
           // デバッグ: 代替ブレンドシェイプ使用（10%確率）
         } else {
           // 緊急対応: 数字形式で強制試行
-          let _foundNumberAlternative = false;
+          const _foundNumberAlternative = false;
           const finalWeight = weight * this.sensitivity * this.confidence;
 
           // 音素から数字へのマッピング（推測）
