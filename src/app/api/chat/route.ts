@@ -6,7 +6,7 @@ import type { ChatMessage } from "../../../lib/types/ai";
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages } = await request.json();
+    const { messages, customPrompt } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -14,6 +14,14 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // デバッグログ: サーバーサイドで受信したデータを確認
+    console.log("🔧 [API Debug] 受信したカスタムプロンプト:", {
+      hasCustomPrompt: !!customPrompt,
+      enabled: customPrompt?.enabled,
+      contentLength: customPrompt?.content?.length || 0,
+      timestamp: new Date().toISOString()
+    });
 
     // サーバーサイドで環境変数から設定を取得
     const config = createAIConfigFromEnv();
@@ -54,9 +62,29 @@ export async function POST(request: NextRequest) {
       aiService = new OpenAIService(config);
     }
 
+    // カスタムプロンプトが有効な場合、システムメッセージを追加
+    let processedMessages = messages as ChatMessage[];
+    if (customPrompt?.enabled && customPrompt.content) {
+      console.log("🔧 [API Debug] カスタムプロンプトを適用中...");
+      
+      // 既存のシステムメッセージを削除
+      processedMessages = processedMessages.filter(msg => msg.role !== "system");
+      
+      // カスタムプロンプトをシステムメッセージとして先頭に追加
+      processedMessages = [
+        {
+          id: `system_${Date.now()}`,
+          role: "system" as const,
+          content: customPrompt.content,
+          timestamp: new Date(),
+        },
+        ...processedMessages
+      ];
+    }
+
     // AI 応答を生成
     const response = await aiService.generateResponse({
-      messages: messages as ChatMessage[],
+      messages: processedMessages,
     });
 
     return NextResponse.json({

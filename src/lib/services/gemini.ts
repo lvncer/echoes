@@ -91,6 +91,15 @@ export class GeminiService {
 4. 親しみやすく、自然な日本語で会話する
 5. 簡潔で分かりやすい回答を心がける`;
 
+    // デバッグログ: カスタムプロンプトの使用状況を確認
+    console.log("🔧 [Gemini Debug] カスタムプロンプト設定:", {
+      enabled: customPromptSettings.enabled,
+      contentLength: customPromptSettings.content.length,
+      isUsingCustom: customPromptSettings.enabled,
+      systemPromptPreview: systemPrompt.substring(0, 100) + "...",
+      lastUpdated: customPromptSettings.lastUpdated
+    });
+
     const conversationHistory = messages
       .map((msg) => {
         const role = msg.role === "user" ? "ユーザー" : "アシスタント";

@@ -51,6 +51,14 @@ export function AISettings() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // デバッグログ: 保存時の情報を出力
+      console.log("🔧 [AI Settings Debug] カスタムプロンプト保存:", {
+        enabled: isEnabled,
+        contentLength: promptText.length,
+        content: promptText,
+        timestamp: new Date().toISOString()
+      });
+
       updateCustomPrompt({
         content: promptText,
         enabled: isEnabled,
@@ -117,6 +125,11 @@ export function AISettings() {
               />
               <p className="text-xs text-gray-500 mt-1">
                 {promptText.length} 文字 | 最終更新: {customPrompt.lastUpdated.toLocaleString('ja-JP')}
+                {promptText.length > 1000 && (
+                  <span className="text-yellow-400 ml-2">
+                    ⚠️ 1000文字を超えています（推奨: 500文字以下）
+                  </span>
+                )}
               </p>
             </div>
 
