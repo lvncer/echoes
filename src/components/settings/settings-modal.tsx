@@ -35,7 +35,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] bg-white/90 backdrop-blur-sm overflow-y-auto">
+      <DialogContent className="max-w-4xl min-h-[600px] max-h-[90vh] bg-white/90 backdrop-blur-sm overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900">
             設定
@@ -63,7 +63,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
             </TabsList>
 
             {/* 3Dモデル管理タブ */}
-            <TabsContent value="models" className="p-4">
+            <TabsContent value="models" className="p-4 min-h-[400px]">
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">
@@ -108,7 +108,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
             </TabsContent>
 
             {/* カメラ・システム設定タブ */}
-            <TabsContent value="camera" className="p-4">
+            <TabsContent value="camera" className="p-4 min-h-[400px]">
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">
@@ -127,7 +127,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
             </TabsContent>
 
             {/* AI設定タブ */}
-            <TabsContent value="ai" className="p-4">
+            <TabsContent value="ai" className="p-4 min-h-[400px]">
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">

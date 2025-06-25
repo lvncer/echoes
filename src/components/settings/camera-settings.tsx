@@ -124,11 +124,11 @@ export function CameraSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-3">
             <Button
               onClick={handleResetSettings}
               variant="outline"
-              className="flex items-center gap-2"
+              className="w-full flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
               設定をリセット
@@ -136,7 +136,7 @@ export function CameraSettings() {
             <Button
               onClick={handleClearStorage}
               variant="outline"
-              className="flex items-center gap-2"
+              className="w-full flex items-center justify-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
               ストレージクリア
@@ -144,7 +144,7 @@ export function CameraSettings() {
             <Button
               onClick={handleForceInit}
               variant="outline"
-              className="flex items-center gap-2"
+              className="w-full flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               モデル強制初期化
