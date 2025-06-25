@@ -140,6 +140,8 @@ export const useAIStore = create<AIStore>()(
 
       // カスタムプロンプトを更新
       updateCustomPrompt: (prompt) => {
+        console.log("🔧 [AI Store Debug] updateCustomPrompt 呼び出し:", prompt);
+        
         set((state) => {
           const newCustomPrompt = {
             ...state.settings.customPrompt,
@@ -151,6 +153,8 @@ export const useAIStore = create<AIStore>()(
             ...state.settings,
             customPrompt: newCustomPrompt,
           };
+
+          console.log("🔧 [AI Store Debug] 新しい設定:", newSettings);
 
           return {
             settings: newSettings,
@@ -282,6 +286,8 @@ export const useAIStore = create<AIStore>()(
       }),
       // Dateオブジェクトの復元処理
       onRehydrateStorage: () => (state) => {
+        console.log("🔧 [AI Store Debug] ストア復元開始:", state);
+        
         if (state?.messages) {
           state.messages = state.messages.map((message) => ({
             ...message,
@@ -293,6 +299,8 @@ export const useAIStore = create<AIStore>()(
             state.settings.customPrompt.lastUpdated
           );
         }
+        
+        console.log("🔧 [AI Store Debug] ストア復元完了:", state);
       },
     }
   )

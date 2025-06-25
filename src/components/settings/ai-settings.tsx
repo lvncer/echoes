@@ -24,25 +24,47 @@ export function AISettings() {
   // 安全にカスタムプロンプト設定を取得
   const customPrompt = settings.customPrompt || defaultCustomPrompt;
   
-  const [promptText, setPromptText] = useState(customPrompt.content);
-  const [isEnabled, setIsEnabled] = useState(customPrompt.enabled);
+  const [promptText, setPromptText] = useState("");
+  const [isEnabled, setIsEnabled] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // 初回のみ初期化処理を実行
+  // デバッグログ: ストアの状態を確認
+  useEffect(() => {
+    console.log("🔧 [AI Settings Debug] ストア状態:", {
+      hasCustomPrompt: !!settings.customPrompt,
+      customPrompt: settings.customPrompt,
+      isInitialized,
+      timestamp: new Date().toISOString()
+    });
+  }, [settings.customPrompt, isInitialized]);
+
+  // コンポーネントマウント時の初期化
   useEffect(() => {
     if (!isInitialized) {
-      // カスタムプロンプトが未定義の場合、デフォルト値で初期化
-      if (!settings.customPrompt) {
+      console.log("🔧 [AI Settings Debug] 初期化開始");
+      
+      if (settings.customPrompt) {
+        // 既存の設定がある場合
+        setPromptText(settings.customPrompt.content);
+        setIsEnabled(settings.customPrompt.enabled);
+        console.log("🔧 [AI Settings Debug] 既存設定を読み込み:", settings.customPrompt);
+      } else {
+        // 設定がない場合はデフォルトで初期化
+        setPromptText(defaultCustomPrompt.content);
+        setIsEnabled(defaultCustomPrompt.enabled);
         updateCustomPrompt(defaultCustomPrompt);
+        console.log("🔧 [AI Settings Debug] デフォルト設定で初期化");
       }
+      
       setIsInitialized(true);
     }
   }, [settings.customPrompt, updateCustomPrompt, isInitialized]);
 
-  // ストアの設定が変更された時に状態を同期（初期化後のみ）
+  // ストアの設定が変更された時に状態を同期
   useEffect(() => {
     if (isInitialized && settings.customPrompt) {
+      console.log("🔧 [AI Settings Debug] ストア変更を検知、状態を同期:", settings.customPrompt);
       setPromptText(settings.customPrompt.content);
       setIsEnabled(settings.customPrompt.enabled);
     }
@@ -51,8 +73,8 @@ export function AISettings() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // デバッグログ: 保存時の情報を出力
-      console.log("🔧 [AI Settings Debug] カスタムプロンプト保存:", {
+      // デバッグログ: 保存前の状態
+      console.log("🔧 [AI Settings Debug] 保存前の状態:", {
         enabled: isEnabled,
         contentLength: promptText.length,
         content: promptText,
@@ -63,6 +85,22 @@ export function AISettings() {
         content: promptText,
         enabled: isEnabled,
       });
+
+      // 保存後にローカルストレージの内容を確認
+      setTimeout(() => {
+        const storedData = localStorage.getItem("ai-settings");
+        console.log("🔧 [AI Settings Debug] ローカルストレージの内容:", storedData);
+        
+        if (storedData) {
+          try {
+            const parsed = JSON.parse(storedData);
+            console.log("🔧 [AI Settings Debug] パース済みデータ:", parsed);
+          } catch (e) {
+            console.error("🔧 [AI Settings Debug] JSONパースエラー:", e);
+          }
+        }
+      }, 100);
+
       // 保存成功の視覚的フィードバック
       await new Promise(resolve => setTimeout(resolve, 500));
     } finally {
@@ -150,6 +188,19 @@ export function AISettings() {
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 デフォルトに戻す
+              </Button>
+
+              {/* デバッグ用ボタン */}
+              <Button
+                onClick={() => {
+                  console.log("🔧 [Debug] 現在のストア状態:", useAIStore.getState().settings);
+                  console.log("🔧 [Debug] ローカルストレージ:", localStorage.getItem("ai-settings"));
+                }}
+                variant="outline"
+                size="sm"
+                className="border-yellow-600 text-yellow-300 hover:bg-yellow-700/20"
+              >
+                デバッグ情報
               </Button>
 
               {hasChanges && (
