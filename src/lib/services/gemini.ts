@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { AIProviderConfig, ChatMessage, AIResponse } from "../types/ai";
+import { useAIStore } from "../stores/ai-store";
 
 /**
  * Google Gemini API サービス
@@ -78,16 +79,17 @@ export class GeminiService {
    * メッセージ履歴をGemini用のプロンプトに変換
    */
   private convertMessagesToPrompt(messages: ChatMessage[]): string {
-    // システムプロンプトを追加（マークダウンなしの普通の文章で応答するよう指示）
-    const systemPrompt = `
-    あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
+    // カスタムプロンプトまたはデフォルトプロンプトを取得
+    const customPromptSettings = this.getCustomPromptSettings();
+    const systemPrompt = customPromptSettings.enabled 
+      ? customPromptSettings.content 
+      : `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
 
-    1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
-    2. 普通の文章のみで応答する
-    3. 改行は自然な文章の区切りでのみ使用する
-    4. 親しみやすく、自然な日本語で会話する
-    5. 簡潔で分かりやすい回答を心がける
-    `;
+1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
+2. 普通の文章のみで応答する
+3. 改行は自然な文章の区切りでのみ使用する
+4. 親しみやすく、自然な日本語で会話する
+5. 簡潔で分かりやすい回答を心がける`;
 
     const conversationHistory = messages
       .map((msg) => {
@@ -96,7 +98,7 @@ export class GeminiService {
       })
       .join("\n");
 
-    return systemPrompt + conversationHistory + "\n\nアシスタント: ";
+    return systemPrompt + "\n\n" + conversationHistory + "\n\nアシスタント: ";
   }
 
   /**
@@ -123,5 +125,31 @@ export class GeminiService {
     } catch (_error) {
       return false;
     }
+  }
+
+  /**
+   * カスタムプロンプト設定を取得
+   */
+  private getCustomPromptSettings() {
+    // ブラウザ環境でのみストアにアクセス
+    if (typeof window !== "undefined") {
+      try {
+        return useAIStore.getState().settings.customPrompt;
+      } catch {
+        // ストアが利用できない場合はデフォルト設定を返す
+        return {
+          enabled: false,
+          content: "",
+          lastUpdated: new Date(),
+        };
+      }
+    }
+    
+    // サーバーサイドではデフォルト設定を返す
+    return {
+      enabled: false,
+      content: "",
+      lastUpdated: new Date(),
+    };
   }
 }
