@@ -36,6 +36,33 @@ export function VoiceSettings() {
   const [connectionTestResult, setConnectionTestResult] = useState<string | null>(null);
 
   /**
+   * VOICEVOX話者読み込み
+   */
+  const loadVoicevoxSpeakers = useCallback(async () => {
+    try {
+      const speakers = await integratedSpeechService.getVoicevoxSpeakers();
+      setVoicevoxSpeakers(speakers);
+      setError(null); // エラーをクリア
+    } catch (error) {
+      console.error("VOICEVOX話者読み込みエラー:", error);
+      setVoicevoxSpeakers([]);
+      
+      // APIキー関連のエラーの場合は詳細を表示
+      if (error instanceof Error) {
+        if (error.message.includes("APIキー")) {
+          setError(`VOICEVOX設定エラー: ${error.message}`);
+        } else if (error.message.includes("CORS") || error.message.includes("Failed to fetch")) {
+          setError("VOICEVOX Web APIへの接続に失敗しました。APIキーを確認してください。");
+        } else {
+          setError(`VOICEVOX話者一覧の取得に失敗: ${error.message}`);
+        }
+      } else {
+        setError("VOICEVOX話者一覧の取得に失敗しました。");
+      }
+    }
+  }, [setError]);
+
+  /**
    * 初期データ読み込み
    */
   const loadInitialData = useCallback(async () => {
@@ -57,7 +84,7 @@ export function VoiceSettings() {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError]);
+  }, [setLoading, setError, loadVoicevoxSpeakers]);
 
   // 初期化
   useEffect(() => {
@@ -100,18 +127,7 @@ export function VoiceSettings() {
     }
   };
 
-  /**
-   * VOICEVOX話者読み込み
-   */
-  const loadVoicevoxSpeakers = async () => {
-    try {
-      const speakers = await integratedSpeechService.getVoicevoxSpeakers();
-      setVoicevoxSpeakers(speakers);
-    } catch (error) {
-      console.error("VOICEVOX話者読み込みエラー:", error);
-      setVoicevoxSpeakers([]);
-    }
-  };
+
 
   /**
    * VOICEVOX接続テスト
@@ -119,6 +135,7 @@ export function VoiceSettings() {
   const handleConnectionTest = async () => {
     setIsTestingConnection(true);
     setConnectionTestResult(null);
+    setError(null); // エラーをクリア
     
     try {
       const result = await voicevoxService.testConnection();
@@ -130,10 +147,22 @@ export function VoiceSettings() {
         // エンジン状態を更新
         await testEngineStatus();
       } else {
-        setConnectionTestResult(`接続失敗: ${result.error}`);
+        const errorMsg = result.error || "不明なエラー";
+        setConnectionTestResult(`接続失敗: ${errorMsg}`);
+        
+        // APIキー関連のエラーかチェック
+        if (errorMsg.includes("APIキー") || errorMsg.includes("invalidApiKey")) {
+          setError("APIキーが無効です。正しいAPIキーを設定してください。");
+        }
       }
     } catch (error) {
-      setConnectionTestResult(`接続エラー: ${error instanceof Error ? error.message : "不明なエラー"}`);
+      const errorMsg = error instanceof Error ? error.message : "不明なエラー";
+      setConnectionTestResult(`接続エラー: ${errorMsg}`);
+      
+      // APIキー関連のエラーかチェック
+      if (errorMsg.includes("APIキー")) {
+        setError(`VOICEVOX設定エラー: ${errorMsg}`);
+      }
     } finally {
       setIsTestingConnection(false);
     }

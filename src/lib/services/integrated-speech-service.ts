@@ -351,7 +351,19 @@ export class IntegratedSpeechService {
    * VOICEVOX話者一覧を取得
    */
   public async getVoicevoxSpeakers() {
-    return await this.voicevoxService.getSpeakers();
+    try {
+      return await this.voicevoxService.getSpeakers();
+    } catch (error) {
+      console.error("VOICEVOX話者一覧取得エラー:", error);
+      
+      // APIキー関連のエラーの場合は詳細なエラーメッセージを返す
+      if (error instanceof Error && error.message.includes("APIキー")) {
+        throw error; // そのまま再スロー
+      }
+      
+      // その他のエラーは一般的なメッセージに変換
+      throw new Error("VOICEVOX話者一覧の取得に失敗しました。設定を確認してください。");
+    }
   }
 
   /**
