@@ -109,16 +109,19 @@ export class IntegratedSpeechService {
    */
   private async speakWithVoicevox(text: string): Promise<boolean> {
     try {
-      // サーバー状態確認
-      const isServerAvailable = await this.voicevoxService.checkServerStatus();
-      if (!isServerAvailable) {
-        throw new Error("VOICEVOXサーバーが利用できません");
+      const config = getVoicevoxConfig();
+
+      // Web API使用時はサーバー状態チェックをスキップ
+      if (!config.useWebApi) {
+        // ローカルAPI使用時のみサーバー状態確認
+        const isServerAvailable = await this.voicevoxService.checkServerStatus();
+        if (!isServerAvailable) {
+          throw new Error("VOICEVOXサーバーが利用できません");
+        }
       }
 
       // 開始イベント
       this.events.onStart?.();
-
-      const config = getVoicevoxConfig();
       
       // 音声合成実行
       const audioBlob = await this.voicevoxService.synthesizeVoice(text, config.speaker);
@@ -272,6 +275,8 @@ export class IntegratedSpeechService {
    * 各エンジンの利用可能性をテスト
    */
   public async testEngineAvailability(): Promise<EngineStatus> {
+    const config = getVoicevoxConfig();
+    
     const status: EngineStatus = {
       webspeech: {
         available: false,
@@ -291,17 +296,30 @@ export class IntegratedSpeechService {
 
     // VOICEVOXテスト
     try {
-      const connectionTest = await this.voicevoxService.testConnection();
-      status.voicevox.serverRunning = connectionTest.success;
-      
-      if (connectionTest.success) {
-        const synthesisTest = await this.voicevoxService.testSynthesis();
-        status.voicevox.available = synthesisTest.success;
-        if (!synthesisTest.success) {
-          status.voicevox.error = synthesisTest.error;
+      if (config.useWebApi) {
+        // Web API使用時: APIキーがあれば利用可能とみなす
+        if (config.apiKey && config.apiKey.trim()) {
+          status.voicevox.available = true;
+          status.voicevox.serverRunning = true; // Web APIは常に稼働とみなす
+        } else {
+          status.voicevox.available = false;
+          status.voicevox.serverRunning = true; // Web APIは稼働しているがAPIキーが必要
+          status.voicevox.error = "APIキーが設定されていません";
         }
       } else {
-        status.voicevox.error = connectionTest.error;
+        // ローカルAPI使用時: 従来通りのテスト
+        const connectionTest = await this.voicevoxService.testConnection();
+        status.voicevox.serverRunning = connectionTest.success;
+        
+        if (connectionTest.success) {
+          const synthesisTest = await this.voicevoxService.testSynthesis();
+          status.voicevox.available = synthesisTest.success;
+          if (!synthesisTest.success) {
+            status.voicevox.error = synthesisTest.error;
+          }
+        } else {
+          status.voicevox.error = connectionTest.error;
+        }
       }
     } catch (error) {
       status.voicevox.error = error instanceof Error ? error.message : "不明なエラー";

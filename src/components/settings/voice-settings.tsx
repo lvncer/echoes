@@ -287,9 +287,14 @@ export function VoiceSettings() {
               <p className="text-sm text-gray-600">
                 高品質な日本語音声合成（Web API対応）
               </p>
-              {engineStatus && !engineStatus.voicevox.serverRunning && !settings.voicevox.useWebApi && (
+              {engineStatus && !settings.voicevox.useWebApi && !engineStatus.voicevox.serverRunning && (
                 <p className="text-xs text-amber-600">
                   ⚠️ VOICEVOXサーバーが起動していません
+                </p>
+              )}
+              {engineStatus && settings.voicevox.useWebApi && !engineStatus.voicevox.available && (
+                <p className="text-xs text-amber-600">
+                  ⚠️ APIキーが設定されていません
                 </p>
               )}
             </div>
@@ -643,20 +648,39 @@ export function VoiceSettings() {
 
       <Separator />
       
-      {/* 注意事項 */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-4">
-          <div className="text-sm text-blue-700 space-y-2">
-            <p className="font-medium">📝 VOICEVOX使用時の注意事項：</p>
-            <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>VOICEVOXアプリケーションを事前に起動してください</li>
-              <li>デフォルトポート（50021）で起動していることを確認してください</li>
-              <li>初回使用時は話者データのダウンロードが必要な場合があります</li>
-              <li>音声合成にはインターネット接続は不要です（ローカル処理）</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 注意事項（ローカルAPI使用時のみ） */}
+      {settings.engine === "voicevox" && !settings.voicevox.useWebApi && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="pt-4">
+            <div className="text-sm text-blue-700 space-y-2">
+              <p className="font-medium">📝 VOICEVOX ローカルAPI使用時の注意事項：</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>VOICEVOXアプリケーションを事前に起動してください</li>
+                <li>デフォルトポート（50021）で起動していることを確認してください</li>
+                <li>初回使用時は話者データのダウンロードが必要な場合があります</li>
+                <li>音声合成にはインターネット接続は不要です（ローカル処理）</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Web API使用時の注意事項 */}
+      {settings.engine === "voicevox" && settings.voicevox.useWebApi && (
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="pt-4">
+            <div className="text-sm text-green-700 space-y-2">
+              <p className="font-medium">✨ VOICEVOX Web API使用時の利点：</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>VOICEVOXアプリケーションのインストール不要</li>
+                <li>即座に高品質な日本語音声合成が利用可能</li>
+                <li>APIキーを設定するだけで簡単に開始</li>
+                <li>クラウドベースで常に最新の音声エンジン</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 } 
