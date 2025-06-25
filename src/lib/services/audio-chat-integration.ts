@@ -5,7 +5,7 @@
 
 import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
-import { SpeechSynthesisService } from "./speech-synthesis";
+import { IntegratedSpeechService } from "./integrated-speech-service";
 import { integratedLipSyncService } from "./integrated-lipsync-service";
 import type {
   AudioConfig,
@@ -59,7 +59,7 @@ export type AudioChatStatus =
 export class AudioChatIntegrationService {
   private audioInput: AudioInputService;
   private speechRecognition: SpeechRecognitionService;
-  private speechSynthesis: SpeechSynthesisService;
+  private speechSynthesis: IntegratedSpeechService;
   private config: AudioChatConfig;
   private callbacks: AudioChatCallbacks;
   private status: AudioChatStatus = "idle";
@@ -73,7 +73,7 @@ export class AudioChatIntegrationService {
     // サービス初期化（引数なしで初期化）
     this.audioInput = new AudioInputService();
     this.speechRecognition = new SpeechRecognitionService();
-    this.speechSynthesis = new SpeechSynthesisService();
+    this.speechSynthesis = new IntegratedSpeechService();
 
     this.setupEventHandlers();
     this.updateServiceConfigs();
@@ -91,14 +91,9 @@ export class AudioChatIntegrationService {
       maxAlternatives: 1,
     });
 
-    // 音声合成設定を更新
-    this.speechSynthesis.updateConfig({
-      voice: this.config.speechSynthesis.voice,
-      rate: this.config.speechSynthesis.rate,
-      pitch: this.config.speechSynthesis.pitch,
-      volume: this.config.speechSynthesis.volume,
-      language: this.config.speechRecognition.language,
-    });
+    // 音声合成設定を更新（統合サービス用）
+    // Note: 統合音声サービスは設定ストアから設定を取得するため、
+    // 直接的な設定更新は不要。必要に応じてストアを更新する。
   }
 
   /**
@@ -137,18 +132,18 @@ export class AudioChatIntegrationService {
 
     // 音声合成イベント
     this.speechSynthesis.setEventListeners({
-      onSpeechStart: () => {
+      onSpeakStart: () => {
         this.setStatus("speaking");
         this.callbacks.onSpeechStart?.();
       },
-      onSpeechEnd: () => {
+      onSpeakEnd: () => {
         this.setStatus("idle");
         this.callbacks.onSpeechEnd?.();
       },
-      onError: (error: string) => {
+      onError: (error) => {
         this.handleError({
           type: "speech-synthesis-failed",
-          message: error,
+          message: error.message,
         });
       },
     });
@@ -296,6 +291,9 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
+      if (!text || text.trim().length === 0) {
+        return;
+      }
 
       // アニメーション制御サービスで感情解析とアニメーション実行
       if (typeof window !== "undefined") {
@@ -308,13 +306,15 @@ export class AudioChatIntegrationService {
           windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
             text
           );
-        } else {
         }
-      } else {
       }
 
-      // 統合リップシンクサービスでAI応答リップシンクを開始
-      await integratedLipSyncService.startAIResponseLipSync(text);
+      // 統合音声サービスを使用して音声再生
+      const success = await this.speechSynthesis.speak(text);
+      
+      if (!success) {
+        throw new Error("音声合成に失敗しました");
+      }
 
       // 音声合成の完了を監視するためのPromiseを作成
       await this.waitForSpeechCompletion(text);
@@ -331,7 +331,6 @@ export class AudioChatIntegrationService {
    */
   private waitForSpeechCompletion(text: string): Promise<void> {
     return new Promise((resolve) => {
-
       // タイムアウト設定（テキストの長さに基づいて動的に設定）
       const estimatedDuration = Math.max(5000, text.length * 150); // 最低5秒、文字数×150ms
 
@@ -346,18 +345,9 @@ export class AudioChatIntegrationService {
       // 音声合成の完了を監視
       const checkCompletion = () => {
         checkCount++;
-        const status = integratedLipSyncService.getStatus();
         const isSpeaking = this.speechSynthesis.isSpeaking();
 
-        // 詳細ログ（最初の5回と最後の5回、その後は10回に1回）
-        if (
-          checkCount <= 5 ||
-          checkCount >= maxChecks - 5 ||
-          checkCount % 10 === 0
-        ) {
-        }
-
-        if (!status.isTTSSpeaking && !isSpeaking) {
+        if (!isSpeaking) {
           // 音声合成が完了した
           clearTimeout(timeout);
           this.setStatus("idle");
@@ -412,15 +402,9 @@ export class AudioChatIntegrationService {
         maxAlternatives: 1,
       });
     }
-    if (newConfig.speechSynthesis) {
-      this.speechSynthesis.updateConfig({
-        voice: newConfig.speechSynthesis.voice,
-        rate: newConfig.speechSynthesis.rate,
-        pitch: newConfig.speechSynthesis.pitch,
-        volume: newConfig.speechSynthesis.volume,
-        language: this.config.speechRecognition.language,
-      });
-    }
+    // 音声合成設定は統合音声サービスで管理されるため、
+    // 必要に応じて音声設定ストアを更新する
+    // TODO: 音声設定ストアとの連携実装
   }
 
   /**
@@ -438,17 +422,30 @@ export class AudioChatIntegrationService {
   }
 
   /**
-   * 利用可能な音声一覧取得
+   * 利用可能な音声一覧取得（Web Speech API用）
    */
-  public getAvailableVoices(): SpeechSynthesisVoice[] {
-    return this.speechSynthesis.getAvailableVoices();
+  public async getAvailableVoices(): Promise<SpeechSynthesisVoice[]> {
+    // Web Speech APIの音声一覧を取得
+    // 統合音声サービスからWeb Speech部分の音声を取得
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      return window.speechSynthesis.getVoices();
+    }
+    return [];
   }
 
   /**
-   * 日本語音声一覧取得
+   * 日本語音声一覧取得（Web Speech API用）
    */
-  public getJapaneseVoices(): SpeechSynthesisVoice[] {
-    return this.speechSynthesis.getJapaneseVoices();
+  public async getJapaneseVoices(): Promise<SpeechSynthesisVoice[]> {
+    const voices = await this.getAvailableVoices();
+    return voices.filter((voice) => voice.lang.startsWith("ja"));
+  }
+
+  /**
+   * VOICEVOX話者一覧取得
+   */
+  public async getVoicevoxSpeakers() {
+    return await this.speechSynthesis.getVoicevoxSpeakers();
   }
 
   /**

@@ -1,5 +1,5 @@
 import { blendShapeService } from "./blend-shape-service";
-import { SpeechSynthesisService } from "./speech-synthesis";
+import { IntegratedSpeechService } from "./integrated-speech-service";
 import { AdvancedLipSyncService } from "./advanced-lipsync-service";
 import { LipSyncService } from "./lipsync-service";
 
@@ -8,7 +8,7 @@ import { LipSyncService } from "./lipsync-service";
  * TTS音声とリップシンクの統合制御、感情表現、AI応答連動
  */
 export class IntegratedLipSyncService {
-  private speechSynthesis: SpeechSynthesisService;
+  private speechSynthesis: IntegratedSpeechService;
   private advancedLipSync: AdvancedLipSyncService;
   private basicLipSync: LipSyncService;
 
@@ -28,7 +28,7 @@ export class IntegratedLipSyncService {
   private ttsAnimationFrame: number | null = null;
 
   constructor() {
-    this.speechSynthesis = new SpeechSynthesisService();
+    this.speechSynthesis = new IntegratedSpeechService();
     this.advancedLipSync = new AdvancedLipSyncService();
     this.basicLipSync = new LipSyncService();
 
@@ -41,13 +41,13 @@ export class IntegratedLipSyncService {
   private setupTTSIntegration(): void {
     // TTS音声合成イベントの監視
     this.speechSynthesis.setEventListeners({
-      onSpeechStart: () => {
+      onSpeakStart: () => {
         this.handleTTSSpeechStart();
       },
-      onSpeechEnd: () => {
+      onSpeakEnd: () => {
         this.handleTTSSpeechEnd();
       },
-      onError: (_error: string) => {
+      onError: (_error) => {
         this.handleTTSSpeechEnd();
       },
     });
@@ -73,10 +73,9 @@ export class IntegratedLipSyncService {
       await this.prepareTTSLipSync();
 
       // TTS音声開始（リップシンクは自動で開始される）
-      const success = this.speechSynthesis.speak(responseText);
+      const success = await this.speechSynthesis.speak(responseText);
 
       if (success) {
-
         // 音声合成の状態を定期的にチェック
         this.startSpeechStatusMonitoring();
       } else {
