@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AISettings, AIProviderConfig, ChatMessage, CustomPromptSettings } from "../types/ai";
+import type {
+  AISettings,
+  AIProviderConfig,
+  ChatMessage,
+  CustomPromptSettings,
+} from "../types/ai";
 import { createAIConfigFromEnv } from "../config/env";
 import { ClientAIService } from "../services/client-ai";
 
@@ -36,11 +41,8 @@ interface AIStore {
  */
 const createDefaultCustomPrompt = (): CustomPromptSettings => ({
   enabled: true,
-  content: `あなたは親しみやすく、知識豊富なAIアシスタントです。
-ユーザーの質問に対して丁寧で分かりやすい回答を心がけてください。
-専門用語を使う場合は、簡単な説明も併せて提供してください。
-会話は自然で親しみやすいトーンで行い、必要に応じて例を挙げて説明してください。`,
-  lastUpdated: new Date(),
+  content: `あなたは親しみやすく、知識豊富な人間です。ユーザーの質問に対して丁寧で分かりやすい回答を心がけてください。`,
+  lastUpdated: new Date(), // Dateオブジェクトとして作成
 });
 
 /**
@@ -141,12 +143,12 @@ export const useAIStore = create<AIStore>()(
       // カスタムプロンプトを更新
       updateCustomPrompt: (prompt) => {
         console.log("🔧 [AI Store Debug] updateCustomPrompt 呼び出し:", prompt);
-        
+
         set((state) => {
-          const newCustomPrompt = {
+          const newCustomPrompt: CustomPromptSettings = {
             ...state.settings.customPrompt,
             ...prompt,
-            lastUpdated: new Date(),
+            lastUpdated: new Date(), // Dateオブジェクトとして保存
           };
 
           const newSettings = {
@@ -223,7 +225,6 @@ export const useAIStore = create<AIStore>()(
             }
           }
         } catch (error) {
-
           // エラーの種類に応じてメッセージを変更
           let errorContent = "エラーが発生しました。設定を確認してください。";
 
@@ -284,44 +285,36 @@ export const useAIStore = create<AIStore>()(
       partialize: (state) => ({
         settings: state.settings,
       }),
-      // ストレージの読み書き処理をカスタマイズ
-      storage: {
-        getItem: (name) => {
-          const item = localStorage.getItem(name);
-          console.log("🔧 [AI Store Debug] ローカルストレージから読み込み:", name, item);
-          return item;
-        },
-        setItem: (name, value) => {
-          console.log("🔧 [AI Store Debug] ローカルストレージに保存:", name, value);
-          localStorage.setItem(name, value);
-        },
-        removeItem: (name) => {
-          console.log("🔧 [AI Store Debug] ローカルストレージから削除:", name);
-          localStorage.removeItem(name);
-        },
-      },
       // 復元処理
       onRehydrateStorage: () => (state) => {
         console.log("🔧 [AI Store Debug] ストア復元開始:", state);
-        
-        if (state?.settings?.customPrompt?.lastUpdated) {
-          // 文字列として保存されたDateを復元
-          state.settings.customPrompt.lastUpdated = new Date(
-            state.settings.customPrompt.lastUpdated
-          );
+
+        if (state && state.settings) {
+          // カスタムプロンプトが存在する場合、lastUpdatedをDateオブジェクトに変換
+          if (state.settings.customPrompt?.lastUpdated) {
+            try {
+              // 文字列の場合はDateオブジェクトに変換
+              if (typeof state.settings.customPrompt.lastUpdated === "string") {
+                state.settings.customPrompt.lastUpdated = new Date(
+                  state.settings.customPrompt.lastUpdated
+                );
+              }
+            } catch (error) {
+              console.error("🔧 [AI Store Debug] Date変換エラー:", error);
+              state.settings.customPrompt.lastUpdated = new Date();
+            }
+          }
+
+          // カスタムプロンプトが存在しない場合はデフォルトを設定
+          if (!state.settings.customPrompt) {
+            console.log(
+              "🔧 [AI Store Debug] カスタムプロンプトが存在しないため、デフォルトを設定"
+            );
+            state.settings.customPrompt = createDefaultCustomPrompt();
+          }
         }
-        
-        // カスタムプロンプトが存在しない場合はデフォルトを設定
-        if (!state?.settings?.customPrompt) {
-          console.log("🔧 [AI Store Debug] カスタムプロンプトが存在しないため、デフォルトを設定");
-          state.settings.customPrompt = createDefaultCustomPrompt();
-        }
-        
+
         console.log("🔧 [AI Store Debug] ストア復元完了:", state);
-      },
-      // 復元完了時のコールバック
-      onRehydrateStorageComplete: () => {
-        console.log("🔧 [AI Store Debug] ストア復元処理完了");
       },
     }
   )

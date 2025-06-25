@@ -30,7 +30,7 @@ export interface CustomPromptSettings {
   /** カスタムプロンプトの内容 */
   content: string;
   /** 最終更新日時 */
-  lastUpdated: Date;
+  lastUpdated: Date | string;
 }
 
 /**
