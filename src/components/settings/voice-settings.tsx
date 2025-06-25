@@ -311,7 +311,10 @@ export function VoiceSettings() {
             <div className="space-y-2">
               <label className="text-sm font-medium">音声</label>
               <Select
-                value={settings.webspeech.voice ? webSpeechVoices.findIndex(v => v.name === settings.webspeech.voice?.name).toString() : ""}
+                value={settings.webspeech.voice && webSpeechVoices.length > 0 
+                  ? webSpeechVoices.findIndex(v => v.name === settings.webspeech.voice?.name).toString() 
+                  : ""
+                }
                 onValueChange={handleWebSpeechVoiceChange}
               >
                 <SelectTrigger>
@@ -439,7 +442,7 @@ export function VoiceSettings() {
                 <label className="text-sm font-medium">APIキー</label>
                 <input
                   type="password"
-                  value={settings.voicevox.apiKey || ""}
+                  value={settings.voicevox.apiKey ?? ""}
                   onChange={(e) => updateVoicevoxConfig({ apiKey: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md"
                   placeholder="APIキーを入力してください"
@@ -477,7 +480,7 @@ export function VoiceSettings() {
               <div className="flex space-x-2">
                 <input
                   type="text"
-                  value={settings.voicevox.serverUrl}
+                  value={settings.voicevox.serverUrl ?? ""}
                   onChange={(e) => updateVoicevoxConfig({ serverUrl: e.target.value })}
                   className="flex-1 px-3 py-2 border rounded-md"
                   placeholder={settings.voicevox.useWebApi ? "https://deprecatedapis.tts.quest/v2/voicevox" : "http://localhost:50021"}
@@ -485,7 +488,7 @@ export function VoiceSettings() {
                 />
                 <Button
                   onClick={handleConnectionTest}
-                  disabled={isTestingConnection || (settings.voicevox.useWebApi && !settings.voicevox.apiKey)}
+                  disabled={isTestingConnection || (settings.voicevox.useWebApi && !settings.voicevox.apiKey.trim())}
                   variant="outline"
                 >
                   {isTestingConnection ? (
@@ -501,7 +504,7 @@ export function VoiceSettings() {
                   Web API使用時はURL変更できません
                 </p>
               )}
-              {settings.voicevox.useWebApi && !settings.voicevox.apiKey && (
+              {settings.voicevox.useWebApi && !settings.voicevox.apiKey.trim() && (
                 <p className="text-xs text-amber-600">
                   ⚠️ APIキーが設定されていません
                 </p>
