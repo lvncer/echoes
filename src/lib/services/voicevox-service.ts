@@ -137,30 +137,35 @@ export class VoicevoxService {
         throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
       }
 
+      let url: string;
       const headers: Record<string, string> = {};
-      
-      // Web API使用時はAPIキーをヘッダーに追加
-      if (this.config.useWebApi && this.config.apiKey) {
-        headers["X-API-Key"] = this.config.apiKey;
+
+      if (this.config.useWebApi) {
+        // Web API使用時はプロキシ経由でアクセス
+        url = `/api/voicevox?endpoint=/speakers/`;
+        headers["X-API-Key"] = this.config.apiKey!;
+      } else {
+        // ローカルAPI使用時は直接アクセス
+        url = `${this.config.serverUrl}/speakers`;
       }
 
-      const endpoint = this.config.useWebApi ? "/speakers/" : "/speakers";
-      const response = await fetch(`${this.config.serverUrl}${endpoint}`, {
+      const response = await fetch(url, {
         method: "GET",
         headers,
         signal: AbortSignal.timeout(this.config.timeout),
       });
 
       if (!response.ok) {
-        // Web APIでAPIキーエラーの場合
-        if (this.config.useWebApi && response.status === 403) {
-          throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
-        }
-        
         try {
           const errorData: VoicevoxError = await response.json();
-          throw new Error(`話者情報取得エラー: ${errorData.detail || errorData.errorMessage || "不明なエラー"}`);
-        } catch {
+          const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
+          
+          if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
+            throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+          }
+          
+          throw new Error(`話者情報取得エラー: ${errorMessage}`);
+        } catch (_parseError) {
           throw new Error(`話者情報取得エラー (HTTP ${response.status}): ${response.statusText}`);
         }
       }
@@ -216,36 +221,41 @@ export class VoicevoxService {
       throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
     }
 
-    const endpoint = this.config.useWebApi ? "/audio_query/" : "/audio_query";
-    const url = new URL(`${this.config.serverUrl}${endpoint}`);
-    url.searchParams.set("text", text);
-    url.searchParams.set("speaker", speakerId.toString());
-
+    let url: string;
     const headers: Record<string, string> = {};
-    
-    // Web API使用時はAPIキーをヘッダーに追加
-    if (this.config.useWebApi && this.config.apiKey) {
-      headers["X-API-Key"] = this.config.apiKey;
+
+    if (this.config.useWebApi) {
+      // Web API使用時はプロキシ経由でアクセス
+      const endpoint = `/audio_query/?text=${encodeURIComponent(text)}&speaker=${speakerId}`;
+      url = `/api/voicevox?endpoint=${encodeURIComponent(endpoint)}`;
+      headers["X-API-Key"] = this.config.apiKey!;
+    } else {
+      // ローカルAPI使用時は直接アクセス
+      const localUrl = new URL(`${this.config.serverUrl}/audio_query`);
+      localUrl.searchParams.set("text", text);
+      localUrl.searchParams.set("speaker", speakerId.toString());
+      url = localUrl.toString();
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: "POST",
       headers,
       signal: AbortSignal.timeout(this.config.timeout),
     });
 
     if (!response.ok) {
-      // Web APIでAPIキーエラーの場合
-      if (this.config.useWebApi && response.status === 403) {
-        throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
-      }
-      
       try {
         const errorData: VoicevoxError = await response.json();
-        throw new Error(`AudioQuery作成エラー: ${errorData.detail || errorData.errorMessage || "不明なエラー"}`);
-      } catch {
-        throw new Error(`AudioQuery作成エラー (HTTP ${response.status}): ${response.statusText}`);
-      }
+        const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
+        
+        if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
+          throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+        }
+        
+        throw new Error(`AudioQuery作成エラー: ${errorMessage}`);
+              } catch (_parseError) {
+          throw new Error(`AudioQuery作成エラー (HTTP ${response.status}): ${response.statusText}`);
+        }
     }
 
     return await response.json();
@@ -260,20 +270,24 @@ export class VoicevoxService {
       throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
     }
 
-    const endpoint = this.config.useWebApi ? "/synthesis/" : "/synthesis";
-    const url = new URL(`${this.config.serverUrl}${endpoint}`);
-    url.searchParams.set("speaker", speakerId.toString());
-
+    let url: string;
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    
-    // Web API使用時はAPIキーをヘッダーに追加
-    if (this.config.useWebApi && this.config.apiKey) {
-      headers["X-API-Key"] = this.config.apiKey;
+
+    if (this.config.useWebApi) {
+      // Web API使用時はプロキシ経由でアクセス
+      const endpoint = `/synthesis/?speaker=${speakerId}`;
+      url = `/api/voicevox?endpoint=${encodeURIComponent(endpoint)}`;
+      headers["X-API-Key"] = this.config.apiKey!;
+    } else {
+      // ローカルAPI使用時は直接アクセス
+      const localUrl = new URL(`${this.config.serverUrl}/synthesis`);
+      localUrl.searchParams.set("speaker", speakerId.toString());
+      url = localUrl.toString();
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(audioQuery),
@@ -281,17 +295,18 @@ export class VoicevoxService {
     });
 
     if (!response.ok) {
-      // Web APIでAPIキーエラーの場合
-      if (this.config.useWebApi && response.status === 403) {
-        throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
-      }
-      
       try {
         const errorData: VoicevoxError = await response.json();
-        throw new Error(`音声合成エラー: ${errorData.detail || errorData.errorMessage || "不明なエラー"}`);
-      } catch {
-        throw new Error(`音声合成エラー (HTTP ${response.status}): ${response.statusText}`);
-      }
+        const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
+        
+        if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
+          throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+        }
+        
+        throw new Error(`音声合成エラー: ${errorMessage}`);
+              } catch (_parseError) {
+          throw new Error(`音声合成エラー (HTTP ${response.status}): ${response.statusText}`);
+        }
     }
 
     return await response.blob();

@@ -82,6 +82,7 @@ export interface VoicevoxServerInfo {
 export interface VoicevoxError {
   detail?: string;
   errorMessage?: string; // Web API用
+  error?: string; // プロキシAPI用
 }
 
 export const DEFAULT_VOICEVOX_CONFIG: VoicevoxConfig = {
