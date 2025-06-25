@@ -8,37 +8,45 @@ import { Separator } from "@/components/ui/separator";
 import { Save, RotateCcw } from "lucide-react";
 import Chat from "../chat";
 
-export function AISettings() {
-  const { settings, updateCustomPrompt } = useAIStore();
-  
-  // カスタムプロンプト設定のデフォルト値を定義
-  const defaultCustomPrompt = {
-    enabled: true,
-    content: `あなたは親しみやすく、知識豊富なAIアシスタントです。
+// カスタムプロンプト設定のデフォルト値を定義（コンポーネント外で定義）
+const defaultCustomPrompt = {
+  enabled: true,
+  content: `あなたは親しみやすく、知識豊富なAIアシスタントです。
 ユーザーの質問に対して丁寧で分かりやすい回答を心がけてください。
 専門用語を使う場合は、簡単な説明も併せて提供してください。
 会話は自然で親しみやすいトーンで行い、必要に応じて例を挙げて説明してください。`,
-    lastUpdated: new Date(),
-  };
+  lastUpdated: new Date(),
+};
 
+export function AISettings() {
+  const { settings, updateCustomPrompt } = useAIStore();
+  
   // 安全にカスタムプロンプト設定を取得
   const customPrompt = settings.customPrompt || defaultCustomPrompt;
   
   const [promptText, setPromptText] = useState(customPrompt.content);
   const [isEnabled, setIsEnabled] = useState(customPrompt.enabled);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // ストアの設定が変更された時に状態を同期
+  // 初回のみ初期化処理を実行
   useEffect(() => {
-    const currentCustomPrompt = settings.customPrompt || defaultCustomPrompt;
-    setPromptText(currentCustomPrompt.content);
-    setIsEnabled(currentCustomPrompt.enabled);
-    
-    // カスタムプロンプトが未定義の場合、デフォルト値で初期化
-    if (!settings.customPrompt) {
-      updateCustomPrompt(defaultCustomPrompt);
+    if (!isInitialized) {
+      // カスタムプロンプトが未定義の場合、デフォルト値で初期化
+      if (!settings.customPrompt) {
+        updateCustomPrompt(defaultCustomPrompt);
+      }
+      setIsInitialized(true);
     }
-  }, [settings.customPrompt, defaultCustomPrompt, updateCustomPrompt]);
+  }, [settings.customPrompt, updateCustomPrompt, isInitialized]);
+
+  // ストアの設定が変更された時に状態を同期（初期化後のみ）
+  useEffect(() => {
+    if (isInitialized && settings.customPrompt) {
+      setPromptText(settings.customPrompt.content);
+      setIsEnabled(settings.customPrompt.enabled);
+    }
+  }, [settings.customPrompt, isInitialized]);
 
   const handleSave = async () => {
     setIsSaving(true);
