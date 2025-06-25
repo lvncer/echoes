@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAIStore } from "@/lib/stores/ai-store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,9 +10,35 @@ import Chat from "../chat";
 
 export function AISettings() {
   const { settings, updateCustomPrompt } = useAIStore();
-  const [promptText, setPromptText] = useState(settings.customPrompt.content);
-  const [isEnabled, setIsEnabled] = useState(settings.customPrompt.enabled);
+  
+  // カスタムプロンプト設定のデフォルト値を定義
+  const defaultCustomPrompt = {
+    enabled: true,
+    content: `あなたは親しみやすく、知識豊富なAIアシスタントです。
+ユーザーの質問に対して丁寧で分かりやすい回答を心がけてください。
+専門用語を使う場合は、簡単な説明も併せて提供してください。
+会話は自然で親しみやすいトーンで行い、必要に応じて例を挙げて説明してください。`,
+    lastUpdated: new Date(),
+  };
+
+  // 安全にカスタムプロンプト設定を取得
+  const customPrompt = settings.customPrompt || defaultCustomPrompt;
+  
+  const [promptText, setPromptText] = useState(customPrompt.content);
+  const [isEnabled, setIsEnabled] = useState(customPrompt.enabled);
   const [isSaving, setIsSaving] = useState(false);
+
+  // ストアの設定が変更された時に状態を同期
+  useEffect(() => {
+    const currentCustomPrompt = settings.customPrompt || defaultCustomPrompt;
+    setPromptText(currentCustomPrompt.content);
+    setIsEnabled(currentCustomPrompt.enabled);
+    
+    // カスタムプロンプトが未定義の場合、デフォルト値で初期化
+    if (!settings.customPrompt) {
+      updateCustomPrompt(defaultCustomPrompt);
+    }
+  }, [settings.customPrompt, defaultCustomPrompt, updateCustomPrompt]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -37,8 +63,8 @@ export function AISettings() {
   };
 
   const hasChanges = 
-    promptText !== settings.customPrompt.content || 
-    isEnabled !== settings.customPrompt.enabled;
+    promptText !== customPrompt.content || 
+    isEnabled !== customPrompt.enabled;
 
   return (
     <div className="space-y-6">
@@ -82,7 +108,7 @@ export function AISettings() {
                 }`}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {promptText.length} 文字 | 最終更新: {settings.customPrompt.lastUpdated.toLocaleString('ja-JP')}
+                {promptText.length} 文字 | 最終更新: {customPrompt.lastUpdated.toLocaleString('ja-JP')}
               </p>
             </div>
 
