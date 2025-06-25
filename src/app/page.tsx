@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 
-
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -45,9 +44,9 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
 
   // モデルストアからデフォルトモデル初期化関数を取得
-  const { 
-    initializeDefaultModel, 
-    currentModel, 
+  const {
+    initializeDefaultModel,
+    currentModel,
     getStorageStatus,
     forceInitialize,
   } = useModelStore();
@@ -62,10 +61,10 @@ export default function Home() {
   useEffect(() => {
     const initializeModel = async () => {
       console.log("🏠 ルートページ: モデル初期化開始");
-      
+
       const status = getStorageStatus();
       console.log("📊 ストレージ状態:", status);
-      
+
       if (!status.hasValidCurrentModel) {
         console.log("⚠️ 有効なcurrentModelが存在しません。初期化を実行します");
         await forceInitialize();
@@ -120,12 +119,9 @@ export default function Home() {
       onTranscriptReceived: (transcript: string, _isFinal: boolean) => {
         setCurrentTranscript(transcript);
       },
-      onAIResponseReceived: (_response: string) => {
-      },
-      onSpeechStart: () => {
-      },
-      onSpeechEnd: () => {
-      },
+      onAIResponseReceived: (_response: string) => {},
+      onSpeechStart: () => {},
+      onSpeechEnd: () => {},
       onError: (error: AudioError) => {
         setError(error.message);
       },
@@ -243,26 +239,22 @@ export default function Home() {
 
       {/* オーバーレイUI要素 */}
       {/* サイト名 - 左上 */}
-      <div className="absolute top-4 left-4 z-30">
-        <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-white/20">
+      <div className="absolute top-8 left-8 z-30">
+        <div className="flex items-center gap-3">
           <Box className="w-8 h-8 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Echoes</h1>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-            v1.0.0
-          </span>
+          <h1 className="text-2xl font-bold text-gray-100">echoes</h1>
         </div>
       </div>
 
       {/* 設定ボタン - 右上 */}
-      <div className="absolute top-4 right-4 z-30">
+      <div className="absolute top-8 right-8 z-30">
         <Button
-          variant="ghost"
-          size="sm"
+          variant="default"
+          size="default"
           onClick={() => setIsSettingsOpen(true)}
-          className="flex items-center gap-2 bg-white/90 backdrop-blur-sm hover:bg-white/95 shadow-lg border border-white/20"
+          className="flex items-center gap-2 cursor-pointer"
         >
-          <Settings className="w-4 h-4" />
-          設定
+          <Settings className="w-4 h-4 text-white" />
         </Button>
       </div>
 
@@ -277,12 +269,8 @@ export default function Home() {
 
       {/* 音声認識結果表示 */}
       {currentTranscript && (
-        <div className="absolute top-20 left-4 right-4 z-20">
-          <div className="bg-blue-50/95 backdrop-blur-sm border border-blue-200 rounded-lg p-3 shadow-lg">
-            <p className="text-sm text-blue-800">
-              <strong>認識中:</strong> {currentTranscript}
-            </p>
-          </div>
+        <div className="absolute top-20 left-8 right-8 z-20">
+          <p className="text-sm text-white">{currentTranscript}</p>
         </div>
       )}
 
@@ -322,8 +310,8 @@ export default function Home() {
             variant="outline"
             size="lg"
             className={`flex items-center gap-2 backdrop-blur-sm shadow-lg border ${
-              isVoiceChatActive 
-                ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500" 
+              isVoiceChatActive
+                ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
                 : "bg-white/90 hover:bg-white/95 text-gray-900 border-white/20"
             }`}
             disabled={status === "processing" || status === "speaking"}

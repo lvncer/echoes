@@ -183,11 +183,11 @@ export function Ground() {
     >
       <planeGeometry args={[30, 30]} />
       <meshStandardMaterial
-        color="#ffffff"
-        roughness={0.8}
-        metalness={0.1}
+        color="#000000"
+        roughness={1}
+        metalness={1}
         transparent
-        opacity={0.9}
+        opacity={1}
       />
     </mesh>
   );

@@ -132,7 +132,7 @@ export const Model3DViewer = memo(function Model3DViewer({
             sceneConfig={finalSceneConfig}
             cameraConfig={finalCameraConfig}
             showStats={process.env.NODE_ENV === "development"}
-            showGrid={true}
+            showGrid={false}
             className="w-full h-full"
           >
             {/* 地面 */}
