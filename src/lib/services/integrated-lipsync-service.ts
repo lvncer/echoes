@@ -170,7 +170,6 @@ export class IntegratedLipSyncService {
    */
   private async handleVoicevoxAudioReady(audioElement: HTMLAudioElement): Promise<void> {
     try {
-      console.log("VOICEVOX音声要素準備完了、リップシンク開始");
       // VOICEVOX音声のリップシンク準備
       await this.startVoicevoxLipSync(audioElement);
     } catch (error) {
@@ -210,8 +209,6 @@ export class IntegratedLipSyncService {
     setTimeout(() => {
       this.applyEmotion("neutral", 0.3);
     }, 500);
-
-    console.log("TTS音声終了、リップシンク停止");
   }
 
   /**
@@ -291,8 +288,6 @@ export class IntegratedLipSyncService {
 
       // リアルタイム解析開始
       this.startVoicevoxRealtimeLipSync();
-      
-      console.log("VOICEVOX リップシンク開始成功");
     } catch (error) {
       console.error("VOICEVOX リップシンク開始エラー:", error);
       // フォールバック：簡易リップシンク
@@ -305,14 +300,11 @@ export class IntegratedLipSyncService {
    */
   private startVoicevoxRealtimeLipSync(): void {
     if (!this.ttsAnalyser) {
-      console.warn("アナライザーが利用できません");
       return;
     }
 
-    console.log("VOICEVOXリアルタイムリップシンク開始");
     const bufferLength = this.ttsAnalyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    let frameCount = 0;
 
     const animate = () => {
       if (!this.isTTSSpeaking || !this.ttsAnalyser) return;
@@ -328,12 +320,6 @@ export class IntegratedLipSyncService {
       const lowFreq = this.getFrequencyBandAverage(dataArray, 0, 4); // 低音域
       const midFreq = this.getFrequencyBandAverage(dataArray, 4, 16); // 中音域
       const highFreq = this.getFrequencyBandAverage(dataArray, 16, 32); // 高音域
-
-      // デバッグログ（30フレームごとに出力）
-      if (frameCount % 30 === 0) {
-        console.log(`リップシンク解析: 音量=${normalizedVolume.toFixed(3)}, 低音=${lowFreq.toFixed(3)}, 中音=${midFreq.toFixed(3)}, 高音=${highFreq.toFixed(3)}`);
-      }
-      frameCount++;
 
       // 音素推定とブレンドシェイプ適用
       this.applyVoicevoxLipSync(normalizedVolume, lowFreq, midFreq, highFreq);
@@ -400,11 +386,6 @@ export class IntegratedLipSyncService {
     
     if (secondaryWeight > 0 && secondaryPhoneme) {
       blendShapeService.setBlendShapeWeight(secondaryPhoneme, secondaryWeight);
-    }
-
-    // デバッグログ（音量が一定以上の時のみ）
-    if (volume > 0.1) {
-      console.debug(`リップシンク適用: ${primaryPhoneme}(${primaryWeight.toFixed(2)})${secondaryPhoneme ? `, ${secondaryPhoneme}(${secondaryWeight.toFixed(2)})` : ''}`);
     }
   }
 

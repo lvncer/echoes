@@ -296,8 +296,6 @@ export class AudioChatIntegrationService {
         return;
       }
 
-      console.log("AI応答音声合成開始:", text);
-
       // 統合リップシンクサービスでAI応答とリップシンクを開始
       await integratedLipSyncService.startAIResponseLipSync(text);
 
@@ -317,10 +315,7 @@ export class AudioChatIntegrationService {
 
       // 音声合成の完了を監視するためのPromiseを作成
       await this.waitForSpeechCompletion(text);
-      
-      console.log("AI応答音声合成完了");
     } catch (error) {
-      console.error("音声合成エラー:", error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,
