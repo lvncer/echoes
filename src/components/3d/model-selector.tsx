@@ -51,8 +51,8 @@ export function ModelSelector({
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+    <div className="bg-gray-800/50 rounded-lg shadow-lg p-4 space-y-4 border border-gray-700">
+      <h3 className="text-lg font-semibold text-white flex items-center gap-2">
         <FileText className="w-5 h-5" />
         3Dモデル管理
       </h3>
@@ -63,8 +63,8 @@ export function ModelSelector({
           border-2 border-dashed rounded-lg p-6 text-center transition-colors
           ${
             dragOver
-              ? "border-blue-400 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400"
+              ? "border-blue-400 bg-blue-900/30"
+              : "border-gray-600 hover:border-gray-500"
           }
           ${isLoading ? "opacity-50 pointer-events-none" : ""}
         `}
@@ -76,12 +76,12 @@ export function ModelSelector({
         onDragLeave={() => setDragOver(false)}
       >
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <p className="text-gray-600 mb-2">
+        <p className="text-gray-300 mb-2">
           VRM、glTF、GLBファイルをドラッグ&ドロップ
         </p>
         <p className="text-sm text-gray-500 mb-4">または</p>
 
-        <label className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer transition-colors">
+        <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
           <Upload className="w-4 h-4 mr-2" />
           ファイルを選択
           <input
@@ -95,8 +95,8 @@ export function ModelSelector({
 
         {isLoading && (
           <div className="mt-4">
-            <div className="inline-flex items-center text-blue-600">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            <div className="inline-flex items-center text-blue-400">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
               読み込み中...
             </div>
           </div>
@@ -106,7 +106,7 @@ export function ModelSelector({
       {/* モデル一覧 */}
       {models.length > 0 && (
         <div className="space-y-2">
-          <h4 className="font-medium text-gray-700">読み込み済みモデル</h4>
+          <h4 className="font-medium text-gray-300">読み込み済みモデル</h4>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {models.map((model) => (
               <ModelItem
@@ -123,7 +123,7 @@ export function ModelSelector({
 
       {/* 空の状態 */}
       {models.length === 0 && !isLoading && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-400">
           <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
           <p>まだモデルが読み込まれていません</p>
           <p className="text-sm">上記からファイルをアップロードしてください</p>
@@ -155,8 +155,8 @@ function ModelItem({
         p-3 rounded-lg border transition-all cursor-pointer
         ${
           isSelected
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+            ? "border-blue-500 bg-blue-900/30"
+            : "border-gray-600 hover:border-gray-500 hover:bg-gray-700/30"
         }
       `}
       onClick={onSelect}
@@ -170,13 +170,13 @@ function ModelItem({
               ${model.format === "vrm" ? "bg-green-500" : "bg-blue-500"}
             `}
             />
-            <h5 className="font-medium text-gray-800 truncate">{model.name}</h5>
-            <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded uppercase">
+            <h5 className="font-medium text-gray-200 truncate">{model.name}</h5>
+            <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded uppercase border border-gray-600">
               {model.format}
             </span>
           </div>
 
-          <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+          <div className="flex items-center gap-4 mt-1 text-sm text-gray-400">
             <span>{(model.size / 1024 / 1024).toFixed(2)} MB</span>
             {model.lastUsed && (
               <span>
@@ -195,7 +195,7 @@ function ModelItem({
               e.stopPropagation();
               setShowInfo(!showInfo);
             }}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-200 transition-colors"
             title="詳細情報"
           >
             <Info className="w-4 h-4" />
@@ -206,7 +206,7 @@ function ModelItem({
               e.stopPropagation();
               onDelete();
             }}
-            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+            className="p-1 text-gray-400 hover:text-red-400 transition-colors"
             title="削除"
           >
             <Trash2 className="w-4 h-4" />
@@ -216,8 +216,8 @@ function ModelItem({
 
       {/* 詳細情報 */}
       {showInfo && (
-        <div className="mt-3 pt-3 border-t border-gray-200 text-sm">
-          <div className="grid grid-cols-2 gap-2 text-gray-600">
+        <div className="mt-3 pt-3 border-t border-gray-600 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-gray-400">
             <div>
               作成日:{" "}
               {model.createdAt instanceof Date
@@ -257,21 +257,21 @@ export function ModelLoadingStatus({
 }) {
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 text-red-800">
+      <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-red-300">
           <div className="w-2 h-2 bg-red-500 rounded-full"></div>
           <span className="font-medium">読み込みエラー</span>
         </div>
-        <p className="text-red-700 text-sm mt-1">{error}</p>
+        <p className="text-red-200 text-sm mt-1">{error}</p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 text-blue-800">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+      <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-blue-300">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
           <span className="font-medium">
             {progress === undefined
               ? "デフォルトモデル読み込み中..."
@@ -280,19 +280,19 @@ export function ModelLoadingStatus({
         </div>
         {progress !== undefined && (
           <div className="mt-2">
-            <div className="bg-blue-200 rounded-full h-2">
+            <div className="bg-blue-800/50 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-blue-400 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <p className="text-blue-700 text-sm mt-1">
+            <p className="text-blue-200 text-sm mt-1">
               {Math.round(progress * 100)}%
             </p>
           </div>
         )}
         {progress === undefined && (
-          <p className="text-blue-700 text-sm mt-1">
+          <p className="text-blue-200 text-sm mt-1">
             ニコニ立体ちゃんを読み込んでいます...
           </p>
         )}

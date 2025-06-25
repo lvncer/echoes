@@ -240,7 +240,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
           </div>
 
           {/* 右側コンテンツエリア */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             <div className="p-6">
               {renderContent()}
             </div>
