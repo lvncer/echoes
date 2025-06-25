@@ -183,7 +183,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden">
+      <DialogContent className="w-[95vw] max-w-[1400px] min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden">
         <DialogHeader className="border-b border-gray-700 pb-4">
           <DialogTitle className="text-2xl font-bold text-white">
             設定
@@ -195,7 +195,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         
         <div className="flex h-full min-h-[600px]">
           {/* 左側サイドバー */}
-          <div className="w-80 border-r border-gray-700 bg-gray-800/30">
+          <div className="w-72 flex-shrink-0 border-r border-gray-700 bg-gray-800/30">
             <div className="p-4">
               <h4 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
                 カテゴリ
