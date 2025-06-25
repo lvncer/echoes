@@ -433,6 +433,34 @@ export function VoiceSettings() {
               </div>
             </div>
 
+            {/* APIキー設定（Web API使用時のみ） */}
+            {settings.voicevox.useWebApi && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">APIキー</label>
+                <input
+                  type="password"
+                  value={settings.voicevox.apiKey || ""}
+                  onChange={(e) => updateVoicevoxConfig({ apiKey: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md"
+                  placeholder="APIキーを入力してください"
+                />
+                                 <div className="text-xs text-gray-600 space-y-1">
+                   <p>VOICEVOX Web APIの利用にはAPIキーが必要です</p>
+                   <p>
+                     APIキーの取得方法:
+                     <a 
+                       href="https://deprecatedapis.tts.quest/" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="text-blue-600 hover:text-blue-800 underline ml-1"
+                     >
+                       こちらから取得
+                     </a>
+                   </p>
+                 </div>
+              </div>
+            )}
+
             {/* サーバー接続設定 */}
             <div className="space-y-2">
               <label className="text-sm font-medium">サーバーURL</label>
@@ -447,7 +475,7 @@ export function VoiceSettings() {
                 />
                 <Button
                   onClick={handleConnectionTest}
-                  disabled={isTestingConnection}
+                  disabled={isTestingConnection || (settings.voicevox.useWebApi && !settings.voicevox.apiKey)}
                   variant="outline"
                 >
                   {isTestingConnection ? (
@@ -461,6 +489,11 @@ export function VoiceSettings() {
               {settings.voicevox.useWebApi && (
                 <p className="text-xs text-gray-600">
                   Web API使用時はURL変更できません
+                </p>
+              )}
+              {settings.voicevox.useWebApi && !settings.voicevox.apiKey && (
+                <p className="text-xs text-amber-600">
+                  ⚠️ APIキーが設定されていません
                 </p>
               )}
             </div>

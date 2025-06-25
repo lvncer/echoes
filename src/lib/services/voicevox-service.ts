@@ -54,9 +54,17 @@ export class VoicevoxService {
 
     try {
       // Web APIの場合は/speakers エンドポイントで確認（/versionが無い場合があるため）
-      const endpoint = this.config.useWebApi ? "/speakers" : "/version";
+      const endpoint = this.config.useWebApi ? "/speakers/" : "/version";
+      const headers: Record<string, string> = {};
+      
+      // Web API使用時はAPIキーをヘッダーに追加
+      if (this.config.useWebApi && this.config.apiKey) {
+        headers["X-API-Key"] = this.config.apiKey;
+      }
+
       const response = await fetch(`${this.config.serverUrl}${endpoint}`, {
         method: "GET",
+        headers,
         signal: AbortSignal.timeout(this.config.timeout),
       });
 
@@ -118,8 +126,17 @@ export class VoicevoxService {
    */
   async getSpeakers(): Promise<VoicevoxSpeaker[]> {
     try {
-      const response = await fetch(`${this.config.serverUrl}/speakers`, {
+      const headers: Record<string, string> = {};
+      
+      // Web API使用時はAPIキーをヘッダーに追加
+      if (this.config.useWebApi && this.config.apiKey) {
+        headers["X-API-Key"] = this.config.apiKey;
+      }
+
+      const endpoint = this.config.useWebApi ? "/speakers/" : "/speakers";
+      const response = await fetch(`${this.config.serverUrl}${endpoint}`, {
         method: "GET",
+        headers,
         signal: AbortSignal.timeout(this.config.timeout),
       });
 
@@ -174,12 +191,21 @@ export class VoicevoxService {
    * AudioQueryを作成
    */
   private async createAudioQuery(text: string, speakerId: number): Promise<AudioQuery> {
-    const url = new URL(`${this.config.serverUrl}/audio_query`);
+    const endpoint = this.config.useWebApi ? "/audio_query/" : "/audio_query";
+    const url = new URL(`${this.config.serverUrl}${endpoint}`);
     url.searchParams.set("text", text);
     url.searchParams.set("speaker", speakerId.toString());
 
+    const headers: Record<string, string> = {};
+    
+    // Web API使用時はAPIキーをヘッダーに追加
+    if (this.config.useWebApi && this.config.apiKey) {
+      headers["X-API-Key"] = this.config.apiKey;
+    }
+
     const response = await fetch(url.toString(), {
       method: "POST",
+      headers,
       signal: AbortSignal.timeout(this.config.timeout),
     });
 
@@ -195,14 +221,22 @@ export class VoicevoxService {
    * AudioQueryから音声を合成
    */
   private async synthesizeFromQuery(audioQuery: AudioQuery, speakerId: number): Promise<Blob> {
-    const url = new URL(`${this.config.serverUrl}/synthesis`);
+    const endpoint = this.config.useWebApi ? "/synthesis/" : "/synthesis";
+    const url = new URL(`${this.config.serverUrl}${endpoint}`);
     url.searchParams.set("speaker", speakerId.toString());
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    // Web API使用時はAPIキーをヘッダーに追加
+    if (this.config.useWebApi && this.config.apiKey) {
+      headers["X-API-Key"] = this.config.apiKey;
+    }
 
     const response = await fetch(url.toString(), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(audioQuery),
       signal: AbortSignal.timeout(this.config.timeout),
     });

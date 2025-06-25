@@ -62,6 +62,7 @@ export interface VoicevoxConfig {
   autoFallback: boolean;
   timeout: number;
   useWebApi: boolean; // Web API使用フラグ
+  apiKey?: string; // Web API用APIキー
 }
 
 export interface VoicevoxServerInfo {
@@ -97,6 +98,7 @@ export const VOICEVOX_WEB_API_CONFIG: VoicevoxConfig = {
   autoFallback: true,
   timeout: 15000, // Web APIは少し長めに設定
   useWebApi: true,
+  apiKey: undefined, // ユーザーが設定する
 };
 
 // 話者ID マッピング（クレジット表記用）
