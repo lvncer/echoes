@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { generateEmotionalResponse } from "@/app/actions/emotion-actions";
 import { useEmotionStore } from "@/lib/stores/emotion-store";
+import { useAIStore } from "@/lib/stores/ai-store";
 import { getEmotionBridge } from "@/lib/services/emotion-bridge";
 
 /**
@@ -14,6 +15,7 @@ export function EmotionChat() {
   const [messages, setMessages] = useState<string[]>([]);
   const { setEmotion, setProcessing, isProcessing, currentEmotion, intensity } =
     useEmotionStore();
+  const { settings } = useAIStore();
 
   // Phase 3: エラー状態とUX改善
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +58,11 @@ export function EmotionChat() {
     setProcessing(true);
 
     try {
-      const result = await generateEmotionalResponse(input);
+      // カスタムプロンプト設定を取得
+      const customPrompt = settings.customPrompt;
+      console.log("🔧 [Emotion Chat Debug] カスタムプロンプト送信:", customPrompt);
+      
+      const result = await generateEmotionalResponse(input, customPrompt);
 
       if (result.success && result.data) {
         const { text, emotions } = result.data;

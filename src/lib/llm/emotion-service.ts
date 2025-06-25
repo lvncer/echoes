@@ -9,7 +9,24 @@ export interface EmotionTag {
 }
 
 export class EmotionService {
-  async generateResponse(userInput: string): Promise<{
+  /**
+   * カスタムプロンプト設定を取得
+   */
+  private getCustomPromptSettings() {
+    // ブラウザ環境でのみZustandストアにアクセス
+    if (typeof window !== "undefined") {
+      try {
+        // 動的インポートでZustandストアを取得
+        const { useAIStore } = require("@/lib/stores/ai-store");
+        return useAIStore.getState().settings.customPrompt;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  async generateResponse(userInput: string, customPrompt?: { enabled: boolean; content: string }): Promise<{
     text: string;
     emotions: EmotionTag[];
   }> {
@@ -26,16 +43,44 @@ export class EmotionService {
     try {
       const google = createGoogleGenerativeAI({ apiKey });
 
-      const { text } = await generateText({
-        model: google("gemini-1.5-flash"),
-        system: `
+      // カスタムプロンプト設定を取得
+      const customPromptSettings = customPrompt || this.getCustomPromptSettings();
+      
+      // システムプロンプトを構築
+      let systemPrompt = `
         あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
         [emotion:happy:0.8] - 喜び（強度0.8）
         [emotion:sad:0.6] - 悲しみ（強度0.6）
 
         利用可能な感情: neutral, happy, sad, angry, surprised
         文脈に応じて自然な感情を選択してください。
-      `,
+      `;
+
+      // カスタムプロンプトが有効な場合は置き換える
+      if (customPromptSettings?.enabled && customPromptSettings.content) {
+        console.log("🔧 [Emotion Service Debug] カスタムプロンプトを適用:", {
+          enabled: customPromptSettings.enabled,
+          contentLength: customPromptSettings.content.length,
+          content: customPromptSettings.content.substring(0, 100) + "..."
+        });
+        
+        systemPrompt = `
+        ${customPromptSettings.content}
+        
+        重要: 応答には必ず以下の感情タグを含めてください：
+        [emotion:happy:0.8] - 喜び（強度0.8）
+        [emotion:sad:0.6] - 悲しみ（強度0.6）
+        
+        利用可能な感情: neutral, happy, sad, angry, surprised
+        キャラクターに合った感情を選択してください。
+        `;
+      } else {
+        console.log("🔧 [Emotion Service Debug] デフォルトプロンプトを使用");
+      }
+
+      const { text } = await generateText({
+        model: google("gemini-1.5-flash"),
+        system: systemPrompt,
         prompt: userInput,
       });
 
