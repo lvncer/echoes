@@ -287,6 +287,42 @@ export class VRMBlendShapeService {
   }
 
   /**
+   * 口元のブレンドシェイプのみをリセット
+   */
+  resetMouthBlendShapes(): void {
+    if (!this.vrm?.expressionManager) {
+      return;
+    }
+
+    try {
+      // 口元関連のブレンドシェイプ名
+      const mouthShapes = [
+        "A", "I", "U", "E", "O", // 標準VRM
+        "aa", "ih", "ou", "ee", "oh", // VRM 1.0
+        "あ", "い", "う", "え", "お", // 日本語
+        "mouth_a", "mouth_i", "mouth_u", "mouth_e", "mouth_o", // 一般的
+        "Mouth_A", "Mouth_I", "Mouth_U", "Mouth_E", "Mouth_O", // 大文字
+        "vrc.v_aa", "vrc.v_ih", "vrc.v_ou", "vrc.v_ee", "vrc.v_oh" // VRChat
+      ];
+
+      // 口元のブレンドシェイプのみをリセット
+      for (const shapeName of mouthShapes) {
+        if (this.currentWeights[shapeName] !== undefined) {
+          const actualName = this.mapBlendShapeName(shapeName);
+          this.vrm.expressionManager.setValue(actualName, 0);
+          delete this.currentWeights[shapeName];
+        }
+      }
+
+      // 更新を適用
+      this.vrm.expressionManager.update();
+
+    } catch (_error) {
+      // Ignore reset errors
+    }
+  }
+
+  /**
    * 複数のブレンドシェイプを一度に設定
    */
   setMultipleBlendShapes(weights: Record<string, number>): void {

@@ -75,9 +75,13 @@ export interface AudioEvents {
   onRecordingStop: () => void;
   onSpeechStart: () => void;
   onSpeechEnd: () => void;
+  onSpeakStart: () => void;
+  onSpeakEnd: () => void;
   onResult: (result: SpeechRecognitionResult) => void;
   onError: (error: string) => void;
   onAudioLevel: (level: number) => void;
+  onStart?: () => void;
+  onAudioReady?: (audioElement: HTMLAudioElement) => void;
 }
 
 // 音声制御モード
