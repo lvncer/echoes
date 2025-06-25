@@ -191,52 +191,54 @@ export function AISettings() {
                 デフォルトに戻す
               </Button>
 
-              {/* デバッグ用ボタン */}
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    console.log("🔧 [Debug] 現在のストア状態:", useAIStore.getState().settings);
-                    console.log("🔧 [Debug] ローカルストレージ:", localStorage.getItem("ai-settings"));
-                    
-                    // ローカルストレージの内容をパースして表示
-                    const stored = localStorage.getItem("ai-settings");
-                    if (stored) {
-                      try {
-                        const parsed = JSON.parse(stored);
-                        console.log("🔧 [Debug] パース済みローカルストレージ:", parsed);
-                      } catch (e) {
-                        console.error("🔧 [Debug] JSONパースエラー:", e);
-                      }
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="border-yellow-600 text-yellow-300 hover:bg-yellow-700/20"
-                >
-                  デバッグ情報
-                </Button>
-                
-                <Button
-                  onClick={() => {
-                    if (confirm("ローカルストレージをクリアしますか？")) {
-                      // すべてのai-settings関連のキーをクリア
-                      Object.keys(localStorage).forEach(key => {
-                        if (key.includes('ai-settings') || key.includes('ai-store')) {
-                          localStorage.removeItem(key);
-                          console.log("🔧 [Debug] ローカルストレージキーを削除:", key);
+              {/* 開発環境でのみデバッグボタンを表示 */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      console.log("🔧 [Debug] 現在のストア状態:", useAIStore.getState().settings);
+                      console.log("🔧 [Debug] ローカルストレージ:", localStorage.getItem("ai-settings"));
+                      
+                      // ローカルストレージの内容をパースして表示
+                      const stored = localStorage.getItem("ai-settings");
+                      if (stored) {
+                        try {
+                          const parsed = JSON.parse(stored);
+                          console.log("🔧 [Debug] パース済みローカルストレージ:", parsed);
+                        } catch (e) {
+                          console.error("🔧 [Debug] JSONパースエラー:", e);
                         }
-                      });
-                      console.log("🔧 [Debug] ローカルストレージをクリアしました");
-                      window.location.reload();
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="border-red-600 text-red-300 hover:bg-red-700/20"
-                >
-                  ストレージクリア
-                </Button>
-              </div>
+                      }
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-yellow-600 text-yellow-300 hover:bg-yellow-700/20"
+                  >
+                    デバッグ情報
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      if (confirm("ローカルストレージをクリアしますか？")) {
+                        // すべてのai-settings関連のキーをクリア
+                        Object.keys(localStorage).forEach(key => {
+                          if (key.includes('ai-settings') || key.includes('ai-store')) {
+                            localStorage.removeItem(key);
+                            console.log("🔧 [Debug] ローカルストレージキーを削除:", key);
+                          }
+                        });
+                        console.log("🔧 [Debug] ローカルストレージをクリアしました");
+                        window.location.reload();
+                      }
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-red-600 text-red-300 hover:bg-red-700/20"
+                  >
+                    ストレージクリア
+                  </Button>
+                </div>
+              )}
 
               {hasChanges && (
                 <p className="text-sm text-yellow-400">
