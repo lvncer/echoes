@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AISettings, AIProviderConfig, ChatMessage } from "../types/ai";
+import type { AISettings, AIProviderConfig, ChatMessage, CustomPromptSettings } from "../types/ai";
 import { createAIConfigFromEnv } from "../config/env";
 import { ClientAIService } from "../services/client-ai";
 
@@ -24,11 +24,24 @@ interface AIStore {
     config: Partial<AIProviderConfig>
   ) => void;
   switchProvider: (provider: keyof AISettings["providers"]) => void;
+  updateCustomPrompt: (prompt: Partial<CustomPromptSettings>) => void;
   initializeFromEnv: () => void;
   sendMessage: (content: string) => Promise<void>;
   clearMessages: () => void;
   testConnection: () => Promise<boolean>;
 }
+
+/**
+ * デフォルトのカスタムプロンプト設定
+ */
+const createDefaultCustomPrompt = (): CustomPromptSettings => ({
+  enabled: true,
+  content: `あなたは親しみやすく、知識豊富なAIアシスタントです。
+ユーザーの質問に対して丁寧で分かりやすい回答を心がけてください。
+専門用語を使う場合は、簡単な説明も併せて提供してください。
+会話は自然で親しみやすいトーンで行い、必要に応じて例を挙げて説明してください。`,
+  lastUpdated: new Date(),
+});
 
 /**
  * デフォルトの AI 設定
@@ -67,6 +80,7 @@ const createDefaultSettings = (): AISettings => {
         temperature: 0.7,
       },
     },
+    customPrompt: createDefaultCustomPrompt(),
   };
 };
 
@@ -119,6 +133,28 @@ export const useAIStore = create<AIStore>()(
 
           return {
             settings: newSettings,
+            aiService: new ClientAIService(),
+          };
+        });
+      },
+
+      // カスタムプロンプトを更新
+      updateCustomPrompt: (prompt) => {
+        set((state) => {
+          const newCustomPrompt = {
+            ...state.settings.customPrompt,
+            ...prompt,
+            lastUpdated: new Date(),
+          };
+
+          const newSettings = {
+            ...state.settings,
+            customPrompt: newCustomPrompt,
+          };
+
+          return {
+            settings: newSettings,
+            // サービスを再初期化してカスタムプロンプトを反映
             aiService: new ClientAIService(),
           };
         });
@@ -251,6 +287,11 @@ export const useAIStore = create<AIStore>()(
             ...message,
             timestamp: new Date(message.timestamp),
           }));
+        }
+        if (state?.settings?.customPrompt?.lastUpdated) {
+          state.settings.customPrompt.lastUpdated = new Date(
+            state.settings.customPrompt.lastUpdated
+          );
         }
       },
     }
