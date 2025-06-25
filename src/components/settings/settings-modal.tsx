@@ -184,10 +184,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden"
+        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden flex flex-col"
         showCloseButton={true}
       >
-        <DialogHeader className="border-b border-gray-700 pb-4">
+        <DialogHeader className="border-b border-gray-700 pb-4 flex-shrink-0">
           <DialogTitle className="text-2xl font-bold text-white">
             設定
           </DialogTitle>
@@ -196,7 +196,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex h-full min-h-[600px]">
+        <div className="flex flex-1 min-h-0">
           {/* 左側サイドバー */}
           <div className="w-72 flex-shrink-0 border-r border-gray-700 bg-gray-800/30">
             <div className="p-4">
@@ -240,9 +240,11 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
           </div>
 
           {/* 右側コンテンツエリア */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
-            <div className="p-6">
-              {renderContent()}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto scrollbar-thin">
+              <div className="p-6">
+                {renderContent()}
+              </div>
             </div>
           </div>
         </div>
