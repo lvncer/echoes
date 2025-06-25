@@ -449,7 +449,7 @@ export function VoiceSettings() {
                    <p>
                      APIキーの取得方法:
                      <a 
-                       href="https://deprecatedapis.tts.quest/" 
+                       href="https://voicevox.su-shiki.com/su-shikiapis/" 
                        target="_blank" 
                        rel="noopener noreferrer"
                        className="text-blue-600 hover:text-blue-800 underline ml-1"
@@ -457,6 +457,16 @@ export function VoiceSettings() {
                        こちらから取得
                      </a>
                    </p>
+                   <div className="mt-2 p-2 bg-blue-50 rounded border text-xs">
+                     <p className="font-medium text-blue-800">取得手順:</p>
+                     <ol className="list-decimal list-inside text-blue-700 space-y-1 mt-1">
+                       <li>上記リンクを開く</li>
+                       <li>STEP1の「こちら」をクリック</li>
+                       <li>「私はロボットではありません」にチェック</li>
+                       <li>「apiKeyを生成」をクリック</li>
+                       <li>表示されたAPIKeyをコピーして設定</li>
+                     </ol>
+                   </div>
                  </div>
               </div>
             )}
