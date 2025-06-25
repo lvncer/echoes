@@ -41,6 +41,10 @@ export class IntegratedLipSyncService {
   private setupTTSIntegration(): void {
     // TTS音声合成イベントの監視
     this.speechSynthesis.setEventListeners({
+      onAudioReady: (audioElement: HTMLAudioElement) => {
+        // VOICEVOX音声要素が準備完了した時点でリップシンク開始
+        this.handleVoicevoxAudioReady(audioElement);
+      },
       onSpeakStart: () => {
         this.handleTTSSpeechStart();
       },
@@ -162,6 +166,19 @@ export class IntegratedLipSyncService {
   }
 
   /**
+   * VOICEVOX音声要素準備完了時の処理
+   */
+  private async handleVoicevoxAudioReady(audioElement: HTMLAudioElement): Promise<void> {
+    try {
+      console.log("VOICEVOX音声要素準備完了、リップシンク開始");
+      // VOICEVOX音声のリップシンク準備
+      await this.startVoicevoxLipSync(audioElement);
+    } catch (error) {
+      console.error("VOICEVOX リップシンク準備エラー:", error);
+    }
+  }
+
+  /**
    * TTS音声開始時の処理
    */
   private async handleTTSSpeechStart(): Promise<void> {
@@ -170,13 +187,11 @@ export class IntegratedLipSyncService {
     // 統合音声サービスから現在の音声要素を取得
     const audioElement = this.speechSynthesis.getCurrentAudioElement();
     
-    if (audioElement) {
-      // VOICEVOX音声の場合：音声要素から解析
-      await this.startVoicevoxLipSync(audioElement);
-    } else {
+    if (!audioElement) {
       // Web Speech API音声の場合：従来の解析
       await this.startTTSAnalysis();
     }
+    // VOICEVOX音声の場合は、onAudioReadyで既にリップシンクが設定済み
   }
 
   /**
@@ -188,11 +203,15 @@ export class IntegratedLipSyncService {
     // TTS解析を停止
     this.stopTTSAnalysis();
 
+    // 口の動きをリセット
+    blendShapeService.resetMouthBlendShapes();
+
     // 表情を徐々にニュートラルに戻す
     setTimeout(() => {
       this.applyEmotion("neutral", 0.3);
     }, 500);
 
+    console.log("TTS音声終了、リップシンク停止");
   }
 
   /**
@@ -226,8 +245,40 @@ export class IntegratedLipSyncService {
 
       if (!this.ttsAudioContext) return;
 
-      // MediaElementSourceを作成
-      const source = this.ttsAudioContext.createMediaElementSource(audioElement);
+      // 音声再生開始を待つ
+      const waitForPlay = () => {
+        return new Promise<void>((resolve) => {
+          if (!audioElement.paused) {
+            resolve();
+            return;
+          }
+
+          const onPlay = () => {
+            audioElement.removeEventListener('play', onPlay);
+            resolve();
+          };
+          audioElement.addEventListener('play', onPlay);
+
+          // タイムアウト（5秒）
+          setTimeout(() => {
+            audioElement.removeEventListener('play', onPlay);
+            resolve();
+          }, 5000);
+        });
+      };
+
+      await waitForPlay();
+
+      // MediaElementSourceを作成（一度だけ作成可能）
+      let source: MediaElementAudioSourceNode;
+      try {
+        source = this.ttsAudioContext.createMediaElementSource(audioElement);
+      } catch (error) {
+        // 既に作成済みの場合はエラーになるので、フォールバックを使用
+        console.warn("MediaElementSource作成済み、フォールバックを使用:", error);
+        this.startTTSVolumeBasedLipSync();
+        return;
+      }
       
       // アナライザーを作成
       this.ttsAnalyser = this.ttsAudioContext.createAnalyser();
@@ -240,6 +291,8 @@ export class IntegratedLipSyncService {
 
       // リアルタイム解析開始
       this.startVoicevoxRealtimeLipSync();
+      
+      console.log("VOICEVOX リップシンク開始成功");
     } catch (error) {
       console.error("VOICEVOX リップシンク開始エラー:", error);
       // フォールバック：簡易リップシンク
@@ -251,10 +304,15 @@ export class IntegratedLipSyncService {
    * VOICEVOXリアルタイムリップシンク
    */
   private startVoicevoxRealtimeLipSync(): void {
-    if (!this.ttsAnalyser) return;
+    if (!this.ttsAnalyser) {
+      console.warn("アナライザーが利用できません");
+      return;
+    }
 
+    console.log("VOICEVOXリアルタイムリップシンク開始");
     const bufferLength = this.ttsAnalyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
+    let frameCount = 0;
 
     const animate = () => {
       if (!this.isTTSSpeaking || !this.ttsAnalyser) return;
@@ -270,6 +328,12 @@ export class IntegratedLipSyncService {
       const lowFreq = this.getFrequencyBandAverage(dataArray, 0, 4); // 低音域
       const midFreq = this.getFrequencyBandAverage(dataArray, 4, 16); // 中音域
       const highFreq = this.getFrequencyBandAverage(dataArray, 16, 32); // 高音域
+
+      // デバッグログ（30フレームごとに出力）
+      if (frameCount % 30 === 0) {
+        console.log(`リップシンク解析: 音量=${normalizedVolume.toFixed(3)}, 低音=${lowFreq.toFixed(3)}, 中音=${midFreq.toFixed(3)}, 高音=${highFreq.toFixed(3)}`);
+      }
+      frameCount++;
 
       // 音素推定とブレンドシェイプ適用
       this.applyVoicevoxLipSync(normalizedVolume, lowFreq, midFreq, highFreq);
@@ -336,6 +400,11 @@ export class IntegratedLipSyncService {
     
     if (secondaryWeight > 0 && secondaryPhoneme) {
       blendShapeService.setBlendShapeWeight(secondaryPhoneme, secondaryWeight);
+    }
+
+    // デバッグログ（音量が一定以上の時のみ）
+    if (volume > 0.1) {
+      console.debug(`リップシンク適用: ${primaryPhoneme}(${primaryWeight.toFixed(2)})${secondaryPhoneme ? `, ${secondaryPhoneme}(${secondaryWeight.toFixed(2)})` : ''}`);
     }
   }
 
