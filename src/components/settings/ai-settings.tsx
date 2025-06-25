@@ -79,10 +79,11 @@ export function AISettings() {
         enabled: isEnabled,
       });
 
-      // 保存後にローカルストレージの内容を確認
+      // 保存後の確認を複数回実行
       setTimeout(() => {
         const storedData = localStorage.getItem("ai-settings");
-        console.log("🔧 [AI Settings Debug] ローカルストレージの内容:", storedData);
+        console.log("🔧 [AI Settings Debug] 保存直後のローカルストレージ:", storedData);
+        console.log("🔧 [AI Settings Debug] 保存直後のストア状態:", useAIStore.getState().settings.customPrompt);
         
         if (storedData) {
           try {
@@ -93,6 +94,13 @@ export function AISettings() {
           }
         }
       }, 100);
+
+      // さらに1秒後にも確認
+      setTimeout(() => {
+        const storedData = localStorage.getItem("ai-settings");
+        console.log("🔧 [AI Settings Debug] 1秒後のローカルストレージ:", storedData);
+        console.log("🔧 [AI Settings Debug] 1秒後のストア状態:", useAIStore.getState().settings.customPrompt);
+      }, 1000);
 
       // 保存成功の視覚的フィードバック
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -211,7 +219,13 @@ export function AISettings() {
                 <Button
                   onClick={() => {
                     if (confirm("ローカルストレージをクリアしますか？")) {
-                      localStorage.removeItem("ai-settings");
+                      // すべてのai-settings関連のキーをクリア
+                      Object.keys(localStorage).forEach(key => {
+                        if (key.includes('ai-settings') || key.includes('ai-store')) {
+                          localStorage.removeItem(key);
+                          console.log("🔧 [Debug] ローカルストレージキーを削除:", key);
+                        }
+                      });
                       console.log("🔧 [Debug] ローカルストレージをクリアしました");
                       window.location.reload();
                     }
