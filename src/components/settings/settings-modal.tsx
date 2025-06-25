@@ -8,11 +8,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ModelSelector } from "@/components/3d/model-selector";
-import Chat from "../chat";
 import { Box, MessageCircle, Camera, Volume2, ChevronRight } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { CameraSettings } from "./camera-settings";
 import { VoiceSettings } from "./voice-settings";
+import { AISettings } from "./ai-settings";
 import { useModelStore } from "@/lib/stores/model-store";
 import { loadModel } from "@/lib/3d/loaders";
 import { useState } from "react";
@@ -54,7 +54,7 @@ const categories: CategoryItem[] = [
     id: "ai",
     label: "AI設定",
     icon: MessageCircle,
-    description: "Google Gemini API設定"
+    description: "カスタムプロンプト・API設定"
   }
 ];
 
@@ -162,16 +162,14 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
           <div className="space-y-6">
             <div>
               <h3 className="text-xl font-semibold text-white mb-2">
-                AI チャット設定
+                AI設定
               </h3>
               <p className="text-gray-400 mb-6">
-                Google Gemini APIの設定を行います
+                カスタムプロンプトとGoogle Gemini APIの設定を行います
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
-                <ErrorBoundary>
-                  <Chat />
-                </ErrorBoundary>
-              </div>
+              <ErrorBoundary>
+                <AISettings />
+              </ErrorBoundary>
             </div>
           </div>
         );

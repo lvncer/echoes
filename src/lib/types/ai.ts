@@ -22,6 +22,18 @@ export interface AIProviderConfig {
 }
 
 /**
+ * カスタムプロンプト設定
+ */
+export interface CustomPromptSettings {
+  /** カスタムプロンプトの有効/無効 */
+  enabled: boolean;
+  /** カスタムプロンプトの内容 */
+  content: string;
+  /** 最終更新日時 */
+  lastUpdated: Date | string;
+}
+
+/**
  * AI 設定全体
  */
 export interface AISettings {
@@ -34,6 +46,8 @@ export interface AISettings {
     anthropic: AIProviderConfig;
     local: AIProviderConfig;
   };
+  /** カスタムプロンプト設定 */
+  customPrompt: CustomPromptSettings;
 }
 
 /**

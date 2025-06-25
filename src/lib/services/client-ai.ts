@@ -1,4 +1,5 @@
 import type { ChatMessage, AIResponse } from "../types/ai";
+import { useAIStore } from "../stores/ai-store";
 
 /**
  * クライアントサイド用 AI サービス
@@ -9,12 +10,25 @@ export class ClientAIService {
    */
   public async generateResponse(messages: ChatMessage[]): Promise<AIResponse> {
     try {
+      // カスタムプロンプト設定を取得
+      const customPromptSettings = this.getCustomPromptSettings();
+      
+      // デバッグログ: クライアントサイドでの送信内容を確認
+      console.log("🔧 [Client AI Debug] サーバーに送信するデータ:", {
+        messagesCount: messages.length,
+        customPrompt: customPromptSettings,
+        timestamp: new Date().toISOString()
+      });
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ 
+          messages,
+          customPrompt: customPromptSettings
+        }),
       });
 
       if (!response.ok) {
@@ -80,6 +94,22 @@ export class ClientAIService {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * カスタムプロンプト設定を取得
+   */
+  private getCustomPromptSettings() {
+    try {
+      return useAIStore.getState().settings.customPrompt;
+    } catch {
+      // ストアが利用できない場合はデフォルト設定を返す
+      return {
+        enabled: false,
+        content: "",
+        lastUpdated: new Date(),
+      };
     }
   }
 }

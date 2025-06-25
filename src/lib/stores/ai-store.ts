@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AISettings, AIProviderConfig, ChatMessage } from "../types/ai";
+import type {
+  AISettings,
+  AIProviderConfig,
+  ChatMessage,
+  CustomPromptSettings,
+} from "../types/ai";
 import { createAIConfigFromEnv } from "../config/env";
 import { ClientAIService } from "../services/client-ai";
 
@@ -24,11 +29,21 @@ interface AIStore {
     config: Partial<AIProviderConfig>
   ) => void;
   switchProvider: (provider: keyof AISettings["providers"]) => void;
+  updateCustomPrompt: (prompt: Partial<CustomPromptSettings>) => void;
   initializeFromEnv: () => void;
   sendMessage: (content: string) => Promise<void>;
   clearMessages: () => void;
   testConnection: () => Promise<boolean>;
 }
+
+/**
+ * デフォルトのカスタムプロンプト設定
+ */
+const createDefaultCustomPrompt = (): CustomPromptSettings => ({
+  enabled: true,
+  content: `あなたは親しみやすく、知識豊富な人間です。ユーザーの質問に対して丁寧で分かりやすい回答を心がけてください。`,
+  lastUpdated: new Date(), // Dateオブジェクトとして作成
+});
 
 /**
  * デフォルトの AI 設定
@@ -67,6 +82,7 @@ const createDefaultSettings = (): AISettings => {
         temperature: 0.7,
       },
     },
+    customPrompt: createDefaultCustomPrompt(),
   };
 };
 
@@ -124,10 +140,64 @@ export const useAIStore = create<AIStore>()(
         });
       },
 
+      // カスタムプロンプトを更新
+      updateCustomPrompt: (prompt) => {
+        console.log("🔧 [AI Store Debug] updateCustomPrompt 呼び出し:", prompt);
+        console.log("🔧 [AI Store Debug] 更新前のストア状態:", get().settings.customPrompt);
+
+        set((state) => {
+          const newCustomPrompt: CustomPromptSettings = {
+            ...state.settings.customPrompt,
+            ...prompt,
+            lastUpdated: new Date(), // Dateオブジェクトとして保存
+          };
+
+          const newSettings = {
+            ...state.settings,
+            customPrompt: newCustomPrompt,
+          };
+
+          console.log("🔧 [AI Store Debug] 新しいカスタムプロンプト:", newCustomPrompt);
+          console.log("🔧 [AI Store Debug] 新しい設定:", newSettings);
+
+          // 保存直後にローカルストレージの内容を確認
+          setTimeout(() => {
+            const stored = localStorage.getItem("ai-settings");
+            console.log("🔧 [AI Store Debug] 保存後のローカルストレージ:", stored);
+            if (stored) {
+              try {
+                const parsed = JSON.parse(stored);
+                console.log("🔧 [AI Store Debug] パース後のデータ:", parsed);
+              } catch (e) {
+                console.error("🔧 [AI Store Debug] パースエラー:", e);
+              }
+            }
+          }, 100);
+
+          return {
+            settings: newSettings,
+            // サービスを再初期化してカスタムプロンプトを反映
+            aiService: new ClientAIService(),
+          };
+        });
+      },
+
       // 環境変数から初期化
       initializeFromEnv: () => {
-        set(() => {
+        console.log("🔧 [AI Store Debug] initializeFromEnv 呼び出し");
+        console.log("🔧 [AI Store Debug] 初期化前のストア状態:", get().settings.customPrompt);
+        
+        set((state) => {
           const settings = createDefaultSettings();
+          
+          // 既存のカスタムプロンプトがある場合は保持
+          if (state.settings.customPrompt && state.settings.customPrompt.content) {
+            console.log("🔧 [AI Store Debug] 既存のカスタムプロンプトを保持:", state.settings.customPrompt);
+            settings.customPrompt = state.settings.customPrompt;
+          }
+          
+          console.log("🔧 [AI Store Debug] 初期化後の設定:", settings);
+          
           return {
             settings,
             aiService: new ClientAIService(),
@@ -183,7 +253,6 @@ export const useAIStore = create<AIStore>()(
             }
           }
         } catch (error) {
-
           // エラーの種類に応じてメッセージを変更
           let errorContent = "エラーが発生しました。設定を確認してください。";
 
@@ -240,18 +309,47 @@ export const useAIStore = create<AIStore>()(
     }),
     {
       name: "ai-settings",
+      // 設定のみを永続化（messagesは除外）
       partialize: (state) => ({
         settings: state.settings,
-        messages: state.messages,
       }),
-      // Dateオブジェクトの復元処理
+      // 復元処理
       onRehydrateStorage: () => (state) => {
-        if (state?.messages) {
-          state.messages = state.messages.map((message) => ({
-            ...message,
-            timestamp: new Date(message.timestamp),
-          }));
+        console.log("🔧 [AI Store Debug] ストア復元開始:", state);
+        console.log("🔧 [AI Store Debug] ローカルストレージの生データ:", localStorage.getItem("ai-settings"));
+
+        if (state && state.settings) {
+          console.log("🔧 [AI Store Debug] 復元されたカスタムプロンプト:", state.settings.customPrompt);
+          
+          // カスタムプロンプトが存在する場合、lastUpdatedをDateオブジェクトに変換
+          if (state.settings.customPrompt?.lastUpdated) {
+            console.log("🔧 [AI Store Debug] lastUpdated変換前:", state.settings.customPrompt.lastUpdated, typeof state.settings.customPrompt.lastUpdated);
+            try {
+              // 文字列の場合はDateオブジェクトに変換
+              if (typeof state.settings.customPrompt.lastUpdated === "string") {
+                state.settings.customPrompt.lastUpdated = new Date(
+                  state.settings.customPrompt.lastUpdated
+                );
+                console.log("🔧 [AI Store Debug] lastUpdated変換後:", state.settings.customPrompt.lastUpdated);
+              }
+            } catch (error) {
+              console.error("🔧 [AI Store Debug] Date変換エラー:", error);
+              state.settings.customPrompt.lastUpdated = new Date();
+            }
+          }
+
+          // カスタムプロンプトが存在しない場合はデフォルトを設定
+          if (!state.settings.customPrompt) {
+            console.log(
+              "🔧 [AI Store Debug] カスタムプロンプトが存在しないため、デフォルトを設定"
+            );
+            state.settings.customPrompt = createDefaultCustomPrompt();
+          }
+        } else {
+          console.warn("🔧 [AI Store Debug] stateまたはsettingsが存在しません");
         }
+
+        console.log("🔧 [AI Store Debug] ストア復元完了:", state);
       },
     }
   )

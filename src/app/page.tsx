@@ -135,6 +135,22 @@ export default function Home() {
   // 音声チャットサービス初期化
   const initializeAudioChat = useCallback(async () => {
     try {
+      // デバッグ: カスタムプロンプト設定を確認
+      console.log("🔧 [Page Debug] 音声チャット初期化開始");
+      
+      const stored = localStorage.getItem("ai-settings");
+      console.log("🔧 [Page Debug] localStorage 'ai-settings':", stored);
+      
+      if (stored) {
+        try {
+          const settings = JSON.parse(stored);
+          console.log("🔧 [Page Debug] 解析された設定:", settings);
+          console.log("🔧 [Page Debug] カスタムプロンプト:", settings?.state?.customPrompt);
+        } catch (e) {
+          console.error("🔧 [Page Debug] 設定パースエラー:", e);
+        }
+      }
+
       const service = new AudioChatIntegrationService(defaultConfig, callbacks);
       const success = await service.startAudioChat();
 
@@ -143,11 +159,13 @@ export default function Home() {
         setIsInitialized(true);
         setIsVoiceChatActive(true);
         setError(null);
+        console.log("🔧 [Page Debug] 音声チャット初期化成功");
       } else {
         throw new Error("音声チャットの初期化に失敗しました");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "初期化エラー";
+      console.error("🔧 [Page Debug] 音声チャット初期化エラー:", err);
       setError(errorMessage);
     }
   }, [defaultConfig, callbacks]);
@@ -223,6 +241,41 @@ export default function Home() {
       }
     };
   }, [audioChatService]);
+
+  // デバッグ用のグローバル関数を追加（開発環境のみ）
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
+      (window as typeof window & { 
+        __debugEchoes?: {
+          checkCustomPrompt: () => unknown;
+          testAudioChat: () => void;
+        }
+      }).__debugEchoes = {
+        checkCustomPrompt: () => {
+          const stored = localStorage.getItem("ai-settings");
+          console.log("🔍 localStorage 'ai-settings':", stored);
+          if (stored) {
+            try {
+              const settings = JSON.parse(stored);
+              console.log("🔍 解析された設定:", settings);
+              console.log("🔍 カスタムプロンプト:", settings?.state?.customPrompt);
+              return settings?.state?.customPrompt;
+            } catch (e) {
+              console.error("🔍 パースエラー:", e);
+              return null;
+            }
+          }
+          return null;
+        },
+        testAudioChat: () => {
+          console.log("🔍 音声チャットサービス:", audioChatService);
+          console.log("🔍 初期化状態:", isInitialized);
+          console.log("🔍 アクティブ状態:", isVoiceChatActive);
+          console.log("🔍 ステータス:", status);
+        }
+      };
+    }
+  }, [audioChatService, isInitialized, isVoiceChatActive, status]);
 
   return (
     <main className="h-screen relative overflow-hidden">

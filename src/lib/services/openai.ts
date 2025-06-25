@@ -6,6 +6,7 @@ import type {
   AIResponse,
   AIError,
 } from "../types/ai";
+import { useAIStore } from "../stores/ai-store";
 
 /**
  * OpenAI API クライアント
@@ -64,17 +65,31 @@ export class OpenAIService {
         content: msg.content,
       }));
 
-      // システムプロンプトを先頭に追加（マークダウンなしの普通の文章で応答するよう指示）
+      // カスタムプロンプトまたはデフォルトプロンプトを取得
+      const customPromptSettings = this.getCustomPromptSettings();
+      const systemContent = customPromptSettings.enabled 
+        ? customPromptSettings.content 
+        : `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
+
+1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
+2. 普通の文章のみで応答する
+3. 改行は自然な文章の区切りでのみ使用する
+4. 親しみやすく、自然な日本語で会話する
+5. 簡潔で分かりやすい回答を心がける`;
+
+      // デバッグログ: カスタムプロンプトの使用状況を確認
+      console.log("🔧 [OpenAI Debug] カスタムプロンプト設定:", {
+        enabled: customPromptSettings.enabled,
+        contentLength: customPromptSettings.content.length,
+        isUsingCustom: customPromptSettings.enabled,
+        systemContentPreview: systemContent.substring(0, 100) + "...",
+        lastUpdated: customPromptSettings.lastUpdated
+      });
+
+      // システムプロンプトを先頭に追加
       const systemMessage = {
         role: "system" as const,
-        content: `
-        あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
-
-        1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
-        2. 普通の文章のみで応答する
-        3. 改行は自然な文章の区切りでのみ使用する
-        4. 親しみやすく、自然な日本語で会話する
-        5. 簡潔で分かりやすい回答を心がける`,
+        content: systemContent,
       };
 
       // システムメッセージを先頭に追加
@@ -141,16 +156,22 @@ export class OpenAIService {
         content: msg.content,
       }));
 
-      // システムプロンプトを先頭に追加
-      const systemMessage = {
-        role: "system" as const,
-        content: `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください：
+      // カスタムプロンプトまたはデフォルトプロンプトを取得
+      const customPromptSettings = this.getCustomPromptSettings();
+      const systemContent = customPromptSettings.enabled 
+        ? customPromptSettings.content 
+        : `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください：
 
 1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
 2. 普通の文章のみで応答する
 3. 改行は自然な文章の区切りでのみ使用する
 4. 親しみやすく、自然な日本語で会話する
-5. 簡潔で分かりやすい回答を心がける`,
+5. 簡潔で分かりやすい回答を心がける`;
+
+      // システムプロンプトを先頭に追加
+      const systemMessage = {
+        role: "system" as const,
+        content: systemContent,
       };
 
       const finalMessages = [systemMessage, ...messages];
@@ -227,6 +248,32 @@ export class OpenAIService {
    */
   private generateMessageId(): string {
     return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * カスタムプロンプト設定を取得
+   */
+  private getCustomPromptSettings() {
+    // ブラウザ環境でのみストアにアクセス
+    if (typeof window !== "undefined") {
+      try {
+        return useAIStore.getState().settings.customPrompt;
+      } catch {
+        // ストアが利用できない場合はデフォルト設定を返す
+        return {
+          enabled: false,
+          content: "",
+          lastUpdated: new Date(),
+        };
+      }
+    }
+    
+    // サーバーサイドではデフォルト設定を返す
+    return {
+      enabled: false,
+      content: "",
+      lastUpdated: new Date(),
+    };
   }
 
   /**
