@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { VoicevoxConfig } from "@/lib/types/voicevox";
+import { VOICEVOX_WEB_API_CONFIG } from "@/lib/types/voicevox";
 import type { SpeechSynthesisConfig } from "@/lib/types/audio";
 
 export type VoiceEngine = "webspeech" | "voicevox";
@@ -36,12 +37,9 @@ export interface VoiceSettingsState {
 }
 
 const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
-  engine: "webspeech",
+  engine: "voicevox", // デフォルトでVOICEVOX（Web API）を使用
   voicevox: {
-    serverUrl: "http://localhost:50021",
-    speaker: 3, // ずんだもん（ノーマル）
-    autoFallback: true,
-    timeout: 10000,
+    ...VOICEVOX_WEB_API_CONFIG, // Web API設定をデフォルトに
   },
   webspeech: {
     voice: undefined,

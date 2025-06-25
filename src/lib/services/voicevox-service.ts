@@ -5,11 +5,11 @@ import type {
   AudioQuery,
   VoicevoxError,
 } from "@/lib/types/voicevox";
-import { DEFAULT_VOICEVOX_CONFIG } from "@/lib/types/voicevox";
+import { DEFAULT_VOICEVOX_CONFIG, VOICEVOX_WEB_API_CONFIG } from "@/lib/types/voicevox";
 
 /**
  * VOICEVOX API クライアントサービス
- * ローカルVOICEVOXサーバーとの通信を管理
+ * ローカルVOICEVOXサーバーまたはWeb APIとの通信を管理
  */
 export class VoicevoxService {
   private config: VoicevoxConfig;
@@ -20,7 +20,9 @@ export class VoicevoxService {
   private maxCacheSize = 50; // 最大キャッシュ数
 
   constructor(config: Partial<VoicevoxConfig> = {}) {
-    this.config = { ...DEFAULT_VOICEVOX_CONFIG, ...config };
+    // Web API使用がデフォルト、未指定の場合はWeb API設定を使用
+    const defaultConfig = config.useWebApi !== false ? VOICEVOX_WEB_API_CONFIG : DEFAULT_VOICEVOX_CONFIG;
+    this.config = { ...defaultConfig, ...config };
   }
 
   /**
@@ -51,7 +53,9 @@ export class VoicevoxService {
     }
 
     try {
-      const response = await fetch(`${this.config.serverUrl}/version`, {
+      // Web APIの場合は/speakers エンドポイントで確認（/versionが無い場合があるため）
+      const endpoint = this.config.useWebApi ? "/speakers" : "/version";
+      const response = await fetch(`${this.config.serverUrl}${endpoint}`, {
         method: "GET",
         signal: AbortSignal.timeout(this.config.timeout),
       });
@@ -76,6 +80,23 @@ export class VoicevoxService {
    */
   async getServerInfo(): Promise<VoicevoxServerInfo | null> {
     try {
+      // Web APIの場合は簡易的な情報を返す
+      if (this.config.useWebApi) {
+        return {
+          version: "web-api",
+          core_version: "web-api",
+          supported_features: {
+            adjust_mora_pitch: true,
+            adjust_phoneme_length: true,
+            adjust_speed_scale: true,
+            adjust_pitch_scale: true,
+            adjust_intonation_scale: true,
+            adjust_volume_scale: true,
+            interrogative_upspeak: true,
+          },
+        };
+      }
+
       const response = await fetch(`${this.config.serverUrl}/version`, {
         method: "GET",
         signal: AbortSignal.timeout(this.config.timeout),

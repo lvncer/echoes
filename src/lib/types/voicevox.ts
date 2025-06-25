@@ -61,6 +61,7 @@ export interface VoicevoxConfig {
   speaker: number;
   autoFallback: boolean;
   timeout: number;
+  useWebApi: boolean; // Web API使用フラグ
 }
 
 export interface VoicevoxServerInfo {
@@ -86,6 +87,16 @@ export const DEFAULT_VOICEVOX_CONFIG: VoicevoxConfig = {
   speaker: 3, // ずんだもん（ノーマル）
   autoFallback: true,
   timeout: 10000, // 10秒
+  useWebApi: true, // デフォルトでWeb API使用
+};
+
+// VOICEVOX Web API設定
+export const VOICEVOX_WEB_API_CONFIG: VoicevoxConfig = {
+  serverUrl: "https://deprecatedapis.tts.quest/v2/voicevox",
+  speaker: 3, // ずんだもん（ノーマル）
+  autoFallback: true,
+  timeout: 15000, // Web APIは少し長めに設定
+  useWebApi: true,
 };
 
 // 話者ID マッピング（クレジット表記用）

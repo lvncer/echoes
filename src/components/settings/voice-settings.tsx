@@ -285,9 +285,9 @@ export function VoiceSettings() {
                 {engineStatus && getEngineStatusBadge(engineStatus.voicevox.available, engineStatus.voicevox.error)}
               </div>
               <p className="text-sm text-gray-600">
-                高品質な日本語音声合成（ローカルサーバー必要）
+                高品質な日本語音声合成（Web API対応）
               </p>
-              {engineStatus && !engineStatus.voicevox.serverRunning && (
+              {engineStatus && !engineStatus.voicevox.serverRunning && !settings.voicevox.useWebApi && (
                 <p className="text-xs text-amber-600">
                   ⚠️ VOICEVOXサーバーが起動していません
                 </p>
@@ -381,6 +381,58 @@ export function VoiceSettings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* API種別選択 */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">API種別</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Web API */}
+                <div className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="voicevox-web-api"
+                      name="voicevox-api"
+                      checked={settings.voicevox.useWebApi}
+                      onChange={() => updateVoicevoxConfig({ 
+                        useWebApi: true,
+                        serverUrl: "https://deprecatedapis.tts.quest/v2/voicevox"
+                      })}
+                      className="mr-2"
+                    />
+                    <label htmlFor="voicevox-web-api" className="font-medium">
+                      Web API
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    アプリ不要、即座に利用可能
+                  </p>
+                </div>
+
+                {/* ローカルAPI */}
+                <div className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="voicevox-local-api"
+                      name="voicevox-api"
+                      checked={!settings.voicevox.useWebApi}
+                      onChange={() => updateVoicevoxConfig({ 
+                        useWebApi: false,
+                        serverUrl: "http://localhost:50021"
+                      })}
+                      className="mr-2"
+                    />
+                    <label htmlFor="voicevox-local-api" className="font-medium">
+                      ローカルAPI
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    VOICEVOXアプリが必要
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* サーバー接続設定 */}
             <div className="space-y-2">
               <label className="text-sm font-medium">サーバーURL</label>
@@ -390,7 +442,8 @@ export function VoiceSettings() {
                   value={settings.voicevox.serverUrl}
                   onChange={(e) => updateVoicevoxConfig({ serverUrl: e.target.value })}
                   className="flex-1 px-3 py-2 border rounded-md"
-                  placeholder="http://localhost:50021"
+                  placeholder={settings.voicevox.useWebApi ? "https://deprecatedapis.tts.quest/v2/voicevox" : "http://localhost:50021"}
+                  disabled={settings.voicevox.useWebApi}
                 />
                 <Button
                   onClick={handleConnectionTest}
@@ -405,6 +458,11 @@ export function VoiceSettings() {
                   テスト
                 </Button>
               </div>
+              {settings.voicevox.useWebApi && (
+                <p className="text-xs text-gray-600">
+                  Web API使用時はURL変更できません
+                </p>
+              )}
             </div>
 
             {/* 話者選択 */}

@@ -33,7 +33,10 @@ export class IntegratedSpeechService {
 
   constructor() {
     this.webSpeechService = new SpeechSynthesisService();
-    this.voicevoxService = new VoicevoxService();
+    
+    // 初期設定でVOICEVOXサービスを作成
+    const initialConfig = getVoicevoxConfig();
+    this.voicevoxService = new VoicevoxService(initialConfig);
     
     // 設定変更の監視
     this.setupSettingsListener();
