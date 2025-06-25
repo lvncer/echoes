@@ -280,27 +280,48 @@ export const useAIStore = create<AIStore>()(
     }),
     {
       name: "ai-settings",
+      // 設定のみを永続化（messagesは除外）
       partialize: (state) => ({
         settings: state.settings,
-        messages: state.messages,
       }),
-      // Dateオブジェクトの復元処理
+      // ストレージの読み書き処理をカスタマイズ
+      storage: {
+        getItem: (name) => {
+          const item = localStorage.getItem(name);
+          console.log("🔧 [AI Store Debug] ローカルストレージから読み込み:", name, item);
+          return item;
+        },
+        setItem: (name, value) => {
+          console.log("🔧 [AI Store Debug] ローカルストレージに保存:", name, value);
+          localStorage.setItem(name, value);
+        },
+        removeItem: (name) => {
+          console.log("🔧 [AI Store Debug] ローカルストレージから削除:", name);
+          localStorage.removeItem(name);
+        },
+      },
+      // 復元処理
       onRehydrateStorage: () => (state) => {
         console.log("🔧 [AI Store Debug] ストア復元開始:", state);
         
-        if (state?.messages) {
-          state.messages = state.messages.map((message) => ({
-            ...message,
-            timestamp: new Date(message.timestamp),
-          }));
-        }
         if (state?.settings?.customPrompt?.lastUpdated) {
+          // 文字列として保存されたDateを復元
           state.settings.customPrompt.lastUpdated = new Date(
             state.settings.customPrompt.lastUpdated
           );
         }
         
+        // カスタムプロンプトが存在しない場合はデフォルトを設定
+        if (!state?.settings?.customPrompt) {
+          console.log("🔧 [AI Store Debug] カスタムプロンプトが存在しないため、デフォルトを設定");
+          state.settings.customPrompt = createDefaultCustomPrompt();
+        }
+        
         console.log("🔧 [AI Store Debug] ストア復元完了:", state);
+      },
+      // 復元完了時のコールバック
+      onRehydrateStorageComplete: () => {
+        console.log("🔧 [AI Store Debug] ストア復元処理完了");
       },
     }
   )

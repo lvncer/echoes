@@ -21,54 +21,47 @@ const defaultCustomPrompt = {
 export function AISettings() {
   const { settings, updateCustomPrompt } = useAIStore();
   
-  // 安全にカスタムプロンプト設定を取得
-  const customPrompt = settings.customPrompt || defaultCustomPrompt;
-  
   const [promptText, setPromptText] = useState("");
   const [isEnabled, setIsEnabled] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // デバッグログ: ストアの状態を確認
+  // Zustandの永続化復元を待つ
   useEffect(() => {
-    console.log("🔧 [AI Settings Debug] ストア状態:", {
-      hasCustomPrompt: !!settings.customPrompt,
-      customPrompt: settings.customPrompt,
-      isInitialized,
-      timestamp: new Date().toISOString()
-    });
-  }, [settings.customPrompt, isInitialized]);
+    // 少し遅延を入れて永続化復元を待つ
+    const timer = setTimeout(() => {
+      setIsHydrated(true);
+      console.log("🔧 [AI Settings Debug] Hydration完了、ストア状態:", settings);
+    }, 100);
 
-  // コンポーネントマウント時の初期化
+    return () => clearTimeout(timer);
+  }, [settings]);
+
+  // 復元完了後に設定を読み込み
   useEffect(() => {
-    if (!isInitialized) {
-      console.log("🔧 [AI Settings Debug] 初期化開始");
+    if (isHydrated) {
+      console.log("🔧 [AI Settings Debug] 設定読み込み開始:", settings.customPrompt);
       
       if (settings.customPrompt) {
-        // 既存の設定がある場合
         setPromptText(settings.customPrompt.content);
         setIsEnabled(settings.customPrompt.enabled);
-        console.log("🔧 [AI Settings Debug] 既存設定を読み込み:", settings.customPrompt);
+        console.log("🔧 [AI Settings Debug] 既存設定を適用:", {
+          content: settings.customPrompt.content.substring(0, 50) + "...",
+          enabled: settings.customPrompt.enabled,
+          lastUpdated: settings.customPrompt.lastUpdated
+        });
       } else {
-        // 設定がない場合はデフォルトで初期化
+        // カスタムプロンプトが存在しない場合はデフォルトを設定
+        console.log("🔧 [AI Settings Debug] カスタムプロンプトが存在しないため、デフォルトを設定");
         setPromptText(defaultCustomPrompt.content);
         setIsEnabled(defaultCustomPrompt.enabled);
         updateCustomPrompt(defaultCustomPrompt);
-        console.log("🔧 [AI Settings Debug] デフォルト設定で初期化");
       }
-      
-      setIsInitialized(true);
     }
-  }, [settings.customPrompt, updateCustomPrompt, isInitialized]);
+  }, [isHydrated, settings.customPrompt, updateCustomPrompt]);
 
-  // ストアの設定が変更された時に状態を同期
-  useEffect(() => {
-    if (isInitialized && settings.customPrompt) {
-      console.log("🔧 [AI Settings Debug] ストア変更を検知、状態を同期:", settings.customPrompt);
-      setPromptText(settings.customPrompt.content);
-      setIsEnabled(settings.customPrompt.enabled);
-    }
-  }, [settings.customPrompt, isInitialized]);
+  // 安全にカスタムプロンプト設定を取得
+  const customPrompt = settings.customPrompt || defaultCustomPrompt;
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -191,17 +184,45 @@ export function AISettings() {
               </Button>
 
               {/* デバッグ用ボタン */}
-              <Button
-                onClick={() => {
-                  console.log("🔧 [Debug] 現在のストア状態:", useAIStore.getState().settings);
-                  console.log("🔧 [Debug] ローカルストレージ:", localStorage.getItem("ai-settings"));
-                }}
-                variant="outline"
-                size="sm"
-                className="border-yellow-600 text-yellow-300 hover:bg-yellow-700/20"
-              >
-                デバッグ情報
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    console.log("🔧 [Debug] 現在のストア状態:", useAIStore.getState().settings);
+                    console.log("🔧 [Debug] ローカルストレージ:", localStorage.getItem("ai-settings"));
+                    
+                    // ローカルストレージの内容をパースして表示
+                    const stored = localStorage.getItem("ai-settings");
+                    if (stored) {
+                      try {
+                        const parsed = JSON.parse(stored);
+                        console.log("🔧 [Debug] パース済みローカルストレージ:", parsed);
+                      } catch (e) {
+                        console.error("🔧 [Debug] JSONパースエラー:", e);
+                      }
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-600 text-yellow-300 hover:bg-yellow-700/20"
+                >
+                  デバッグ情報
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    if (confirm("ローカルストレージをクリアしますか？")) {
+                      localStorage.removeItem("ai-settings");
+                      console.log("🔧 [Debug] ローカルストレージをクリアしました");
+                      window.location.reload();
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-red-600 text-red-300 hover:bg-red-700/20"
+                >
+                  ストレージクリア
+                </Button>
+              </div>
 
               {hasChanges && (
                 <p className="text-sm text-yellow-400">
