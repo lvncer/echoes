@@ -267,8 +267,8 @@ export function VoiceSettings() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin mr-2" />
-        <span>音声設定を読み込み中...</span>
+        <Loader2 className="w-6 h-6 animate-spin mr-2 text-gray-400" />
+        <span className="text-gray-300">音声設定を読み込み中...</span>
       </div>
     );
   }
@@ -277,9 +277,9 @@ export function VoiceSettings() {
     <div className="space-y-6">
       {/* エラー表示 */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-500 bg-red-900/30">
           <CardContent className="pt-4">
-            <div className="flex items-center text-red-600">
+            <div className="flex items-center text-red-300">
               <AlertCircle className="w-4 h-4 mr-2" />
               <span>{error}</span>
             </div>
@@ -288,13 +288,13 @@ export function VoiceSettings() {
       )}
 
       {/* 音声エンジン選択 */}
-      <Card>
+      <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-white">
             <Volume2 className="w-5 h-5 mr-2" />
             音声エンジン選択
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-400">
             使用する音声合成エンジンを選択してください
           </CardDescription>
         </CardHeader>
@@ -361,10 +361,10 @@ export function VoiceSettings() {
 
       {/* Web Speech API設定 */}
       {settings.engine === "webspeech" && (
-        <Card>
+        <Card className="bg-gray-800/50 border-gray-700">
           <CardHeader>
-            <CardTitle>Web Speech API 設定</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-white">Web Speech API 設定</CardTitle>
+            <CardDescription className="text-gray-400">
               ブラウザ標準音声の詳細設定
             </CardDescription>
           </CardHeader>
@@ -438,10 +438,10 @@ export function VoiceSettings() {
 
       {/* VOICEVOX設定 */}
       {settings.engine === "voicevox" && (
-        <Card>
+        <Card className="bg-gray-800/50 border-gray-700">
           <CardHeader>
-            <CardTitle>VOICEVOX 設定</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-white">VOICEVOX 設定</CardTitle>
+            <CardDescription className="text-gray-400">
               VOICEVOX音声合成の詳細設定
             </CardDescription>
           </CardHeader>
@@ -640,9 +640,9 @@ export function VoiceSettings() {
       )}
 
       {/* 共通設定 */}
-      <Card>
+      <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle className="flex items-center">
+          <CardTitle className="flex items-center text-white">
             <Settings className="w-5 h-5 mr-2" />
             共通設定
           </CardTitle>
@@ -675,9 +675,9 @@ export function VoiceSettings() {
       </Card>
 
       {/* テスト・操作ボタン */}
-      <Card>
+      <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle>テスト・操作</CardTitle>
+          <CardTitle className="text-white">テスト・操作</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -728,13 +728,13 @@ export function VoiceSettings() {
         </CardContent>
       </Card>
 
-      <Separator />
+      <Separator className="bg-gray-700" />
       
       {/* 注意事項（ローカルAPI使用時のみ） */}
       {settings.engine === "voicevox" && !settings.voicevox.useWebApi && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-900/30 border-blue-700/50">
           <CardContent className="pt-4">
-            <div className="text-sm text-blue-700 space-y-2">
+            <div className="text-sm text-blue-300 space-y-2">
               <p className="font-medium">📝 VOICEVOX ローカルAPI使用時の注意事項：</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>VOICEVOXアプリケーションを事前に起動してください</li>
@@ -749,9 +749,9 @@ export function VoiceSettings() {
 
       {/* Web API使用時の注意事項 */}
       {settings.engine === "voicevox" && settings.voicevox.useWebApi && (
-        <Card className="bg-green-50 border-green-200">
+        <Card className="bg-green-900/30 border-green-700/50">
           <CardContent className="pt-4">
-            <div className="text-sm text-green-700 space-y-2">
+            <div className="text-sm text-green-300 space-y-2">
               <p className="font-medium">✨ VOICEVOX Web API使用時の利点：</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>VOICEVOXアプリケーションのインストール不要</li>
