@@ -319,9 +319,13 @@ export default function Home() {
           {/* 音声チャット切り替えボタン */}
           <Button
             onClick={toggleVoiceChat}
-            variant={isVoiceChatActive ? "default" : "outline"}
+            variant="outline"
             size="lg"
-            className="flex items-center gap-2 bg-white/90 backdrop-blur-sm hover:bg-white/95 shadow-lg border border-white/20"
+            className={`flex items-center gap-2 backdrop-blur-sm shadow-lg border ${
+              isVoiceChatActive 
+                ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500" 
+                : "bg-white/90 hover:bg-white/95 text-gray-900 border-white/20"
+            }`}
             disabled={status === "processing" || status === "speaking"}
           >
             {isVoiceChatActive ? (
