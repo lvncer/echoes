@@ -120,3 +120,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* 設定モーダルの幅制限を上書き */
+  .settings-modal-content {
+    width: 95vw !important;
+    max-width: 1400px !important;
+  }
+  
+  @media (min-width: 640px) {
+    .settings-modal-content {
+      max-width: 1400px !important;
+    }
+  }
+}

@@ -183,7 +183,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[1400px] min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden">
+      <DialogContent 
+        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden"
+        showCloseButton={true}
+      >
         <DialogHeader className="border-b border-gray-700 pb-4">
           <DialogTitle className="text-2xl font-bold text-white">
             設定
