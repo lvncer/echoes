@@ -167,8 +167,16 @@ export class IntegratedLipSyncService {
   private async handleTTSSpeechStart(): Promise<void> {
     this.isTTSSpeaking = true;
 
-    // TTS音声の解析を開始
-    await this.startTTSAnalysis();
+    // 統合音声サービスから現在の音声要素を取得
+    const audioElement = this.speechSynthesis.getCurrentAudioElement();
+    
+    if (audioElement) {
+      // VOICEVOX音声の場合：音声要素から解析
+      await this.startVoicevoxLipSync(audioElement);
+    } else {
+      // Web Speech API音声の場合：従来の解析
+      await this.startTTSAnalysis();
+    }
   }
 
   /**
@@ -207,7 +215,132 @@ export class IntegratedLipSyncService {
   }
 
   /**
-   * TTS音声解析開始
+   * VOICEVOX音声のリップシンク開始
+   */
+  private async startVoicevoxLipSync(audioElement: HTMLAudioElement): Promise<void> {
+    try {
+      // Web Audio APIでVOICEVOX音声を解析
+      if (!this.ttsAudioContext) {
+        await this.prepareTTSLipSync();
+      }
+
+      if (!this.ttsAudioContext) return;
+
+      // MediaElementSourceを作成
+      const source = this.ttsAudioContext.createMediaElementSource(audioElement);
+      
+      // アナライザーを作成
+      this.ttsAnalyser = this.ttsAudioContext.createAnalyser();
+      this.ttsAnalyser.fftSize = 256;
+      this.ttsAnalyser.smoothingTimeConstant = 0.8;
+
+      // 音声要素 → アナライザー → 出力
+      source.connect(this.ttsAnalyser);
+      this.ttsAnalyser.connect(this.ttsAudioContext.destination);
+
+      // リアルタイム解析開始
+      this.startVoicevoxRealtimeLipSync();
+    } catch (error) {
+      console.error("VOICEVOX リップシンク開始エラー:", error);
+      // フォールバック：簡易リップシンク
+      this.startTTSVolumeBasedLipSync();
+    }
+  }
+
+  /**
+   * VOICEVOXリアルタイムリップシンク
+   */
+  private startVoicevoxRealtimeLipSync(): void {
+    if (!this.ttsAnalyser) return;
+
+    const bufferLength = this.ttsAnalyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const animate = () => {
+      if (!this.isTTSSpeaking || !this.ttsAnalyser) return;
+
+      // 周波数データを取得
+      this.ttsAnalyser.getByteFrequencyData(dataArray);
+
+      // 音量レベルを計算
+      const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+      const normalizedVolume = average / 255;
+
+      // 周波数帯域別の解析
+      const lowFreq = this.getFrequencyBandAverage(dataArray, 0, 4); // 低音域
+      const midFreq = this.getFrequencyBandAverage(dataArray, 4, 16); // 中音域
+      const highFreq = this.getFrequencyBandAverage(dataArray, 16, 32); // 高音域
+
+      // 音素推定とブレンドシェイプ適用
+      this.applyVoicevoxLipSync(normalizedVolume, lowFreq, midFreq, highFreq);
+
+      this.ttsAnimationFrame = requestAnimationFrame(animate);
+    };
+
+    animate();
+  }
+
+  /**
+   * 周波数帯域の平均を取得
+   */
+  private getFrequencyBandAverage(dataArray: Uint8Array, startIndex: number, endIndex: number): number {
+    const bandData = dataArray.slice(startIndex, endIndex);
+    const average = bandData.reduce((sum, value) => sum + value, 0) / bandData.length;
+    return average / 255;
+  }
+
+  /**
+   * VOICEVOX音声に基づくリップシンク適用
+   */
+  private applyVoicevoxLipSync(volume: number, lowFreq: number, midFreq: number, highFreq: number): void {
+    // 音量に基づく基本的な口の開閉
+    const mouthOpening = Math.min(volume * 1.5, 1.0);
+
+    // 周波数特性に基づく音素推定
+    let primaryPhoneme = "aa";
+    let secondaryPhoneme = "";
+    let primaryWeight = mouthOpening;
+    let secondaryWeight = 0;
+
+    if (volume > 0.1) {
+      if (highFreq > midFreq && highFreq > lowFreq) {
+        // 高音域が強い → i, e 音
+        primaryPhoneme = midFreq > lowFreq ? "ih" : "ee";
+        primaryWeight = Math.min(volume * 1.2, 1.0);
+      } else if (lowFreq > midFreq && lowFreq > highFreq) {
+        // 低音域が強い → o, u 音
+        primaryPhoneme = midFreq > 0.3 ? "oh" : "ou";
+        primaryWeight = Math.min(volume * 1.1, 1.0);
+      } else if (midFreq > 0.4) {
+        // 中音域が強い → a 音
+        primaryPhoneme = "aa";
+        primaryWeight = Math.min(volume * 1.3, 1.0);
+      }
+
+      // セカンダリ音素の設定（より自然な口の動き）
+      if (volume > 0.3) {
+        const phonemes = ["aa", "ih", "ou", "ee", "oh"];
+        const currentIndex = phonemes.indexOf(primaryPhoneme);
+        const nextIndex = (currentIndex + 1) % phonemes.length;
+        secondaryPhoneme = phonemes[nextIndex];
+        secondaryWeight = Math.min(volume * 0.3, 0.3);
+      }
+    }
+
+    // ブレンドシェイプを適用
+    blendShapeService.resetMouthBlendShapes();
+    
+    if (primaryWeight > 0) {
+      blendShapeService.setBlendShapeWeight(primaryPhoneme, primaryWeight);
+    }
+    
+    if (secondaryWeight > 0 && secondaryPhoneme) {
+      blendShapeService.setBlendShapeWeight(secondaryPhoneme, secondaryWeight);
+    }
+  }
+
+  /**
+   * TTS音声解析開始（Web Speech API用）
    */
   private async startTTSAnalysis(): Promise<void> {
     if (!this.ttsAudioContext) return;
