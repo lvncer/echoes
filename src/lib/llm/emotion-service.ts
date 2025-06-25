@@ -13,13 +13,16 @@ export class EmotionService {
    * カスタムプロンプト設定を取得
    */
   private getCustomPromptSettings() {
-    // ブラウザ環境でのみZustandストアにアクセス
+    // ブラウザ環境でのみlocalStorageから設定を取得
     if (typeof window !== "undefined") {
       try {
-        // 動的インポートでZustandストアを取得
-        const { useAIStore } = require("@/lib/stores/ai-store");
-        return useAIStore.getState().settings.customPrompt;
-      } catch {
+        const stored = localStorage.getItem("ai-settings");
+        if (!stored) return null;
+        
+        const settings = JSON.parse(stored);
+        return settings?.state?.settings?.customPrompt || null;
+      } catch (error) {
+        console.warn("カスタムプロンプト設定の取得に失敗:", error);
         return null;
       }
     }

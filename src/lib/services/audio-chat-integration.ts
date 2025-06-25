@@ -222,10 +222,12 @@ export class AudioChatIntegrationService {
    */
   private async handleFinalTranscript(transcript: string): Promise<void> {
     try {
+      console.log("🔧 [Audio Chat Debug] 音声認識結果処理開始:", transcript);
       this.setStatus("processing");
 
       // AI応答を取得
       const aiResponse = await this.getAIResponse(transcript);
+      console.log("🔧 [Audio Chat Debug] AI応答取得完了:", aiResponse.substring(0, 100) + "...");
       this.callbacks.onAIResponseReceived?.(aiResponse);
 
       // 音声合成で応答を再生
@@ -233,7 +235,9 @@ export class AudioChatIntegrationService {
 
       // 確実にアイドル状態に戻す
       this.setStatus("idle");
+      console.log("🔧 [Audio Chat Debug] 音声認識結果処理完了");
     } catch (error) {
+      console.error("🔧 [Audio Chat Debug] 音声認識結果処理エラー:", error);
       this.handleError({
         type: "ai-response-failed",
         message: `AI応答の取得に失敗しました: ${error}`,
@@ -247,6 +251,36 @@ export class AudioChatIntegrationService {
    * AI応答の取得
    */
   private async getAIResponse(userMessage: string): Promise<string> {
+    // カスタムプロンプト設定を取得
+    const getCustomPromptSettings = () => {
+      if (typeof window === "undefined") return null;
+      
+      try {
+        const stored = localStorage.getItem("ai-settings");
+        console.log("🔧 [Audio Chat Debug] localStorage 'ai-settings':", stored);
+        
+        if (!stored) {
+          console.log("🔧 [Audio Chat Debug] ai-settings が見つかりません");
+          return null;
+        }
+        
+        const settings = JSON.parse(stored);
+        console.log("🔧 [Audio Chat Debug] 解析された設定:", settings);
+        
+        // Zustandの永続化形式に合わせてアクセス
+        const customPrompt = settings?.state?.settings?.customPrompt || null;
+        console.log("🔧 [Audio Chat Debug] カスタムプロンプト設定:", customPrompt);
+        
+        return customPrompt;
+      } catch (error) {
+        console.warn("カスタムプロンプト設定の取得に失敗:", error);
+        return null;
+      }
+    };
+
+    const customPrompt = getCustomPromptSettings();
+    console.log("🔧 [Audio Chat Debug] 取得したカスタムプロンプト:", customPrompt);
+
     // 既存のchat APIエンドポイントと互換性のある形式でリクエスト
     const messages = [
       {
@@ -257,14 +291,40 @@ export class AudioChatIntegrationService {
       },
     ];
 
+    const requestBody: { 
+      messages: typeof messages; 
+      customPrompt?: { enabled: boolean; content: string } 
+    } = {
+      messages,
+    };
+
+    // カスタムプロンプトが有効な場合は追加
+    if (customPrompt?.enabled && customPrompt?.content?.trim()) {
+      console.log("🔧 [Audio Chat Debug] カスタムプロンプトをリクエストに追加:", {
+        enabled: customPrompt.enabled,
+        contentLength: customPrompt.content.length,
+        content: customPrompt.content.substring(0, 100) + "..."
+      });
+      requestBody.customPrompt = customPrompt;
+    } else {
+      console.log("🔧 [Audio Chat Debug] カスタムプロンプトは無効または空です:", {
+        enabled: customPrompt?.enabled,
+        hasContent: !!customPrompt?.content?.trim()
+      });
+    }
+
+    console.log("🔧 [Audio Chat Debug] APIリクエスト送信:", {
+      url: "/api/chat",
+      method: "POST",
+      body: requestBody
+    });
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        messages,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
