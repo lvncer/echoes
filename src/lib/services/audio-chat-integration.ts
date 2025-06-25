@@ -6,6 +6,7 @@
 import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
+import { integratedLipSyncService } from "./integrated-lipsync-service";
 import type {
   AudioConfig,
   AudioError,
@@ -189,6 +190,7 @@ export class AudioChatIntegrationService {
 
     this.speechRecognition.stop();
     this.speechSynthesis.stop();
+    integratedLipSyncService.stopLipSync();
     this.audioInput.stopRecording();
 
     this.isActive = false;
@@ -294,6 +296,11 @@ export class AudioChatIntegrationService {
         return;
       }
 
+      console.log("AI応答音声合成開始:", text);
+
+      // 統合リップシンクサービスでAI応答とリップシンクを開始
+      await integratedLipSyncService.startAIResponseLipSync(text);
+
       // アニメーション制御サービスで感情解析とアニメーション実行
       if (typeof window !== "undefined") {
         const windowWithController = window as typeof window & {
@@ -308,16 +315,12 @@ export class AudioChatIntegrationService {
         }
       }
 
-      // 統合音声サービスを使用して音声再生
-      const success = await this.speechSynthesis.speak(text);
-      
-      if (!success) {
-        throw new Error("音声合成に失敗しました");
-      }
-
       // 音声合成の完了を監視するためのPromiseを作成
       await this.waitForSpeechCompletion(text);
+      
+      console.log("AI応答音声合成完了");
     } catch (error) {
+      console.error("音声合成エラー:", error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,
@@ -344,7 +347,8 @@ export class AudioChatIntegrationService {
       // 音声合成の完了を監視
       const checkCompletion = () => {
         checkCount++;
-        const isSpeaking = this.speechSynthesis.isSpeaking();
+        const lipSyncStatus = integratedLipSyncService.getStatus();
+        const isSpeaking = lipSyncStatus.isTTSSpeaking;
 
         if (!isSpeaking) {
           // 音声合成が完了した
@@ -455,5 +459,6 @@ export class AudioChatIntegrationService {
     this.audioInput.cleanup();
     this.speechRecognition.cleanup();
     this.speechSynthesis.cleanup();
+    integratedLipSyncService.stopLipSync();
   }
 }
