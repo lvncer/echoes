@@ -38,27 +38,34 @@ export function VoiceSettings() {
   /**
    * VOICEVOX話者読み込み
    */
-  const loadVoicevoxSpeakers = useCallback(async () => {
+  const loadVoicevoxSpeakers = useCallback(async (showErrors = true) => {
     try {
       const speakers = await integratedSpeechService.getVoicevoxSpeakers();
       setVoicevoxSpeakers(speakers);
-      setError(null); // エラーをクリア
+      if (showErrors) {
+        setError(null); // エラーをクリア
+        setConnectionTestResult("VOICEVOX話者一覧を正常に読み込みました。");
+      }
+      return true;
     } catch (error) {
       console.error("VOICEVOX話者読み込みエラー:", error);
       setVoicevoxSpeakers([]);
       
-      // APIキー関連のエラーの場合は詳細を表示
-      if (error instanceof Error) {
-        if (error.message.includes("APIキー")) {
-          setError(`VOICEVOX設定エラー: ${error.message}`);
-        } else if (error.message.includes("CORS") || error.message.includes("Failed to fetch")) {
-          setError("VOICEVOX Web APIへの接続に失敗しました。APIキーを確認してください。");
+      if (showErrors) {
+        // APIキー関連のエラーの場合は詳細を表示
+        if (error instanceof Error) {
+          if (error.message.includes("APIキー")) {
+            setConnectionTestResult(`設定エラー: ${error.message}`);
+          } else if (error.message.includes("CORS") || error.message.includes("Failed to fetch")) {
+            setConnectionTestResult("VOICEVOX Web APIへの接続に失敗しました。APIキーを確認してください。");
+          } else {
+            setConnectionTestResult(`VOICEVOX話者一覧の取得に失敗: ${error.message}`);
+          }
         } else {
-          setError(`VOICEVOX話者一覧の取得に失敗: ${error.message}`);
+          setConnectionTestResult("VOICEVOX話者一覧の取得に失敗しました。");
         }
-      } else {
-        setError("VOICEVOX話者一覧の取得に失敗しました。");
       }
+      return false;
     }
   }, [setError]);
 
@@ -69,22 +76,20 @@ export function VoiceSettings() {
     setLoading(true);
     try {
       // エンジン状態テスト
-      const status = await testEngineStatus();
+      await testEngineStatus();
       
       // Web Speech API音声読み込み
       await loadWebSpeechVoices();
       
-      // VOICEVOX話者読み込み（サーバーが利用可能な場合のみ）
-      if (status?.voicevox.serverRunning) {
-        await loadVoicevoxSpeakers();
-      }
+      // VOICEVOX話者は手動で読み込むため、初期化時は実行しない
+      // ユーザーがAPIキーを設定してから手動で読み込む
     } catch (error) {
       console.error("初期データ読み込みエラー:", error);
       setError(error instanceof Error ? error.message : "初期化に失敗しました");
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, loadVoicevoxSpeakers]);
+  }, [setLoading, setError]);
 
   // 初期化
   useEffect(() => {
@@ -128,6 +133,29 @@ export function VoiceSettings() {
   };
 
 
+
+  /**
+   * VOICEVOX設定を反映（話者一覧読み込み）
+   */
+  const handleApplyVoicevoxSettings = async () => {
+    setIsTestingConnection(true);
+    setConnectionTestResult(null);
+    
+    try {
+      // 話者リストを読み込み
+      const success = await loadVoicevoxSpeakers(true);
+      
+      if (success) {
+        // エンジン状態を更新
+        await testEngineStatus();
+      }
+    } catch (error) {
+      console.error("VOICEVOX設定反映エラー:", error);
+      setConnectionTestResult(`設定反映エラー: ${error instanceof Error ? error.message : "不明なエラー"}`);
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
 
   /**
    * VOICEVOX接続テスト
@@ -507,6 +535,31 @@ export function VoiceSettings() {
                  </div>
               </div>
             )}
+
+            {/* 設定反映ボタン */}
+            <div className="pt-2">
+              <Button
+                onClick={handleApplyVoicevoxSettings}
+                disabled={isTestingConnection || (settings.voicevox.useWebApi && !(settings.voicevox.apiKey ?? "").trim())}
+                className="w-full"
+                variant="default"
+              >
+                {isTestingConnection ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    設定を反映中...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    設定を反映
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-gray-600 mt-1 text-center">
+                APIキーや設定を変更した後、このボタンで話者一覧を読み込みます
+              </p>
+            </div>
 
             {/* サーバー接続設定 */}
             <div className="space-y-2">
