@@ -10,9 +10,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelSelector } from "@/components/3d/model-selector";
 import Chat from "../chat";
-import { Box, MessageCircle, Camera } from "lucide-react";
+import { Box, MessageCircle, Camera, Volume2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { CameraSettings } from "./camera-settings";
+import { VoiceSettings } from "./voice-settings";
 import { useModelStore } from "@/lib/stores/model-store";
 import { loadModel } from "@/lib/3d/loaders";
 
@@ -47,10 +48,14 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         
         <div className="mt-4">
           <Tabs defaultValue="models" className="h-full">
-            <TabsList className="grid w-full grid-cols-3 p-1">
+            <TabsList className="grid w-full grid-cols-4 p-1">
               <TabsTrigger value="models" className="flex items-center gap-2">
                 <Box className="w-4 h-4" />
                 3Dモデル
+              </TabsTrigger>
+              <TabsTrigger value="voice" className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4" />
+                音声設定
               </TabsTrigger>
               <TabsTrigger value="camera" className="flex items-center gap-2">
                 <Camera className="w-4 h-4" />
@@ -101,6 +106,25 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                         onModelDelete={(modelId) => removeModel(modelId)}
                         isLoading={isLoading}
                       />
+                    </ErrorBoundary>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* 音声設定タブ */}
+            <TabsContent value="voice" className="p-4 min-h-[400px]">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    音声合成設定
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Web Speech APIとVOICEVOXの音声合成設定を行います
+                  </p>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <ErrorBoundary>
+                      <VoiceSettings />
                     </ErrorBoundary>
                   </div>
                 </div>
