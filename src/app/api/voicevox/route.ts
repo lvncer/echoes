@@ -20,12 +20,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // VOICEVOX Web APIにリクエスト
-    const voicevoxUrl = `https://deprecatedapis.tts.quest/v2/voicevox${endpoint}`;
-    const response = await fetch(voicevoxUrl, {
+    // VOICEVOX Web APIにリクエスト（公式仕様に合わせてkeyパラメータ使用）
+    const voicevoxUrl = new URL(`https://deprecatedapis.tts.quest/v2/voicevox${endpoint}`);
+    voicevoxUrl.searchParams.set("key", apiKey);
+
+    const response = await fetch(voicevoxUrl.toString(), {
       method: "GET",
       headers: {
-        "X-API-Key": apiKey,
         "Content-Type": "application/json",
       },
     });
@@ -52,16 +53,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const endpoint = searchParams.get("endpoint");
     const apiKey = request.headers.get("x-api-key");
-    const body = await request.text();
-
-    if (!endpoint) {
-      return NextResponse.json(
-        { error: "エンドポイントが指定されていません" },
-        { status: 400 }
-      );
-    }
+    
+    // 音声合成用パラメータ
+    const text = searchParams.get("text");
+    const speaker = searchParams.get("speaker") || "0";
+    const pitch = searchParams.get("pitch") || "0";
+    const speed = searchParams.get("speed") || "1";
+    const intonationScale = searchParams.get("intonationScale") || "1";
 
     if (!apiKey) {
       return NextResponse.json(
@@ -70,15 +69,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // VOICEVOX Web APIにリクエスト
-    const voicevoxUrl = `https://deprecatedapis.tts.quest/v2/voicevox${endpoint}`;
-    const response = await fetch(voicevoxUrl, {
-      method: "POST",
+    if (!text) {
+      return NextResponse.json(
+        { error: "テキストが指定されていません" },
+        { status: 400 }
+      );
+    }
+
+    // VOICEVOX Web API音声合成エンドポイント（公式仕様）
+    const voicevoxUrl = new URL("https://deprecatedapis.tts.quest/v2/voicevox/audio/");
+    voicevoxUrl.searchParams.set("key", apiKey);
+    voicevoxUrl.searchParams.set("text", text);
+    voicevoxUrl.searchParams.set("speaker", speaker);
+    voicevoxUrl.searchParams.set("pitch", pitch);
+    voicevoxUrl.searchParams.set("speed", speed);
+    voicevoxUrl.searchParams.set("intonationScale", intonationScale);
+
+    const response = await fetch(voicevoxUrl.toString(), {
+      method: "GET", // 公式仕様ではGETまたはPOST
       headers: {
-        "X-API-Key": apiKey,
         "Content-Type": "application/json",
       },
-      body: body,
     });
 
     if (!response.ok) {
@@ -89,18 +100,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 音声データの場合はそのまま返す
-    if (response.headers.get("content-type")?.includes("audio")) {
-      const audioData = await response.arrayBuffer();
-      return new NextResponse(audioData, {
-        headers: {
-          "Content-Type": "audio/wav",
-        },
-      });
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data);
+    // 音声データを返す
+    const audioData = await response.arrayBuffer();
+    return new NextResponse(audioData, {
+      headers: {
+        "Content-Type": "audio/wav",
+      },
+    });
   } catch (error) {
     console.error("VOICEVOX プロキシエラー:", error);
     return NextResponse.json(
