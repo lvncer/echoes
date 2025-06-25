@@ -56,7 +56,7 @@ const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
 
 export const useVoiceSettingsStore = create<VoiceSettingsState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       settings: DEFAULT_VOICE_SETTINGS,
       isLoading: false,
       error: null,

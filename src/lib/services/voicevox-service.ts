@@ -4,8 +4,8 @@ import type {
   VoicevoxServerInfo,
   AudioQuery,
   VoicevoxError,
-  DEFAULT_VOICEVOX_CONFIG,
 } from "@/lib/types/voicevox";
+import { DEFAULT_VOICEVOX_CONFIG } from "@/lib/types/voicevox";
 
 /**
  * VOICEVOX API クライアントサービス

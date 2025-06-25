@@ -4,7 +4,6 @@ import {
   useVoiceSettingsStore, 
   getCurrentVoiceEngine, 
   getVoicevoxConfig,
-  getWebSpeechConfig,
   type VoiceEngine 
 } from "@/lib/stores/voice-settings-store";
 import { getRequiredCredit } from "@/lib/types/voicevox";
@@ -94,10 +93,9 @@ export class IntegratedSpeechService {
       }
 
       // エラーイベントを発火
-      this.events.onError?.({
-        type: "synthesis-error",
-        message: error instanceof Error ? error.message : "音声合成エラー",
-      });
+      this.events.onError?.(
+        error instanceof Error ? error.message : "音声合成エラー"
+      );
 
       return false;
     }

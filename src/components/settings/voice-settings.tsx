@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,25 +35,20 @@ export function VoiceSettings() {
   const [isTestingSynthesis, setIsTestingSynthesis] = useState(false);
   const [connectionTestResult, setConnectionTestResult] = useState<string | null>(null);
 
-  // 初期化
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
   /**
    * 初期データ読み込み
    */
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     setLoading(true);
     try {
       // エンジン状態テスト
-      await testEngineStatus();
+      const status = await testEngineStatus();
       
       // Web Speech API音声読み込み
       await loadWebSpeechVoices();
       
       // VOICEVOX話者読み込み（サーバーが利用可能な場合のみ）
-      if (engineStatus?.voicevox.serverRunning) {
+      if (status?.voicevox.serverRunning) {
         await loadVoicevoxSpeakers();
       }
     } catch (error) {
@@ -62,7 +57,12 @@ export function VoiceSettings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setError]);
+
+  // 初期化
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   /**
    * エンジン状態テスト

@@ -6,7 +6,6 @@
 import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
-import { integratedLipSyncService } from "./integrated-lipsync-service";
 import type {
   AudioConfig,
   AudioError,
@@ -140,10 +139,10 @@ export class AudioChatIntegrationService {
         this.setStatus("idle");
         this.callbacks.onSpeechEnd?.();
       },
-      onError: (error) => {
+      onError: (error: string) => {
         this.handleError({
           type: "speech-synthesis-failed",
-          message: error.message,
+          message: error,
         });
       },
     });
