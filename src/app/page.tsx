@@ -9,81 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 
-// カメラデバッグパネルコンポーネント
-function CameraDebugPanel() {
-  const { 
-    sceneConfig, 
-    resetToDefaults, 
-    getStorageStatus, 
-    clearStorage, 
-    forceInitialize,
-    currentModel,
-  } = useModelStore();
 
-  const handleResetSettings = () => {
-    // ローカルストレージをクリア
-    localStorage.removeItem("echoes-model-store");
-    // 設定をデフォルトにリセット
-    resetToDefaults();
-    // ページをリロード
-    window.location.reload();
-  };
-
-  const handleClearStorage = async () => {
-    clearStorage();
-    localStorage.removeItem("echoes-model-store");
-    console.log("🗑️ ストレージをクリアしました");
-  };
-
-  const handleForceInit = async () => {
-    await forceInitialize();
-    console.log("🔄 強制初期化を実行しました");
-  };
-
-  const status = getStorageStatus();
-
-  return (
-    <div className="absolute top-4 right-4 z-20">
-      <div className="bg-white/95 border border-gray-200 rounded-lg p-3 text-xs space-y-2">
-        <div className="font-semibold mb-2">🎥 カメラ設定</div>
-        <div>位置: [{sceneConfig.cameraPosition.join(", ")}]</div>
-        <div>ターゲット: [{sceneConfig.cameraTarget.join(", ")}]</div>
-        
-        <div className="border-t pt-2 mt-2">
-          <div className="font-semibold mb-1">📊 モデル状態</div>
-          <div>利用可能: {status.modelsCount}個</div>
-          <div>現在のモデル: {currentModel ? currentModel.name : "なし"}</div>
-          <div>有効性: {status.hasValidCurrentModel ? "✅" : "❌"}</div>
-        </div>
-
-        <div className="border-t pt-2 mt-2 space-y-1">
-          <button
-            onClick={handleResetSettings}
-            className="text-blue-600 hover:text-blue-800 underline text-xs block"
-          >
-            設定をリセット
-          </button>
-          <button
-            onClick={handleClearStorage}
-            className="text-orange-600 hover:text-orange-800 underline text-xs block"
-          >
-            ストレージクリア
-          </button>
-          <button
-            onClick={handleForceInit}
-            className="text-green-600 hover:text-green-800 underline text-xs block"
-          >
-            モデル強制初期化
-          </button>
-        </div>
-        
-        <div className="text-gray-600 text-xs">
-          ブラウザの開発者ツールでログを確認
-        </div>
-      </div>
-    </div>
-  );
-}
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -347,8 +273,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* カメラ位置デバッグパネル（開発環境のみ） */}
-        {process.env.NODE_ENV === "development" && <CameraDebugPanel />}
+
 
         {/* 音声認識結果表示 */}
         {currentTranscript && (
