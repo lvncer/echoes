@@ -122,11 +122,43 @@ export const useVoiceSettingsStore = create<VoiceSettingsState>()(
     }),
     {
       name: "voice-settings",
-      version: 1,
+      version: 2, // バージョンアップ
       // 設定の一部のみを永続化（関数は除外）
       partialize: (state) => ({
         settings: state.settings,
       }),
+      // 古いデータのマイグレーション
+      migrate: (persistedState: unknown, version: number) => {
+        if (version < 2 && persistedState && typeof persistedState === 'object') {
+          const state = persistedState as Record<string, unknown>;
+          // v1からv2への移行: apiKeyが未定義の場合は空文字列に設定
+          if (
+            state.settings && 
+            typeof state.settings === 'object' && 
+            state.settings !== null
+          ) {
+            const settings = state.settings as Record<string, unknown>;
+            if (
+              settings.voicevox && 
+              typeof settings.voicevox === 'object' && 
+              settings.voicevox !== null
+            ) {
+              const voicevox = settings.voicevox as Record<string, unknown>;
+              // apiKeyが未定義の場合は空文字列に設定
+              if (voicevox.apiKey === undefined) {
+                voicevox.apiKey = "";
+              }
+              // voicevoxConfigを完全なものに補完
+              settings.voicevox = {
+                ...VOICEVOX_WEB_API_CONFIG,
+                ...voicevox,
+                apiKey: typeof voicevox.apiKey === 'string' ? voicevox.apiKey : "",
+              };
+            }
+          }
+        }
+        return persistedState;
+      },
     }
   )
 );

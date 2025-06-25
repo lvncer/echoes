@@ -488,7 +488,7 @@ export function VoiceSettings() {
                 />
                 <Button
                   onClick={handleConnectionTest}
-                  disabled={isTestingConnection || (settings.voicevox.useWebApi && !settings.voicevox.apiKey.trim())}
+                  disabled={isTestingConnection || (settings.voicevox.useWebApi && !(settings.voicevox.apiKey ?? "").trim())}
                   variant="outline"
                 >
                   {isTestingConnection ? (
@@ -504,7 +504,7 @@ export function VoiceSettings() {
                   Web API使用時はURL変更できません
                 </p>
               )}
-              {settings.voicevox.useWebApi && !settings.voicevox.apiKey.trim() && (
+              {settings.voicevox.useWebApi && !(settings.voicevox.apiKey ?? "").trim() && (
                 <p className="text-xs text-amber-600">
                   ⚠️ APIキーが設定されていません
                 </p>
