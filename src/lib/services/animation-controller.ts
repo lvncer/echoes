@@ -72,6 +72,12 @@ export class AnimationController {
       intensity: 0.5,
       speed: 1.0,
     },
+    autoYawn: {
+      enabled: true,
+      interval: 20000, // 20秒
+      intensity: 1.0,
+      neutralOnly: true,
+    },
     emotionAnimations: {
       enabled: true,
       intensity: 0.8,
@@ -88,6 +94,7 @@ export class AnimationController {
 
   // 自動アニメーション管理
   private autoBlinkTimer: NodeJS.Timeout | null = null;
+  private autoYawnTimer: NodeJS.Timeout | null = null;
   private breathingAnimationId: string | null = null;
   private currentEmotionAnimationId: string | null = null;
   private currentGestureAnimationId: string | null = null;
@@ -155,6 +162,9 @@ export class AnimationController {
     if (this.settings.breathing.enabled) {
       this.startBreathingAnimation();
     }
+    if (this.settings.autoYawn.enabled) {
+      this.startAutoYawning();
+    }
   }
 
   /**
@@ -174,10 +184,10 @@ export class AnimationController {
       // 腕・手の位置調整（腕を後ろで組むポーズ）
       LeftShoulder: { rotation: [0, 0, 0] }, // 肩は基本姿勢
       RightShoulder: { rotation: [0, 0, 0] },
-      LeftUpperArm: { rotation: [-0.5, -0.8, 1.2] }, // 腕を後ろに回す
-      RightUpperArm: { rotation: [-0.5, 0.8, -1.2] },
-      LeftLowerArm: { rotation: [-0.4, -0.6, 0.4] }, // 肘を曲げて手を腰の後ろに
-      RightLowerArm: { rotation: [-0.4, 0.6, -0.4] },
+      LeftUpperArm: { rotation: [-0.1, -0.5, 1.3] }, // 腕を後ろに回す
+      RightUpperArm: { rotation: [-0.1, 0.5, -1.3] },
+      LeftLowerArm: { rotation: [-0.1, -0.5, 0.0] }, // 肘を曲げて手を腰の後ろに
+      RightLowerArm: { rotation: [-0.1, 0.5, -0.0] },
       LeftHand: { rotation: [0, 0, 0] }, // 手も基本姿勢
       RightHand: { rotation: [0, 0, 0] },
 
@@ -396,6 +406,60 @@ export class AnimationController {
       clearTimeout(this.autoBlinkTimer);
       this.autoBlinkTimer = null;
     }
+  }
+
+  /**
+   * 自動あくびを開始
+   */
+  public startAutoYawning(): void {
+    if (!this.vrmModel || this.autoYawnTimer) return;
+
+    const scheduleNextYawn = () => {
+      this.autoYawnTimer = setTimeout(() => {
+        // ニュートラル感情時のみ実行
+        if (this.settings.autoYawn.neutralOnly) {
+          if (this.lastEmotionAnalysis && this.lastEmotionAnalysis.emotion !== "neutral") {
+            // ニュートラルでない場合は次回まで待機
+            scheduleNextYawn();
+            return;
+          }
+        }
+
+        // あくびアニメーションを実行
+        this.playYawnAnimation();
+        scheduleNextYawn();
+      }, this.settings.autoYawn.interval);
+    };
+
+    scheduleNextYawn();
+  }
+
+  /**
+   * 自動あくびを停止
+   */
+  public stopAutoYawning(): void {
+    if (this.autoYawnTimer) {
+      clearTimeout(this.autoYawnTimer);
+      this.autoYawnTimer = null;
+    }
+  }
+
+  /**
+   * あくびアニメーションを実行
+   */
+  private playYawnAnimation(): void {
+    if (!this.vrmModel || !this.isEnabled) return;
+
+    // 新しく作成したあくびアニメーションを使用
+    import("../animations/index").then(({ getGestureAnimation }) => {
+      const yawnAnimation = getGestureAnimation("yawn");
+      if (yawnAnimation) {
+        this.playAnimation(
+          yawnAnimation, 
+          AnimationPriority.NORMAL
+        );
+      }
+    });
   }
 
   /**
@@ -1518,6 +1582,7 @@ export class AnimationController {
     if (!enabled) {
       this.activeAnimations.clear();
       this.stopAutoBlinking();
+      this.stopAutoYawning();
       this.stopBreathingAnimation();
     }
   }

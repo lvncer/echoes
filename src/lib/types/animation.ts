@@ -93,6 +93,13 @@ export interface AnimationControlSettings {
     speed: number; // 0.5-2.0, デフォルト: 1.0
   };
 
+  autoYawn: {
+    enabled: boolean; // デフォルト: true
+    interval: number; // 20000 ms (20秒)
+    intensity: number; // 0-1, デフォルト: 1.0
+    neutralOnly: boolean; // ニュートラル感情時のみ, デフォルト: true
+  };
+
   /** 感情アニメーション */
   emotionAnimations: {
     enabled: boolean; // デフォルト: true
