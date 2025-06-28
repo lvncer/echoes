@@ -133,32 +133,72 @@ export class SpeechSynthesisService {
   }
 
   /**
-   * テキストを音声で読み上げ
+   * テキストを音声で読み上げ（Promise版）
    */
-  public speak(text: string): boolean {
-    if (!this.isSupported) {
-      this.handleError("not-supported", "音声合成がサポートされていません");
-      return false;
-    }
+  public speak(text: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (!this.isSupported) {
+        this.handleError("not-supported", "音声合成がサポートされていません");
+        reject(new Error("音声合成がサポートされていません"));
+        return;
+      }
 
-    if (!text || text.trim().length === 0) {
-      return false;
-    }
+      if (!text || text.trim().length === 0) {
+        resolve(false);
+        return;
+      }
 
-    // 既に再生中の場合は停止
-    if (this.state.isSpeaking) {
-      this.stop();
-      // 少し待機してから新しい音声を開始
-      setTimeout(() => this.speak(text), 100);
-      return true;
-    }
+      // 既に再生中の場合は停止
+      if (this.state.isSpeaking) {
+        this.stop();
+        // 少し待機してから新しい音声を開始
+        setTimeout(() => {
+          this.speak(text).then(resolve).catch(reject);
+        }, 100);
+        return;
+      }
 
-    // 長いテキストの場合は分割して処理
-    if (text.length > 200) {
-      return this.speakLongText(text);
-    }
+      // 完了時の処理を設定
+      const originalOnSpeechEnd = this.events.onSpeechEnd;
+      const originalOnError = this.events.onError;
 
-    return this.speakSingleUtterance(text);
+      this.events.onSpeechEnd = () => {
+        // 元のイベントハンドラーを復元
+        this.events.onSpeechEnd = originalOnSpeechEnd;
+        this.events.onError = originalOnError;
+        
+        // 元のイベントハンドラーを呼び出し
+        originalOnSpeechEnd?.();
+        
+        resolve(true);
+      };
+
+      this.events.onError = (error) => {
+        // 元のイベントハンドラーを復元
+        this.events.onSpeechEnd = originalOnSpeechEnd;
+        this.events.onError = originalOnError;
+        
+        // 元のイベントハンドラーを呼び出し
+        originalOnError?.(error);
+        
+        reject(new Error(error || "音声合成エラー"));
+      };
+
+      // 音声合成を開始
+      let result: boolean;
+      if (text.length > 200) {
+        result = this.speakLongText(text);
+      } else {
+        result = this.speakSingleUtterance(text);
+      }
+
+      if (!result) {
+        // 開始に失敗した場合は即座に復元してreject
+        this.events.onSpeechEnd = originalOnSpeechEnd;
+        this.events.onError = originalOnError;
+        reject(new Error("音声合成の開始に失敗しました"));
+      }
+    });
   }
 
   /**

@@ -476,12 +476,15 @@ export class AnimationController {
    * 音声合成状態を設定
    */
   public setSpeaking(speaking: boolean): void {
+    console.log(`[AnimationController] setSpeaking: ${speaking}, previous state: ${this.isSpeaking}`);
     this.isSpeaking = speaking;
     
     // 音声合成開始時は定期ジェスチャーを一時停止
     if (speaking) {
+      console.log('[AnimationController] 音声合成開始 - 定期ジェスチャーを一時停止');
       this.pausePeriodicGestures();
     } else {
+      console.log('[AnimationController] 音声合成終了 - 定期ジェスチャーを再開');
       // 音声合成終了時は定期ジェスチャーを再開
       this.resumePeriodicGestures();
     }
@@ -499,8 +502,14 @@ export class AnimationController {
    * 定期ジェスチャーを再開
    */
   private resumePeriodicGestures(): void {
+    console.log('[AnimationController] 定期ジェスチャーを再開中...', {
+      autoSaluteEnabled: this.settings.autoSalute.enabled,
+      autoSaluteTimer: !!this.autoSaluteTimer
+    });
+    
     // ラジャーアニメーションを再開
     if (this.settings.autoSalute.enabled) {
+      console.log('[AnimationController] 敬礼タイマーを再開');
       this.startAutoSalute();
     }
   }

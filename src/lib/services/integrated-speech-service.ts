@@ -72,6 +72,7 @@ export class IntegratedSpeechService {
    * アニメーションコントローラーを設定
    */
   public setAnimationController(controller: AnimationController): void {
+    console.log('[IntegratedSpeechService] アニメーションコントローラーを設定:', controller);
     this.animationController = controller;
   }
 
@@ -133,6 +134,7 @@ export class IntegratedSpeechService {
       this.events.onStart?.();
       
       // アニメーション制御：音声合成開始
+      console.log('[IntegratedSpeechService] VOICEVOX音声合成開始 - アニメーション制御を呼び出し');
       this.animationController?.setSpeaking(true);
       
       // 音声合成実行
@@ -159,17 +161,20 @@ export class IntegratedSpeechService {
    */
   private async speakWithWebSpeech(text: string): Promise<boolean> {
     // アニメーション制御：音声合成開始
+    console.log('[IntegratedSpeechService] Web Speech API音声合成開始 - アニメーション制御を呼び出し');
     this.animationController?.setSpeaking(true);
     
     try {
       const result = await this.webSpeechService.speak(text);
       
       // アニメーション制御：音声合成終了
+      console.log('[IntegratedSpeechService] Web Speech API音声合成完了 - アニメーション制御を呼び出し');
       this.animationController?.setSpeaking(false);
       
       return result;
     } catch (error) {
       // エラー時も音声合成終了を通知
+      console.log('[IntegratedSpeechService] Web Speech APIエラー時 - アニメーション制御を呼び出し');
       this.animationController?.setSpeaking(false);
       throw error;
     }
@@ -198,6 +203,7 @@ export class IntegratedSpeechService {
           this.events.onSpeakEnd?.();
           
           // アニメーション制御：音声合成終了
+          console.log('[IntegratedSpeechService] VOICEVOX音声再生完了 - アニメーション制御を呼び出し');
           this.animationController?.setSpeaking(false);
           
           URL.revokeObjectURL(audioUrl);
@@ -209,6 +215,7 @@ export class IntegratedSpeechService {
           console.error("音声再生エラー:", error);
           
           // アニメーション制御：エラー時も音声合成終了
+          console.log('[IntegratedSpeechService] VOICEVOX音声再生エラー - アニメーション制御を呼び出し');
           this.animationController?.setSpeaking(false);
           
           URL.revokeObjectURL(audioUrl);
@@ -245,6 +252,7 @@ export class IntegratedSpeechService {
     this.webSpeechService.stop();
     
     // アニメーション制御：音声合成終了
+    console.log('[IntegratedSpeechService] 音声停止時 - アニメーション制御を呼び出し');
     this.animationController?.setSpeaking(false);
   }
 
