@@ -74,7 +74,7 @@ export class AnimationController {
     },
     autoYawn: {
       enabled: true,
-      interval: 20000, // 20秒
+      interval: 30000, // 30秒
       intensity: 1.0,
       neutralOnly: true,
     },

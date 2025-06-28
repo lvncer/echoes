@@ -8,7 +8,7 @@ import type { AnimationSequence } from "@/lib/types/animation";
 // あくび（口を大きく開けて手で覆う）
 export const yawn: AnimationSequence = {
   name: "yawn",
-  duration: 4000,
+  duration: 6000,
   loop: false,
   easing: "ease-in-out",
   keyframes: [
@@ -29,7 +29,7 @@ export const yawn: AnimationSequence = {
       },
     },
     {
-      time: 800,
+      time: 1200,
       bones: {
         // あくび開始 - 頭を少し後ろに傾ける
         Head: { rotation: [-0.15, 0, 0] },
@@ -45,7 +45,7 @@ export const yawn: AnimationSequence = {
       },
     },
     {
-      time: 1500,
+      time: 2250,
       bones: {
         // 最大あくび状態 - 手を口元に持っていく
         Head: { rotation: [-0.2, 0, 0] },
@@ -61,7 +61,7 @@ export const yawn: AnimationSequence = {
       },
     },
     {
-      time: 2500,
+      time: 3750,
       bones: {
         // あくび継続 - 手で口を覆う
         Head: { rotation: [-0.15, 0, 0] },
@@ -77,7 +77,7 @@ export const yawn: AnimationSequence = {
       },
     },
     {
-      time: 3500,
+      time: 5250,
       bones: {
         // あくび終了 - 手を下ろし始める
         Head: { rotation: [-0.05, 0, 0] },
@@ -93,7 +93,7 @@ export const yawn: AnimationSequence = {
       },
     },
     {
-      time: 4000,
+      time: 6000,
       bones: {
         // 元の状態に戻る
         Head: { rotation: [0, 0, 0] },
