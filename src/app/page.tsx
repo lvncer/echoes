@@ -8,6 +8,7 @@ import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
+import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 
 import {
   AudioChatIntegrationService,
@@ -26,7 +27,16 @@ declare global {
 
 const initializeAnimationController = () => {
   if (typeof window !== "undefined" && !window.__animationController) {
+    console.log('[Main] アニメーションコントローラーを初期化中...');
     window.__animationController = new AnimationController();
+    
+    // integratedLipSyncServiceにもアニメーションコントローラーを設定
+    try {
+      console.log('[Main] integratedLipSyncServiceにアニメーションコントローラーを設定中...');
+      integratedLipSyncService.setAnimationController();
+    } catch (error) {
+      console.error('[Main] integratedLipSyncServiceの設定エラー:', error);
+    }
   }
 };
 
