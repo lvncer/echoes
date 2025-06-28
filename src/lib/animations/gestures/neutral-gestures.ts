@@ -22,6 +22,11 @@ export const yawn: AnimationSequence = {
         RightLowerArm: { rotation: [0, 0, 0] },
         RightHand: { rotation: [0, 0, 0] },
       },
+      blendShapes: {
+        // 口の状態
+        A: 0, // あ形
+        O: 0, // お形
+      },
     },
     {
       time: 1200,
@@ -33,6 +38,11 @@ export const yawn: AnimationSequence = {
         RightLowerArm: { rotation: [0, 0, 0] },
         RightHand: { rotation: [0, 0, 0] },
       },
+      blendShapes: {
+        // 口を大きく開ける
+        A: 0.4,
+        O: 0.6,
+      },
     },
     {
       time: 2250,
@@ -40,9 +50,14 @@ export const yawn: AnimationSequence = {
         // 最大あくび状態 - 手を口元に持っていく
         Head: { rotation: [0.2, 0, 0] },
         RightShoulder: { rotation: [0, 0, 0.2] },
-        RightUpperArm: { rotation: [-0.4, 0.8, 0.6] },
-        RightLowerArm: { rotation: [-0.8, 0, 0.4] },
-        RightHand: { rotation: [0.2, -0.3, 0.2] },
+        RightUpperArm: { rotation: [0, 0.6, 0.8] },
+        RightLowerArm: { rotation: [0, 0, 1.2] },
+        RightHand: { rotation: [0.3, 0, 0.6] },
+      },
+      blendShapes: {
+        // 口を最大に開ける
+        A: 0.8,
+        O: 0.8,
       },
     },
     {
@@ -51,9 +66,14 @@ export const yawn: AnimationSequence = {
         // あくび継続 - 手で口を覆う
         Head: { rotation: [0.15, 0, 0] },
         RightShoulder: { rotation: [0, 0, 0.2] },
-        RightUpperArm: { rotation: [-0.4, 0.8, 0.6] },
-        RightLowerArm: { rotation: [-0.8, 0, 0.4] },
-        RightHand: { rotation: [0.2, -0.3, 0.2] },
+        RightUpperArm: { rotation: [0, 0.6, 0.8] },
+        RightLowerArm: { rotation: [0, 0, 1.2] },
+        RightHand: { rotation: [0.3, 0, 0.6] },
+      },
+      blendShapes: {
+        // 口を少し閉じ始める
+        A: 0.5,
+        O: 0.5,
       },
     },
     {
@@ -62,9 +82,14 @@ export const yawn: AnimationSequence = {
         // あくび終了 - 手を下ろし始める
         Head: { rotation: [0.05, 0, 0] },
         RightShoulder: { rotation: [0, 0, 0.1] },
-        RightUpperArm: { rotation: [-0.2, 0.4, 0.3] },
-        RightLowerArm: { rotation: [-0.4, 0, 0.2] },
-        RightHand: { rotation: [0.1, -0.1, 0.1] },
+        RightUpperArm: { rotation: [0, 0.3, 0.4] },
+        RightLowerArm: { rotation: [0, 0, 0.6] },
+        RightHand: { rotation: [0.1, 0, 0.1] },
+      },
+      blendShapes: {
+        // 口を閉じていく
+        A: 0.1,
+        O: 0.1,
       },
     },
     {
@@ -76,6 +101,11 @@ export const yawn: AnimationSequence = {
         RightUpperArm: { rotation: [0, 0, 0] },
         RightLowerArm: { rotation: [0, 0, 0] },
         RightHand: { rotation: [0, 0, 0] },
+      },
+      blendShapes: {
+        // 口を完全に閉じる
+        A: 0,
+        O: 0,
       },
     },
   ],
