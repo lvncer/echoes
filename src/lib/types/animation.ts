@@ -93,11 +93,12 @@ export interface AnimationControlSettings {
     speed: number; // 0.5-2.0, デフォルト: 1.0
   };
 
-  autoYawn: {
+  autoSalute: {
     enabled: boolean; // デフォルト: true
-    interval: number; // 20000 ms (20秒)
+    interval: number; // 15000 ms (15秒)
     intensity: number; // 0-1, デフォルト: 1.0
     neutralOnly: boolean; // ニュートラル感情時のみ, デフォルト: true
+    disableDuringSpeech: boolean; // 音声合成中は無効化, デフォルト: true
   };
 
   /** 感情アニメーション */

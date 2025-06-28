@@ -7,6 +7,7 @@ import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { integratedLipSyncService } from "./integrated-lipsync-service";
+import { AnimationController } from "./animation-controller";
 import type {
   AudioConfig,
   AudioError,
@@ -65,6 +66,7 @@ export class AudioChatIntegrationService {
   private status: AudioChatStatus = "idle";
   private isActive = false;
   private lastStatusLogTime = 0;
+  private animationController: AnimationController | null = null;
 
   constructor(config: AudioChatConfig, callbacks: AudioChatCallbacks = {}) {
     this.config = config;
@@ -77,6 +79,20 @@ export class AudioChatIntegrationService {
 
     this.setupEventHandlers();
     this.updateServiceConfigs();
+    this.setupAnimationController();
+  }
+
+  /**
+   * アニメーションコントローラーのセットアップ
+   */
+  private setupAnimationController(): void {
+    // グローバルアニメーションコントローラーを取得
+    if (typeof window !== "undefined" && window.__animationController) {
+      this.animationController = window.__animationController;
+      
+      // 音声合成サービスにアニメーションコントローラーを設定
+      this.speechSynthesis.setAnimationController(this.animationController);
+    }
   }
 
   /**

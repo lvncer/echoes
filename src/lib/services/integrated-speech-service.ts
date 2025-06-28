@@ -1,12 +1,13 @@
 import { SpeechSynthesisService } from "./speech-synthesis";
 import { VoicevoxService } from "./voicevox-service";
-import { 
-  useVoiceSettingsStore, 
-  getCurrentVoiceEngine, 
+import {
+  useVoiceSettingsStore,
+  getCurrentVoiceEngine,
   getVoicevoxConfig,
-  type VoiceEngine 
+  type VoiceEngine
 } from "@/lib/stores/voice-settings-store";
 import { getRequiredCredit } from "@/lib/types/voicevox";
+import { AnimationController } from "./animation-controller";
 import type { AudioEvents, AudioProcessingState } from "@/lib/types/audio";
 
 export interface EngineStatus {
@@ -30,6 +31,7 @@ export class IntegratedSpeechService {
   private voicevoxService: VoicevoxService;
   private currentAudioElement: HTMLAudioElement | null = null;
   private events: Partial<AudioEvents> = {};
+  private animationController: AnimationController | null = null;
 
   constructor() {
     this.webSpeechService = new SpeechSynthesisService();
@@ -64,6 +66,13 @@ export class IntegratedSpeechService {
     
     // 各サービスにもイベントを設定
     this.webSpeechService.setEventListeners(events);
+  }
+
+  /**
+   * アニメーションコントローラーを設定
+   */
+  public setAnimationController(controller: AnimationController): void {
+    this.animationController = controller;
   }
 
   /**
@@ -123,6 +132,9 @@ export class IntegratedSpeechService {
       // 開始イベント
       this.events.onStart?.();
       
+      // アニメーション制御：音声合成開始
+      this.animationController?.setSpeaking(true);
+      
       // 音声合成実行
       const audioBlob = await this.voicevoxService.synthesizeVoice(text, config.speaker);
       
@@ -146,7 +158,21 @@ export class IntegratedSpeechService {
    * Web Speech APIで音声合成
    */
   private async speakWithWebSpeech(text: string): Promise<boolean> {
-    return this.webSpeechService.speak(text);
+    // アニメーション制御：音声合成開始
+    this.animationController?.setSpeaking(true);
+    
+    try {
+      const result = await this.webSpeechService.speak(text);
+      
+      // アニメーション制御：音声合成終了
+      this.animationController?.setSpeaking(false);
+      
+      return result;
+    } catch (error) {
+      // エラー時も音声合成終了を通知
+      this.animationController?.setSpeaking(false);
+      throw error;
+    }
   }
 
   /**
@@ -170,6 +196,10 @@ export class IntegratedSpeechService {
 
         this.currentAudioElement.onended = () => {
           this.events.onSpeakEnd?.();
+          
+          // アニメーション制御：音声合成終了
+          this.animationController?.setSpeaking(false);
+          
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           resolve(true);
@@ -177,6 +207,10 @@ export class IntegratedSpeechService {
 
         this.currentAudioElement.onerror = (error) => {
           console.error("音声再生エラー:", error);
+          
+          // アニメーション制御：エラー時も音声合成終了
+          this.animationController?.setSpeaking(false);
+          
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           reject(new Error("音声再生に失敗しました"));
@@ -209,6 +243,9 @@ export class IntegratedSpeechService {
 
     // Web Speech API音声を停止
     this.webSpeechService.stop();
+    
+    // アニメーション制御：音声合成終了
+    this.animationController?.setSpeaking(false);
   }
 
   /**

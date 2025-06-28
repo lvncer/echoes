@@ -73,11 +73,12 @@ export class AnimationController {
       intensity: 0.5,
       speed: 1.0,
     },
-    autoYawn: {
+    autoSalute: {
       enabled: true,
-      interval: 30000, // 30秒
+      interval: 15000, // 15秒
       intensity: 1.0,
       neutralOnly: true,
+      disableDuringSpeech: true, // 音声合成中は無効化
     },
     emotionAnimations: {
       enabled: true,
@@ -95,7 +96,8 @@ export class AnimationController {
 
   // 自動アニメーション管理
   private autoBlinkTimer: NodeJS.Timeout | null = null;
-  private autoYawnTimer: NodeJS.Timeout | null = null;
+  private autoSaluteTimer: NodeJS.Timeout | null = null;
+  private isSpeaking = false; // 音声合成中の状態管理
   private breathingAnimationId: string | null = null;
   private currentEmotionAnimationId: string | null = null;
   private currentGestureAnimationId: string | null = null;
@@ -111,7 +113,7 @@ export class AnimationController {
    */
   public setVRMModel(model: VRM): void {
     this.vrmModel = model;
-    
+
     // ブレンドシェイプサービスにもVRMモデルを設定
     blendShapeService.setVRM(model);
 
@@ -166,8 +168,8 @@ export class AnimationController {
     if (this.settings.breathing.enabled) {
       this.startBreathingAnimation();
     }
-    if (this.settings.autoYawn.enabled) {
-      this.startAutoYawning();
+    if (this.settings.autoSalute.enabled) {
+      this.startAutoSalute();
     }
   }
 
@@ -227,7 +229,6 @@ export class AnimationController {
         _failedBones++;
       }
     });
-
   }
 
   /**
@@ -275,7 +276,6 @@ export class AnimationController {
         unavailableBones.push(boneName);
       }
     });
-
   }
 
   /**
@@ -413,57 +413,96 @@ export class AnimationController {
   }
 
   /**
-   * 自動あくびを開始
+   * 自動ラジャーを開始
    */
-  public startAutoYawning(): void {
-    if (!this.vrmModel || this.autoYawnTimer) return;
+  public startAutoSalute(): void {
+    if (!this.vrmModel || this.autoSaluteTimer) return;
 
-    const scheduleNextYawn = () => {
-      this.autoYawnTimer = setTimeout(() => {
+    const scheduleNextSalute = () => {
+      this.autoSaluteTimer = setTimeout(() => {
+        // 音声合成中はスキップ
+        if (this.settings.autoSalute.disableDuringSpeech && this.isSpeaking) {
+          scheduleNextSalute();
+          return;
+        }
+
         // ニュートラル感情時のみ実行
-        if (this.settings.autoYawn.neutralOnly) {
-          if (this.lastEmotionAnalysis && this.lastEmotionAnalysis.emotion !== "neutral") {
+        if (this.settings.autoSalute.neutralOnly) {
+          if (
+            this.lastEmotionAnalysis &&
+            this.lastEmotionAnalysis.emotion !== "neutral"
+          ) {
             // ニュートラルでない場合は次回まで待機
-            scheduleNextYawn();
+            scheduleNextSalute();
             return;
           }
         }
 
-        // あくびアニメーションを実行
-        this.playYawnAnimation();
-        scheduleNextYawn();
-      }, this.settings.autoYawn.interval);
+        // ラジャーアニメーションを実行
+        this.playSaluteAnimation();
+        scheduleNextSalute();
+      }, this.settings.autoSalute.interval);
     };
 
-    scheduleNextYawn();
+    scheduleNextSalute();
   }
 
   /**
-   * 自動あくびを停止
+   * 自動ラジャーを停止
    */
-  public stopAutoYawning(): void {
-    if (this.autoYawnTimer) {
-      clearTimeout(this.autoYawnTimer);
-      this.autoYawnTimer = null;
+  public stopAutoSalute(): void {
+    if (this.autoSaluteTimer) {
+      clearTimeout(this.autoSaluteTimer);
+      this.autoSaluteTimer = null;
     }
   }
 
   /**
-   * あくびアニメーションを実行
+   * ラジャーアニメーションを実行
    */
-  private playYawnAnimation(): void {
+  private playSaluteAnimation(): void {
     if (!this.vrmModel || !this.isEnabled) return;
 
-    // 新しく作成したあくびアニメーションを使用
-    import("../animations/index").then(({ getGestureAnimation }) => {
-      const yawnAnimation = getGestureAnimation("yawn");
-      if (yawnAnimation) {
-        this.playAnimation(
-          yawnAnimation, 
-          AnimationPriority.NORMAL
-        );
+    // ニュートラルジェスチャーからラジャーアニメーションを取得
+    import("../animations/gestures/neutral-gestures").then(({ getNeutralGestureAnimation }) => {
+      const saluteAnimation = getNeutralGestureAnimation("salute");
+      if (saluteAnimation) {
+        this.playAnimation(saluteAnimation, AnimationPriority.NORMAL);
       }
     });
+  }
+
+  /**
+   * 音声合成状態を設定
+   */
+  public setSpeaking(speaking: boolean): void {
+    this.isSpeaking = speaking;
+    
+    // 音声合成開始時は定期ジェスチャーを一時停止
+    if (speaking) {
+      this.pausePeriodicGestures();
+    } else {
+      // 音声合成終了時は定期ジェスチャーを再開
+      this.resumePeriodicGestures();
+    }
+  }
+
+  /**
+   * 定期ジェスチャーを一時停止
+   */
+  private pausePeriodicGestures(): void {
+    // ラジャーアニメーションを一時停止（瞬きと呼吸は継続）
+    this.stopAutoSalute();
+  }
+
+  /**
+   * 定期ジェスチャーを再開
+   */
+  private resumePeriodicGestures(): void {
+    // ラジャーアニメーションを再開
+    if (this.settings.autoSalute.enabled) {
+      this.startAutoSalute();
+    }
   }
 
   /**
@@ -688,7 +727,6 @@ export class AnimationController {
     );
     this.currentGestureAnimationId = gestureAnimationId;
 
-
     // イベント通知
     this.events.onGestureAnimationStart?.(gestureType, intensity);
   }
@@ -819,7 +857,6 @@ export class AnimationController {
         }
       }
     });
-
   }
 
   /**
@@ -830,13 +867,11 @@ export class AnimationController {
       return;
     }
 
-
     // 現在のボーン変形をリセット
     this.resetBoneTransforms();
 
     // 自然な姿勢を再適用
     this.applyNaturalDefaultPose();
-
   }
 
   /**
@@ -1230,7 +1265,6 @@ export class AnimationController {
           if (transform.scale) {
             bone.scale.set(...transform.scale);
           }
-
         } else {
         }
       });
@@ -1573,9 +1607,9 @@ export class AnimationController {
     this.isEnabled = enabled;
     if (!enabled) {
       this.activeAnimations.clear();
-      this.stopAutoBlinking();
-      this.stopAutoYawning();
-      this.stopBreathingAnimation();
+          this.stopAutoBlinking();
+    this.stopAutoSalute();
+    this.stopBreathingAnimation();
     }
   }
 

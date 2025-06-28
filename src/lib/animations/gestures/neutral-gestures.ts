@@ -5,9 +5,9 @@ import type { AnimationSequence } from "@/lib/types/animation";
  * 平常状態での自然な動作・癖・待機アニメーション
  */
 
-// あくび（口を大きく開けて手で覆う）
-export const yawn: AnimationSequence = {
-  name: "yawn",
+// ラジャー（右手で額付近への敬礼）
+export const salute: AnimationSequence = {
+  name: "salute",
   duration: 6000,
   loop: false,
   easing: "ease-in-out",
@@ -31,69 +31,37 @@ export const yawn: AnimationSequence = {
     {
       time: 1200,
       bones: {
-        // あくび開始 - 頭を少し後ろに傾ける
-        Head: { rotation: [0.15, 0, 0] },
-        RightShoulder: { rotation: [0, 0, 0] },
-        RightUpperArm: { rotation: [0, 0, 0] },
-        RightLowerArm: { rotation: [0, 0, 0] },
+        // ラジャー開始 - 肩の準備
+        Head: { rotation: [0.1, 0, 0] },
+        RightShoulder: { rotation: [0.1, 0, 0] }, // 肩を少し上げ始める
+        RightUpperArm: { rotation: [-0.2, 0.1, 0.1] }, // 上腕を準備位置に
+        RightLowerArm: { rotation: [0, 0, 0.3] }, // 肘を少し曲げ始める
         RightHand: { rotation: [0, 0, 0] },
       },
       blendShapes: {
-        // 口を大きく開ける
-        A: 0.4,
-        O: 0.6,
+        // ラジャー時は口の変化なし
+        A: 0,
+        O: 0,
       },
     },
     {
       time: 2250,
       bones: {
-        // 最大あくび状態 - 手を口元に持っていく
+        // ラジャー実行 - 手を額付近に持っていく
         Head: { rotation: [0.2, 0, 0] },
-        RightShoulder: { rotation: [0, 0, 0.2] },
-        RightUpperArm: { rotation: [0, 0.6, 0.8] },
-        RightLowerArm: { rotation: [0, 0, 1.2] },
-        RightHand: { rotation: [0.3, 0, 0.6] },
+        RightShoulder: { rotation: [0.1, 0, 0] }, // 肩をもう少し上げる
+        RightUpperArm: { rotation: [0.4, 0, 1.1] }, // 前に振り上げて敬礼位置に
+        RightLowerArm: { rotation: [0.4, 1.3, 0.2] }, // 肘を曲げて額付近に
+        RightHand: { rotation: [0, 0, 0] },
       },
       blendShapes: {
-        // 口を最大に開ける
-        A: 0.8,
-        O: 0.8,
+        // ラジャー時は口の変化なし
+        A: 0,
+        O: 0,
       },
     },
     {
-      time: 3750,
-      bones: {
-        // あくび継続 - 手で口を覆う
-        Head: { rotation: [0.15, 0, 0] },
-        RightShoulder: { rotation: [0, 0, 0.2] },
-        RightUpperArm: { rotation: [0, 0.6, 0.8] },
-        RightLowerArm: { rotation: [0, 0, 1.2] },
-        RightHand: { rotation: [0.3, 0, 0.6] },
-      },
-      blendShapes: {
-        // 口を少し閉じ始める
-        A: 0.5,
-        O: 0.5,
-      },
-    },
-    {
-      time: 5250,
-      bones: {
-        // あくび終了 - 手を下ろし始める
-        Head: { rotation: [0.05, 0, 0] },
-        RightShoulder: { rotation: [0, 0, 0.1] },
-        RightUpperArm: { rotation: [0, 0.3, 0.4] },
-        RightLowerArm: { rotation: [0, 0, 0.6] },
-        RightHand: { rotation: [0.1, 0, 0.1] },
-      },
-      blendShapes: {
-        // 口を閉じていく
-        A: 0.1,
-        O: 0.1,
-      },
-    },
-    {
-      time: 6000,
+      time: 5000,
       bones: {
         // 元の状態に戻る
         Head: { rotation: [0, 0, 0] },
@@ -103,7 +71,7 @@ export const yawn: AnimationSequence = {
         RightHand: { rotation: [0, 0, 0] },
       },
       blendShapes: {
-        // 口を完全に閉じる
+        // 通常状態に戻る
         A: 0,
         O: 0,
       },
@@ -207,11 +175,11 @@ export const hairTouch: AnimationSequence = {
 };
 
 // ニュートラルジェスチャーの型定義
-export type NeutralGestureType = "yawn" | "lightHeadShake" | "hairTouch";
+export type NeutralGestureType = "salute" | "lightHeadShake" | "hairTouch";
 
 // ニュートラルジェスチャーのマッピング
 const neutralGestures = {
-  yawn,
+  salute,
   lightHeadShake,
   hairTouch,
 } as const;
@@ -239,9 +207,9 @@ export function getNeutralGestureDescription(
   gestureType: NeutralGestureType
 ): string {
   const descriptions = {
-    yawn: "あくび - 口を大きく開けて手で覆う自然な動作",
+    salute: "ラジャー（敬礼） - 右手で額付近への敬礼動作",
     lightHeadShake: "軽い首振り - 左右にゆっくりと首を振る",
     hairTouch: "髪をかき上げる - 手で前髪や髪の毛を整える",
   };
   return descriptions[gestureType] || "";
-} 
+}
