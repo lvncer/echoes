@@ -450,12 +450,72 @@ export class AnimationController {
   private playYawnAnimation(): void {
     if (!this.vrmModel || !this.isEnabled) return;
 
-    // 新しく作成したあくびアニメーションを使用
+    // ブレンドシェイプサービスを使って口のアニメーションを制御
+    this.playYawnWithBlendShapeService();
+  }
+
+  /**
+   * ブレンドシェイプサービスを使ったあくびアニメーション
+   */
+  private playYawnWithBlendShapeService(): void {
+    import("./blend-shape-service").then(({ blendShapeService }) => {
+      // あくびの段階的アニメーション (6秒間)
+      const yawnStages = [
+        { time: 0, shapes: {} },
+        { time: 1200, shapes: { A: 0.4, O: 0.6 } },
+        { time: 2250, shapes: { A: 0.8, O: 0.8 } },
+        { time: 3750, shapes: { A: 0.5, O: 0.5 } },
+        { time: 5250, shapes: { A: 0.1, O: 0.1 } },
+        { time: 6000, shapes: {} }
+      ];
+
+      let currentStage = 0;
+
+      const animateYawn = () => {
+        if (currentStage >= yawnStages.length) {
+          // アニメーション完了 - 口をリセット
+          blendShapeService.resetMouthBlendShapes();
+          return;
+        }
+
+        const stage = yawnStages[currentStage];
+        
+        // ブレンドシェイプを適用
+        Object.entries(stage.shapes).forEach(([shapeName, weight]) => {
+          blendShapeService.setBlendShapeWeight(shapeName, weight);
+        });
+
+        currentStage++;
+        
+        // 次のステージまでの時間を計算
+        const nextTime = currentStage < yawnStages.length 
+          ? yawnStages[currentStage].time - stage.time 
+          : 0;
+
+        if (nextTime > 0) {
+          setTimeout(animateYawn, nextTime);
+        }
+      };
+
+      // アニメーション開始
+      animateYawn();
+    });
+
+    // ボーンアニメーションは従来通り実行
     import("../animations/index").then(({ getGestureAnimation }) => {
       const yawnAnimation = getGestureAnimation("yawn");
       if (yawnAnimation) {
+        // ブレンドシェイプを除去したボーンアニメーションのみ実行
+        const boneOnlyAnimation = {
+          ...yawnAnimation,
+          keyframes: yawnAnimation.keyframes.map(kf => ({
+            ...kf,
+            blendShapes: undefined // ブレンドシェイプを除去
+          }))
+        };
+        
         this.playAnimation(
-          yawnAnimation, 
+          boneOnlyAnimation, 
           AnimationPriority.NORMAL
         );
       }
