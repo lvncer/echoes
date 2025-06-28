@@ -8,6 +8,7 @@ import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
+import { VoiceSpeakerSelector } from "@/components/voice-speaker-selector";
 
 import {
   AudioChatIntegrationService,
@@ -357,6 +358,12 @@ export default function Home() {
       {/* 音声操作UI - 下部中央オーバーレイ */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
         <div className="flex flex-col items-center gap-3">
+          {/* 話者選択UI */}
+          <VoiceSpeakerSelector
+            onSettingsClick={() => setIsSettingsOpen(true)}
+            className="max-w-screen-sm"
+          />
+
           {/* 音声チャット切り替えボタン */}
           <Button
             onClick={toggleVoiceChat}
