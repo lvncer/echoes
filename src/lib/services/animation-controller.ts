@@ -112,7 +112,26 @@ export class AnimationController {
    * VRMモデルを設定
    */
   public setVRMModel(model: VRM): void {
+    console.log('[AnimationController] VRMモデルを設定:', !!model);
     this.vrmModel = model;
+    
+    if (model) {
+      console.log('[AnimationController] VRMモデル設定完了、自動アニメーションを開始');
+      
+      // VRMモデルが設定されたら自動アニメーションを開始（重複実行を防ぐ）
+      if (!this.animationFrame) {
+        console.log('[AnimationController] アニメーションループを開始');
+        this.startAnimationLoop();
+      } else {
+        console.log('[AnimationController] アニメーションループは既に実行中');
+      }
+      
+      // 自動ジェスチャーを開始
+      if (this.settings.autoSalute.enabled && !this.isSpeaking) {
+        console.log('[AnimationController] 自動サルートアニメーションを開始');
+        this.startAutoSalute();
+      }
+    }
 
     // ブレンドシェイプサービスにもVRMモデルを設定
     blendShapeService.setVRM(model);
@@ -416,12 +435,38 @@ export class AnimationController {
    * 自動ラジャーを開始
    */
   public startAutoSalute(): void {
-    if (!this.vrmModel || this.autoSaluteTimer) return;
+    console.log('[AnimationController] startAutoSalute実行中...', {
+      hasVRMModel: !!this.vrmModel,
+      hasExistingTimer: !!this.autoSaluteTimer,
+      isEnabled: this.isEnabled
+    });
+    
+    if (!this.vrmModel || this.autoSaluteTimer) {
+      console.log('[AnimationController] startAutoSalute条件に引っかかり処理をスキップ', {
+        vrmModelMissing: !this.vrmModel,
+        timerExists: !!this.autoSaluteTimer
+      });
+      return;
+    }
 
     const scheduleNextSalute = () => {
+      console.log('[AnimationController] タイマーを設定中...', {
+        interval: this.settings.autoSalute.interval,
+        isSpeaking: this.isSpeaking,
+        disableDuringSpeech: this.settings.autoSalute.disableDuringSpeech
+      });
+      
       this.autoSaluteTimer = setTimeout(() => {
+        console.log('[AnimationController] タイマー実行中...', {
+          isSpeaking: this.isSpeaking,
+          disableDuringSpeech: this.settings.autoSalute.disableDuringSpeech,
+          neutralOnly: this.settings.autoSalute.neutralOnly,
+          lastEmotion: this.lastEmotionAnalysis?.emotion
+        });
+        
         // 音声合成中はスキップ
         if (this.settings.autoSalute.disableDuringSpeech && this.isSpeaking) {
+          console.log('[AnimationController] 音声合成中のためスキップ、次回スケジュール');
           scheduleNextSalute();
           return;
         }
@@ -432,16 +477,20 @@ export class AnimationController {
             this.lastEmotionAnalysis &&
             this.lastEmotionAnalysis.emotion !== "neutral"
           ) {
+            console.log('[AnimationController] ニュートラル感情でないためスキップ、次回スケジュール');
             // ニュートラルでない場合は次回まで待機
             scheduleNextSalute();
             return;
           }
         }
 
+        console.log('[AnimationController] ラジャーアニメーションを実行中...');
         // ラジャーアニメーションを実行
         this.playSaluteAnimation();
         scheduleNextSalute();
       }, this.settings.autoSalute.interval);
+      
+      console.log('[AnimationController] タイマー設定完了:', !!this.autoSaluteTimer);
     };
 
     scheduleNextSalute();
@@ -461,14 +510,35 @@ export class AnimationController {
    * ラジャーアニメーションを実行
    */
   private playSaluteAnimation(): void {
-    if (!this.vrmModel || !this.isEnabled) return;
+    console.log('[AnimationController] playSaluteAnimation実行中...', {
+      hasVRMModel: !!this.vrmModel,
+      isEnabled: this.isEnabled
+    });
+    
+    if (!this.vrmModel || !this.isEnabled) {
+      console.log('[AnimationController] playSaluteAnimation条件に引っかかり処理をスキップ', {
+        vrmModelMissing: !this.vrmModel,
+        isDisabled: !this.isEnabled
+      });
+      return;
+    }
 
+    console.log('[AnimationController] ニュートラルジェスチャーアニメーションをインポート中...');
     // ニュートラルジェスチャーからラジャーアニメーションを取得
     import("../animations/gestures/neutral-gestures").then(({ getNeutralGestureAnimation }) => {
+      console.log('[AnimationController] ニュートラルジェスチャーアニメーションインポート完了、アニメーションを取得中...');
       const saluteAnimation = getNeutralGestureAnimation("salute");
+      console.log('[AnimationController] サルートアニメーション取得結果:', !!saluteAnimation);
+      
       if (saluteAnimation) {
-        this.playAnimation(saluteAnimation, AnimationPriority.NORMAL);
+        console.log('[AnimationController] サルートアニメーションを再生開始...');
+        const animationId = this.playAnimation(saluteAnimation, AnimationPriority.NORMAL);
+        console.log('[AnimationController] サルートアニメーションID:', animationId);
+      } else {
+        console.error('[AnimationController] サルートアニメーションが見つかりません');
       }
+    }).catch((error) => {
+      console.error('[AnimationController] ニュートラルジェスチャーインポートエラー:', error);
     });
   }
 
