@@ -33,7 +33,6 @@ export function VoiceSpeakerSelector({
   const [speakers, setSpeakers] = useState<VoicevoxSpeaker[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   /**
    * 話者一覧を読み込み
@@ -45,7 +44,6 @@ export function VoiceSpeakerSelector({
     try {
       const speakerList = await integratedSpeechService.getVoicevoxSpeakers();
       setSpeakers(speakerList);
-      setIsInitialized(true);
       return true;
     } catch (error) {
       console.error("話者一覧読み込みエラー:", error);
