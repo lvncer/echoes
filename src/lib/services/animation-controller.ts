@@ -461,12 +461,20 @@ export class AnimationController {
           isSpeaking: this.isSpeaking,
           disableDuringSpeech: this.settings.autoSalute.disableDuringSpeech,
           neutralOnly: this.settings.autoSalute.neutralOnly,
-          lastEmotion: this.lastEmotionAnalysis?.emotion
+          lastEmotion: this.lastEmotionAnalysis?.emotion,
+          timestamp: new Date().toISOString()
         });
         
-        // 音声合成中はスキップ
+        // 音声合成中はスキップ（二重チェック）
+        if (this.isSpeaking) {
+          console.log('[AnimationController] 音声合成中のためスキップ（二重チェック）、次回スケジュール');
+          scheduleNextSalute();
+          return;
+        }
+        
+        // 設定による音声合成中チェック
         if (this.settings.autoSalute.disableDuringSpeech && this.isSpeaking) {
-          console.log('[AnimationController] 音声合成中のためスキップ、次回スケジュール');
+          console.log('[AnimationController] 音声合成中のためスキップ（設定チェック）、次回スケジュール');
           scheduleNextSalute();
           return;
         }
@@ -546,7 +554,19 @@ export class AnimationController {
    * 音声合成状態を設定
    */
   public setSpeaking(speaking: boolean): void {
-    console.log(`[AnimationController] setSpeaking: ${speaking}, previous state: ${this.isSpeaking}`);
+    console.log(`[AnimationController] setSpeaking: ${speaking}, previous state: ${this.isSpeaking}, timestamp: ${new Date().toISOString()}`);
+    
+    // 状態変更前の処理
+    if (speaking && !this.isSpeaking) {
+      // 音声合成開始：即座にタイマーをクリア
+      console.log('[AnimationController] 音声合成開始 - 即座にタイマーをクリア');
+      if (this.autoSaluteTimer) {
+        clearTimeout(this.autoSaluteTimer);
+        this.autoSaluteTimer = null;
+        console.log('[AnimationController] 既存タイマーを強制クリア');
+      }
+    }
+    
     this.isSpeaking = speaking;
     
     // 音声合成開始時は定期ジェスチャーを一時停止
@@ -564,8 +584,16 @@ export class AnimationController {
    * 定期ジェスチャーを一時停止
    */
   private pausePeriodicGestures(): void {
+    console.log('[AnimationController] 定期ジェスチャーを一時停止中...', {
+      hadSaluteTimer: !!this.autoSaluteTimer
+    });
+    
     // ラジャーアニメーションを一時停止（瞬きと呼吸は継続）
     this.stopAutoSalute();
+    
+    console.log('[AnimationController] 定期ジェスチャー一時停止完了', {
+      saluteTimerCleared: !this.autoSaluteTimer
+    });
   }
 
   /**
