@@ -520,8 +520,16 @@ export class AnimationController {
   private playSaluteAnimation(): void {
     console.log('[AnimationController] playSaluteAnimation実行中...', {
       hasVRMModel: !!this.vrmModel,
-      isEnabled: this.isEnabled
+      isEnabled: this.isEnabled,
+      isSpeaking: this.isSpeaking,
+      timestamp: new Date().toISOString()
     });
+    
+    // 音声合成中は実行しない（最終防御線）
+    if (this.isSpeaking) {
+      console.log('[AnimationController] 音声合成中のためplaySaluteAnimationをスキップ（最終防御線）');
+      return;
+    }
     
     if (!this.vrmModel || !this.isEnabled) {
       console.log('[AnimationController] playSaluteAnimation条件に引っかかり処理をスキップ', {
@@ -602,8 +610,16 @@ export class AnimationController {
   private resumePeriodicGestures(): void {
     console.log('[AnimationController] 定期ジェスチャーを再開中...', {
       autoSaluteEnabled: this.settings.autoSalute.enabled,
-      autoSaluteTimer: !!this.autoSaluteTimer
+      autoSaluteTimer: !!this.autoSaluteTimer,
+      isSpeaking: this.isSpeaking,
+      timestamp: new Date().toISOString()
     });
+    
+    // 音声合成が確実に終了していることを確認
+    if (this.isSpeaking) {
+      console.log('[AnimationController] まだ音声合成中のため定期ジェスチャー再開をスキップ');
+      return;
+    }
     
     // ラジャーアニメーションを再開
     if (this.settings.autoSalute.enabled) {
