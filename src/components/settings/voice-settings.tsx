@@ -711,9 +711,9 @@ export function VoiceSettings() {
             </div>
 
             {/* 話者選択 */}
-            {voicevoxSpeakers.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white">話者</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white">話者</label>
+              {voicevoxSpeakers.length > 0 ? (
                 <Select
                   value={settings.voicevox.speaker.toString()}
                   onValueChange={handleVoicevoxSpeakerChange}
@@ -731,8 +731,19 @@ export function VoiceSettings() {
                     )}
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-2">
+                  <Select disabled>
+                    <SelectTrigger className="opacity-50">
+                      <SelectValue placeholder="話者一覧を読み込んでください" />
+                    </SelectTrigger>
+                  </Select>
+                  <p className="text-xs text-amber-400">
+                    ⚠️ 上記の「設定を反映」ボタンを押して話者一覧を読み込んでください
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* タイムアウト設定 */}
             <div className="space-y-2">
