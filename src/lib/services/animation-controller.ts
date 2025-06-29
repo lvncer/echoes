@@ -106,6 +106,81 @@ export class AnimationController {
   constructor() {
     // アニメーションループは外部から制御されるため、ここでは開始しない
     // this.startAnimationLoop();
+    
+    // Fast Refresh対応: 音声合成状態を復元
+    this.restoreSpeakingStateFromSession();
+  }
+
+  /**
+   * セッションから音声合成状態を復元
+   */
+  private restoreSpeakingStateFromSession(): void {
+    if (typeof window === "undefined") return;
+    
+    try {
+      const storedState = sessionStorage.getItem('animation-controller-speaking-state');
+      if (storedState) {
+        const state = JSON.parse(storedState);
+        if (state.isSpeaking && Date.now() - state.timestamp < 30000) { // 30秒以内なら有効
+          console.log('[AnimationController] 音声合成状態を復元:', state);
+          this.isSpeaking = true;
+          
+          // 30秒後に自動クリア（安全装置）
+          setTimeout(() => {
+            if (this.isSpeaking) {
+              console.log('[AnimationController] 音声合成状態の自動クリア（安全装置）');
+              this.setSpeaking(false);
+            }
+          }, 30000);
+        } else {
+          // 古い状態をクリア
+          sessionStorage.removeItem('animation-controller-speaking-state');
+        }
+      }
+    } catch (error) {
+      console.error('[AnimationController] 音声合成状態の復元エラー:', error);
+    }
+  }
+
+  /**
+   * 音声合成状態をセッションに保存
+   */
+  private saveSpeakingStateToSession(): void {
+    if (typeof window === "undefined") return;
+    
+    try {
+      if (this.isSpeaking) {
+        const state = {
+          isSpeaking: true,
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem('animation-controller-speaking-state', JSON.stringify(state));
+      } else {
+        sessionStorage.removeItem('animation-controller-speaking-state');
+      }
+    } catch (error) {
+      console.error('[AnimationController] 音声合成状態の保存エラー:', error);
+    }
+  }
+
+  /**
+   * セッションから音声合成状態をチェック
+   */
+  private checkSpeakingStateFromSession(): boolean {
+    if (typeof window === "undefined") return false;
+    
+    try {
+      const storedState = sessionStorage.getItem('animation-controller-speaking-state');
+      if (storedState) {
+        const state = JSON.parse(storedState);
+        // 30秒以内の状態なら有効
+        return state.isSpeaking && Date.now() - state.timestamp < 30000;
+      }
+    } catch (error) {
+      console.error('[AnimationController] 音声合成状態のチェックエラー:', error);
+    }
+    
+    return false;
   }
 
   /**
@@ -457,24 +532,42 @@ export class AnimationController {
       });
       
       this.autoSaluteTimer = setTimeout(() => {
+        // セッションから最新の音声合成状態を確認
+        const sessionSpeaking = this.checkSpeakingStateFromSession();
+        
         console.log('[AnimationController] タイマー実行中...', {
           isSpeaking: this.isSpeaking,
+          sessionSpeaking,
           disableDuringSpeech: this.settings.autoSalute.disableDuringSpeech,
           neutralOnly: this.settings.autoSalute.neutralOnly,
           lastEmotion: this.lastEmotionAnalysis?.emotion,
           timestamp: new Date().toISOString()
         });
         
-        // 音声合成中はスキップ（二重チェック）
+            // 音声合成中はスキップ（ローカル状態チェック）
         if (this.isSpeaking) {
-          console.log('[AnimationController] 音声合成中のためスキップ（二重チェック）、次回スケジュール');
+          if (process.env.NODE_ENV === "development") {
+            console.log('[AnimationController] 音声合成中のためスキップ（ローカル状態）、次回スケジュール');
+          }
+          scheduleNextSalute();
+          return;
+        }
+        
+        // 音声合成中はスキップ（セッション状態チェック）
+        if (sessionSpeaking) {
+          if (process.env.NODE_ENV === "development") {
+            console.log('[AnimationController] 音声合成中のためスキップ（セッション状態）、次回スケジュール');
+          }
+          this.isSpeaking = true; // ローカル状態も同期
           scheduleNextSalute();
           return;
         }
         
         // 設定による音声合成中チェック
-        if (this.settings.autoSalute.disableDuringSpeech && this.isSpeaking) {
-          console.log('[AnimationController] 音声合成中のためスキップ（設定チェック）、次回スケジュール');
+        if (this.settings.autoSalute.disableDuringSpeech && (this.isSpeaking || sessionSpeaking)) {
+          if (process.env.NODE_ENV === "development") {
+            console.log('[AnimationController] 音声合成中のためスキップ（設定チェック）、次回スケジュール');
+          }
           scheduleNextSalute();
           return;
         }
@@ -562,29 +655,61 @@ export class AnimationController {
    * 音声合成状態を設定
    */
   public setSpeaking(speaking: boolean): void {
-    console.log(`[AnimationController] setSpeaking: ${speaking}, previous state: ${this.isSpeaking}, timestamp: ${new Date().toISOString()}`);
+    const previousState = this.isSpeaking;
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[AnimationController] setSpeaking: ${speaking}, previous state: ${previousState}, timestamp: ${new Date().toISOString()}`);
+    }
+    
+    // 状態が変更されない場合は早期終了
+    if (previousState === speaking) {
+      if (process.env.NODE_ENV === "development") {
+        console.log('[AnimationController] 状態に変更なし、処理をスキップ');
+      }
+      return;
+    }
     
     // 状態変更前の処理
     if (speaking && !this.isSpeaking) {
       // 音声合成開始：即座にタイマーをクリア
-      console.log('[AnimationController] 音声合成開始 - 即座にタイマーをクリア');
+      if (process.env.NODE_ENV === "development") {
+        console.log('[AnimationController] 音声合成開始 - 即座にタイマーをクリア');
+      }
       if (this.autoSaluteTimer) {
         clearTimeout(this.autoSaluteTimer);
         this.autoSaluteTimer = null;
-        console.log('[AnimationController] 既存タイマーを強制クリア');
+        if (process.env.NODE_ENV === "development") {
+          console.log('[AnimationController] 既存タイマーを強制クリア');
+        }
       }
     }
     
+    // 状態を更新
     this.isSpeaking = speaking;
+    
+    // セッションストレージに状態を保存（Fast Refresh対応）
+    this.saveSpeakingStateToSession();
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[AnimationController] 音声合成状態を更新・保存: ${speaking}`);
+    }
     
     // 音声合成開始時は定期ジェスチャーを一時停止
     if (speaking) {
-      console.log('[AnimationController] 音声合成開始 - 定期ジェスチャーを一時停止');
+      if (process.env.NODE_ENV === "development") {
+        console.log('[AnimationController] 音声合成開始 - 定期ジェスチャーを一時停止');
+      }
       this.pausePeriodicGestures();
     } else {
-      console.log('[AnimationController] 音声合成終了 - 定期ジェスチャーを再開');
+      if (process.env.NODE_ENV === "development") {
+        console.log('[AnimationController] 音声合成終了 - 定期ジェスチャーを再開');
+      }
       // 音声合成終了時は定期ジェスチャーを再開
       this.resumePeriodicGestures();
+    }
+    
+    // 状態変更をデバッグパネルにも通知
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[AnimationController] 音声合成状態変更完了: ${previousState} → ${speaking}`);
     }
   }
 
@@ -1713,6 +1838,29 @@ export class AnimationController {
       calculationTime: this.calculationTime,
       memoryUsage: this.memoryUsage,
       runningAnimations,
+    };
+  }
+
+  /**
+   * デバッグ用の詳細状態を取得
+   */
+  public getDebugState(): {
+    isEnabled: boolean;
+    isSpeaking: boolean;
+    hasVRMModel: boolean;
+    activeAnimations: AnimationInstance[];
+    frameRate: number;
+    calculationTime: number;
+    memoryUsage: number;
+  } {
+    return {
+      isEnabled: this.isEnabled,
+      isSpeaking: this.isSpeaking,
+      hasVRMModel: !!this.vrmModel,
+      activeAnimations: Array.from(this.activeAnimations.values()),
+      frameRate: this.frameRate,
+      calculationTime: this.calculationTime,
+      memoryUsage: this.memoryUsage,
     };
   }
 

@@ -8,6 +8,7 @@ import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
+import { AnimationDebugPanel } from "@/components/3d/animation-debug-panel";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 
 import {
@@ -43,6 +44,7 @@ const initializeAnimationController = () => {
 export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
 
   // 音声チャット関連の状態
   const [audioChatService, setAudioChatService] =
@@ -422,6 +424,14 @@ export default function Home() {
       </div>
 
       <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      
+      {/* デバッグパネル（開発環境のみ） */}
+      {process.env.NODE_ENV === "development" && (
+        <AnimationDebugPanel
+          isVisible={isDebugPanelVisible}
+          onToggleVisibility={() => setIsDebugPanelVisible(!isDebugPanelVisible)}
+        />
+      )}
     </main>
   );
 }
