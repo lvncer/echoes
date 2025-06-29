@@ -15,14 +15,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // デバッグログ: サーバーサイドで受信したデータを確認
-    console.log("🔧 [API Debug] 受信したカスタムプロンプト:", {
-      hasCustomPrompt: !!customPrompt,
-      enabled: customPrompt?.enabled,
-      contentLength: customPrompt?.content?.length || 0,
-      timestamp: new Date().toISOString()
-    });
-
     // サーバーサイドで環境変数から設定を取得
     const config = createAIConfigFromEnv();
 
@@ -65,11 +57,11 @@ export async function POST(request: NextRequest) {
     // カスタムプロンプトが有効な場合、システムメッセージを追加
     let processedMessages = messages as ChatMessage[];
     if (customPrompt?.enabled && customPrompt.content) {
-      console.log("🔧 [API Debug] カスタムプロンプトを適用中...");
-      
       // 既存のシステムメッセージを削除
-      processedMessages = processedMessages.filter(msg => msg.role !== "system");
-      
+      processedMessages = processedMessages.filter(
+        (msg) => msg.role !== "system"
+      );
+
       // カスタムプロンプトをシステムメッセージとして先頭に追加
       processedMessages = [
         {
@@ -78,7 +70,7 @@ export async function POST(request: NextRequest) {
           content: customPrompt.content,
           timestamp: new Date(),
         },
-        ...processedMessages
+        ...processedMessages,
       ];
     }
 

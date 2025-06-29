@@ -5,7 +5,10 @@ import type {
   AudioQuery,
   VoicevoxError,
 } from "@/lib/types/voicevox";
-import { DEFAULT_VOICEVOX_CONFIG, VOICEVOX_WEB_API_CONFIG } from "@/lib/types/voicevox";
+import {
+  DEFAULT_VOICEVOX_CONFIG,
+  VOICEVOX_WEB_API_CONFIG,
+} from "@/lib/types/voicevox";
 
 /**
  * VOICEVOX API クライアントサービス
@@ -21,7 +24,10 @@ export class VoicevoxService {
 
   constructor(config: Partial<VoicevoxConfig> = {}) {
     // Web API使用がデフォルト、未指定の場合はWeb API設定を使用
-    const defaultConfig = config.useWebApi !== false ? VOICEVOX_WEB_API_CONFIG : DEFAULT_VOICEVOX_CONFIG;
+    const defaultConfig =
+      config.useWebApi !== false
+        ? VOICEVOX_WEB_API_CONFIG
+        : DEFAULT_VOICEVOX_CONFIG;
     this.config = { ...defaultConfig, ...config };
   }
 
@@ -46,9 +52,12 @@ export class VoicevoxService {
    */
   async checkServerStatus(): Promise<boolean> {
     const now = Date.now();
-    
+
     // 最近チェックした場合はキャッシュを使用
-    if (this.isServerAvailable && now - this.lastHealthCheck < this.healthCheckInterval) {
+    if (
+      this.isServerAvailable &&
+      now - this.lastHealthCheck < this.healthCheckInterval
+    ) {
       return true;
     }
 
@@ -62,7 +71,7 @@ export class VoicevoxService {
       // Web APIの場合は/speakers エンドポイントで確認（/versionが無い場合があるため）
       const endpoint = this.config.useWebApi ? "/speakers/" : "/version";
       const headers: Record<string, string> = {};
-      
+
       // Web API使用時はAPIキーをヘッダーに追加
       if (this.config.useWebApi && this.config.apiKey) {
         headers["X-API-Key"] = this.config.apiKey;
@@ -82,8 +91,7 @@ export class VoicevoxService {
         this.isServerAvailable = false;
         return false;
       }
-    } catch (error) {
-      console.warn("VOICEVOX サーバー接続エラー:", error);
+    } catch {
       this.isServerAvailable = false;
       return false;
     }
@@ -121,8 +129,7 @@ export class VoicevoxService {
       }
 
       return await response.json();
-    } catch (error) {
-      console.error("サーバー情報取得エラー:", error);
+    } catch {
       return null;
     }
   }
@@ -134,7 +141,9 @@ export class VoicevoxService {
     try {
       // Web API使用時はAPIキーが必要
       if (this.config.useWebApi && !this.config.apiKey) {
-        throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
+        throw new Error(
+          "Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。"
+        );
       }
 
       let url: string;
@@ -158,22 +167,36 @@ export class VoicevoxService {
       if (!response.ok) {
         try {
           const errorData: VoicevoxError = await response.json();
-          const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
-          
-          if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
-            throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+          const errorMessage =
+            errorData.error ||
+            errorData.detail ||
+            errorData.errorMessage ||
+            "不明なエラー";
+
+          if (
+            errorMessage.includes("APIキー") ||
+            errorMessage === "invalidApiKey"
+          ) {
+            throw new Error(
+              "APIキーが無効です。正しいAPIキーを設定してください。"
+            );
           }
-          
+
           throw new Error(`話者情報取得エラー: ${errorMessage}`);
         } catch (_parseError) {
-          throw new Error(`話者情報取得エラー (HTTP ${response.status}): ${response.statusText}`);
+          throw new Error(
+            `話者情報取得エラー (HTTP ${response.status}): ${response.statusText}`
+          );
         }
       }
 
       return await response.json();
     } catch (error) {
-      console.error("話者一覧取得エラー:", error);
-      throw new Error(`話者一覧の取得に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
+      throw new Error(
+        `話者一覧の取得に失敗しました: ${
+          error instanceof Error ? error.message : "不明なエラー"
+        }`
+      );
     }
   }
 
@@ -191,7 +214,6 @@ export class VoicevoxService {
     // キャッシュをチェック
     if (this.audioCache.has(cacheKey)) {
       const cachedAudio = this.audioCache.get(cacheKey)!;
-      console.log("音声キャッシュヒット:", text.substring(0, 20));
       return cachedAudio;
     }
 
@@ -212,18 +234,26 @@ export class VoicevoxService {
 
       return audioBlob;
     } catch (error) {
-      console.error("音声合成エラー:", error);
-      throw new Error(`音声合成に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
+      throw new Error(
+        `音声合成に失敗しました: ${
+          error instanceof Error ? error.message : "不明なエラー"
+        }`
+      );
     }
   }
 
   /**
    * AudioQueryを作成
    */
-  private async createAudioQuery(text: string, speakerId: number): Promise<AudioQuery> {
+  private async createAudioQuery(
+    text: string,
+    speakerId: number
+  ): Promise<AudioQuery> {
     // Web API使用時はAPIキーが必要
     if (this.config.useWebApi && !this.config.apiKey) {
-      throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
+      throw new Error(
+        "Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。"
+      );
     }
 
     let url: string;
@@ -231,7 +261,9 @@ export class VoicevoxService {
 
     if (this.config.useWebApi) {
       // Web API使用時はプロキシ経由でアクセス
-      const endpoint = `/audio_query/?text=${encodeURIComponent(text)}&speaker=${speakerId}`;
+      const endpoint = `/audio_query/?text=${encodeURIComponent(
+        text
+      )}&speaker=${speakerId}`;
       url = `/api/voicevox?endpoint=${encodeURIComponent(endpoint)}`;
       headers["X-API-Key"] = this.config.apiKey!;
     } else {
@@ -251,16 +283,27 @@ export class VoicevoxService {
     if (!response.ok) {
       try {
         const errorData: VoicevoxError = await response.json();
-        const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
-        
-        if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
-          throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+        const errorMessage =
+          errorData.error ||
+          errorData.detail ||
+          errorData.errorMessage ||
+          "不明なエラー";
+
+        if (
+          errorMessage.includes("APIキー") ||
+          errorMessage === "invalidApiKey"
+        ) {
+          throw new Error(
+            "APIキーが無効です。正しいAPIキーを設定してください。"
+          );
         }
-        
+
         throw new Error(`AudioQuery作成エラー: ${errorMessage}`);
-              } catch (_parseError) {
-          throw new Error(`AudioQuery作成エラー (HTTP ${response.status}): ${response.statusText}`);
-        }
+      } catch (_parseError) {
+        throw new Error(
+          `AudioQuery作成エラー (HTTP ${response.status}): ${response.statusText}`
+        );
+      }
     }
 
     return await response.json();
@@ -269,10 +312,15 @@ export class VoicevoxService {
   /**
    * Web API経由で音声合成（公式仕様の/audio/エンドポイント使用）
    */
-  private async synthesizeViaWebApi(text: string, speakerId: number): Promise<Blob> {
+  private async synthesizeViaWebApi(
+    text: string,
+    speakerId: number
+  ): Promise<Blob> {
     // Web API使用時はAPIキーが必要
     if (!this.config.apiKey) {
-      throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
+      throw new Error(
+        "Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。"
+      );
     }
 
     const url = new URL("/api/voicevox", window.location.origin);
@@ -293,15 +341,26 @@ export class VoicevoxService {
     if (!response.ok) {
       try {
         const errorData: VoicevoxError = await response.json();
-        const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
-        
-        if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
-          throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+        const errorMessage =
+          errorData.error ||
+          errorData.detail ||
+          errorData.errorMessage ||
+          "不明なエラー";
+
+        if (
+          errorMessage.includes("APIキー") ||
+          errorMessage === "invalidApiKey"
+        ) {
+          throw new Error(
+            "APIキーが無効です。正しいAPIキーを設定してください。"
+          );
         }
-        
+
         throw new Error(`音声合成エラー: ${errorMessage}`);
       } catch (_parseError) {
-        throw new Error(`音声合成エラー (HTTP ${response.status}): ${response.statusText}`);
+        throw new Error(
+          `音声合成エラー (HTTP ${response.status}): ${response.statusText}`
+        );
       }
     }
 
@@ -311,10 +370,15 @@ export class VoicevoxService {
   /**
    * AudioQueryから音声を合成
    */
-  private async synthesizeFromQuery(audioQuery: AudioQuery, speakerId: number): Promise<Blob> {
+  private async synthesizeFromQuery(
+    audioQuery: AudioQuery,
+    speakerId: number
+  ): Promise<Blob> {
     // Web API使用時はAPIキーが必要
     if (this.config.useWebApi && !this.config.apiKey) {
-      throw new Error("Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。");
+      throw new Error(
+        "Web API使用時はAPIキーが必要です。設定画面でAPIキーを入力してください。"
+      );
     }
 
     let url: string;
@@ -344,16 +408,27 @@ export class VoicevoxService {
     if (!response.ok) {
       try {
         const errorData: VoicevoxError = await response.json();
-        const errorMessage = errorData.error || errorData.detail || errorData.errorMessage || "不明なエラー";
-        
-        if (errorMessage.includes("APIキー") || errorMessage === "invalidApiKey") {
-          throw new Error("APIキーが無効です。正しいAPIキーを設定してください。");
+        const errorMessage =
+          errorData.error ||
+          errorData.detail ||
+          errorData.errorMessage ||
+          "不明なエラー";
+
+        if (
+          errorMessage.includes("APIキー") ||
+          errorMessage === "invalidApiKey"
+        ) {
+          throw new Error(
+            "APIキーが無効です。正しいAPIキーを設定してください。"
+          );
         }
-        
+
         throw new Error(`音声合成エラー: ${errorMessage}`);
-              } catch (_parseError) {
-          throw new Error(`音声合成エラー (HTTP ${response.status}): ${response.statusText}`);
-        }
+      } catch (_parseError) {
+        throw new Error(
+          `音声合成エラー (HTTP ${response.status}): ${response.statusText}`
+        );
+      }
     }
 
     return await response.blob();
@@ -411,7 +486,7 @@ export class VoicevoxService {
   }> {
     try {
       const isAvailable = await this.checkServerStatus();
-      
+
       if (!isAvailable) {
         return {
           success: false,
@@ -420,7 +495,7 @@ export class VoicevoxService {
       }
 
       const serverInfo = await this.getServerInfo();
-      
+
       if (!serverInfo) {
         return {
           success: false,
@@ -447,12 +522,15 @@ export class VoicevoxService {
     try {
       const testText = "こんにちは";
       await this.synthesizeVoice(testText);
-      
+
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "音声合成テストに失敗しました",
+        error:
+          error instanceof Error
+            ? error.message
+            : "音声合成テストに失敗しました",
       };
     }
   }
@@ -468,4 +546,4 @@ export class VoicevoxService {
 }
 
 // デフォルトインスタンス
-export const voicevoxService = new VoicevoxService(); 
+export const voicevoxService = new VoicevoxService();

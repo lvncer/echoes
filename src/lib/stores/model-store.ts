@@ -72,15 +72,16 @@ export const useModelStore = create<ModelStore>()(
         set((state) => {
           // 重複チェック: 同じIDまたはデフォルトモデルの重複を防ぐ
           const existingModel = state.availableModels.find(
-            (m) => 
-              m.id === model.id || 
+            (m) =>
+              m.id === model.id ||
               (m.isDefault && model.isDefault) ||
               // 同じファイル名かつサイズが同じ場合も重複とみなす
-              (m.name === model.name && m.size === model.size && m.format === model.format)
+              (m.name === model.name &&
+                m.size === model.size &&
+                m.format === model.format)
           );
-          
+
           if (existingModel) {
-            console.log(`モデルの重複を検出: ${model.name} (ID: ${model.id})`);
             // 既存モデルの最終使用日時を更新
             const updatedModels = state.availableModels.map((m) =>
               m.id === existingModel.id ? { ...m, lastUsed: new Date() } : m
@@ -203,14 +204,13 @@ export const useModelStore = create<ModelStore>()(
       loadDefaultModel: async () => {
         try {
           const state = get();
-          
+
           // デフォルトモデルが既に存在するかチェック
           const existingDefaultModel = state.availableModels.find(
             (model) => model.isDefault
           );
-          
+
           if (existingDefaultModel) {
-            console.log("デフォルトモデルは既に読み込まれています");
             // 既存のデフォルトモデルを現在のモデルとして設定
             get().setCurrentModel(existingDefaultModel);
             return;
@@ -249,8 +249,6 @@ export const useModelStore = create<ModelStore>()(
             // ストアに追加（重複チェック付き）
             get().addModel(defaultModel);
             get().setCurrentModel(defaultModel);
-
-            console.log("デフォルトモデルを正常に読み込みました");
           } else {
             throw new Error(
               result.error || "デフォルトモデルの読み込みに失敗しました"
@@ -262,14 +260,12 @@ export const useModelStore = create<ModelStore>()(
               ? error.message
               : "デフォルトモデルの読み込みエラー";
           set({ error: errorMessage });
-          console.error("デフォルトモデル読み込みエラー:", errorMessage);
         } finally {
           set({ isLoading: false });
         }
       },
 
       initializeDefaultModel: async () => {
-        console.log("🔧 initializeDefaultModel 開始");
         const state = get();
 
         // デフォルトモデルが既に存在するかチェック
@@ -277,34 +273,28 @@ export const useModelStore = create<ModelStore>()(
           (model) => model.isDefault
         );
 
-        console.log(`📋 現在の状態:
-  - currentModel: ${state.currentModel ? state.currentModel.name : "なし"}
-  - availableModels: ${state.availableModels.length}個
-  - existingDefaultModel: ${existingDefaultModel ? existingDefaultModel.name : "なし"}`);
-
         if (existingDefaultModel) {
           // VRMオブジェクトが存在するかチェック
-          const hasValidVrmObject = existingDefaultModel.format === "vrm" && existingDefaultModel.vrm;
-          const hasValidGltfObject = (existingDefaultModel.format === "gltf" || existingDefaultModel.format === "glb") && existingDefaultModel.scene;
-          
+          const hasValidVrmObject =
+            existingDefaultModel.format === "vrm" && existingDefaultModel.vrm;
+          const hasValidGltfObject =
+            (existingDefaultModel.format === "gltf" ||
+              existingDefaultModel.format === "glb") &&
+            existingDefaultModel.scene;
+
           if (hasValidVrmObject || hasValidGltfObject) {
             // 既存のデフォルトモデルを現在のモデルとして設定
             if (!state.currentModel) {
-              console.log("🎯 既存のデフォルトモデルをcurrentModelに設定");
               get().setCurrentModel(existingDefaultModel);
-            } else {
-              console.log("✅ currentModelは既に設定済み");
             }
             return;
           } else {
-            console.log("⚠️ 既存のデフォルトモデルの3Dオブジェクトが無効です。削除して再読み込みします");
             // 無効なモデルを削除
             get().removeModel(existingDefaultModel.id);
           }
         }
 
         // currentModelが存在しない、またはデフォルトモデルが存在しない場合は読み込み
-        console.log("🚀 デフォルトモデルを読み込みます");
         await get().loadDefaultModel();
       },
 
@@ -399,8 +389,6 @@ export const useModelStore = create<ModelStore>()(
       // 復元時の処理
       onRehydrateStorage: () => (state) => {
         if (state) {
-          console.log("🔄 ストア復元開始");
-          
           // 復元時は読み込み状態をリセット
           state.isLoading = false;
           state.error = undefined;
@@ -422,14 +410,10 @@ export const useModelStore = create<ModelStore>()(
                 : model.lastUsed,
           }));
 
-          console.log(`🎯 復元されたモデル数: ${state.availableModels.length}`);
-          state.availableModels.forEach((model, index) => {
-            const hasVrm = model.format === "vrm" ? !!model.vrm : !!model.scene;
-            console.log(`  ${index + 1}. ${model.name} (${model.format}) - 3Dオブジェクト: ${hasVrm ? "有" : "無"}`);
-          });
-
           // currentModelの復元処理を改善
-          const storedState = state as ModelDisplayState & { currentModelId?: string };
+          const storedState = state as ModelDisplayState & {
+            currentModelId?: string;
+          };
           if (storedState.currentModelId) {
             // 保存されたcurrentModelIdから復元
             const restoredModel = state.availableModels.find(
@@ -437,44 +421,50 @@ export const useModelStore = create<ModelStore>()(
             );
             if (restoredModel) {
               // VRMオブジェクトが失われている場合はcurrentModelを設定しない
-              const isVrmWithoutObject = restoredModel.format === "vrm" && !restoredModel.vrm;
-              const isGltfWithoutObject = (restoredModel.format === "gltf" || restoredModel.format === "glb") && !restoredModel.scene;
-              
+              const isVrmWithoutObject =
+                restoredModel.format === "vrm" && !restoredModel.vrm;
+              const isGltfWithoutObject =
+                (restoredModel.format === "gltf" ||
+                  restoredModel.format === "glb") &&
+                !restoredModel.scene;
+
               if (isVrmWithoutObject || isGltfWithoutObject) {
-                console.log(`⚠️ モデル "${restoredModel.name}" の3Dオブジェクトが失われています`);
                 // 3Dオブジェクトが失われたモデルは削除
-                state.availableModels = state.availableModels.filter(m => m.id !== restoredModel.id);
+                state.availableModels = state.availableModels.filter(
+                  (m) => m.id !== restoredModel.id
+                );
                 state.currentModel = undefined;
               } else {
                 state.currentModel = restoredModel;
-                console.log("✅ 復元時にモデルを復元しました:", restoredModel.name);
               }
             } else {
-              console.log("❌ 指定されたモデルが見つかりません");
               state.currentModel = undefined;
             }
           }
 
           // currentModelが設定されていない場合は、デフォルトモデルを探す
           if (!state.currentModel) {
-            const defaultModel = state.availableModels.find((model) => model.isDefault);
+            const defaultModel = state.availableModels.find(
+              (model) => model.isDefault
+            );
             if (defaultModel) {
-              const isVrmWithoutObject = defaultModel.format === "vrm" && !defaultModel.vrm;
-              const isGltfWithoutObject = (defaultModel.format === "gltf" || defaultModel.format === "glb") && !defaultModel.scene;
-              
+              const isVrmWithoutObject =
+                defaultModel.format === "vrm" && !defaultModel.vrm;
+              const isGltfWithoutObject =
+                (defaultModel.format === "gltf" ||
+                  defaultModel.format === "glb") &&
+                !defaultModel.scene;
+
               if (!isVrmWithoutObject && !isGltfWithoutObject) {
                 state.currentModel = defaultModel;
-                console.log("🎯 復元時にデフォルトモデルを設定しました:", defaultModel.name);
               } else {
-                console.log("⚠️ デフォルトモデルの3Dオブジェクトが失われています");
                 // 3Dオブジェクトが失われたデフォルトモデルは削除
-                state.availableModels = state.availableModels.filter(m => m.id !== defaultModel.id);
+                state.availableModels = state.availableModels.filter(
+                  (m) => m.id !== defaultModel.id
+                );
               }
             }
           }
-
-          console.log(`📊 復元完了 - currentModel: ${state.currentModel ? state.currentModel.name : "なし"}`);
-
         }
       },
     }

@@ -18,18 +18,20 @@ export class EmotionService {
       try {
         const stored = localStorage.getItem("ai-settings");
         if (!stored) return null;
-        
+
         const settings = JSON.parse(stored);
         return settings?.state?.settings?.customPrompt || null;
-      } catch (error) {
-        console.warn("カスタムプロンプト設定の取得に失敗:", error);
+      } catch {
         return null;
       }
     }
     return null;
   }
 
-  async generateResponse(userInput: string, customPrompt?: { enabled: boolean; content: string }): Promise<{
+  async generateResponse(
+    userInput: string,
+    customPrompt?: { enabled: boolean; content: string }
+  ): Promise<{
     text: string;
     emotions: EmotionTag[];
   }> {
@@ -47,8 +49,9 @@ export class EmotionService {
       const google = createGoogleGenerativeAI({ apiKey });
 
       // カスタムプロンプト設定を取得
-      const customPromptSettings = customPrompt || this.getCustomPromptSettings();
-      
+      const customPromptSettings =
+        customPrompt || this.getCustomPromptSettings();
+
       // システムプロンプトを構築
       let systemPrompt = `
         あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
@@ -61,24 +64,16 @@ export class EmotionService {
 
       // カスタムプロンプトが有効な場合は置き換える
       if (customPromptSettings?.enabled && customPromptSettings.content) {
-        console.log("🔧 [Emotion Service Debug] カスタムプロンプトを適用:", {
-          enabled: customPromptSettings.enabled,
-          contentLength: customPromptSettings.content.length,
-          content: customPromptSettings.content.substring(0, 100) + "..."
-        });
-        
         systemPrompt = `
         ${customPromptSettings.content}
-        
+
         重要: 応答には必ず以下の感情タグを含めてください：
         [emotion:happy:0.8] - 喜び（強度0.8）
         [emotion:sad:0.6] - 悲しみ（強度0.6）
-        
+
         利用可能な感情: neutral, happy, sad, angry, surprised
         キャラクターに合った感情を選択してください。
         `;
-      } else {
-        console.log("🔧 [Emotion Service Debug] デフォルトプロンプトを使用");
       }
 
       const { text } = await generateText({

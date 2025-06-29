@@ -4,7 +4,7 @@ import {
   useVoiceSettingsStore,
   getCurrentVoiceEngine,
   getVoicevoxConfig,
-  type VoiceEngine
+  type VoiceEngine,
 } from "@/lib/stores/voice-settings-store";
 import { getRequiredCredit } from "@/lib/types/voicevox";
 import { AnimationController } from "./animation-controller";
@@ -35,11 +35,11 @@ export class IntegratedSpeechService {
 
   constructor() {
     this.webSpeechService = new SpeechSynthesisService();
-    
+
     // 初期設定でVOICEVOXサービスを作成
     const initialConfig = getVoicevoxConfig();
     this.voicevoxService = new VoicevoxService(initialConfig);
-    
+
     // 設定変更の監視
     this.setupSettingsListener();
   }
@@ -52,7 +52,7 @@ export class IntegratedSpeechService {
     useVoiceSettingsStore.subscribe((state) => {
       // VOICEVOX設定が変更された場合
       this.voicevoxService.updateConfig(state.settings.voicevox);
-      
+
       // Web Speech API設定が変更された場合
       this.webSpeechService.updateConfig(state.settings.webspeech);
     });
@@ -63,7 +63,7 @@ export class IntegratedSpeechService {
    */
   public setEventListeners(events: Partial<AudioEvents>): void {
     this.events = { ...this.events, ...events };
-    
+
     // 各サービスにもイベントを設定
     this.webSpeechService.setEventListeners(events);
   }
@@ -72,7 +72,6 @@ export class IntegratedSpeechService {
    * アニメーションコントローラーを設定
    */
   public setAnimationController(controller: AnimationController): void {
-    console.log('[IntegratedSpeechService] アニメーションコントローラーを設定:', controller);
     this.animationController = controller;
   }
 
@@ -97,11 +96,8 @@ export class IntegratedSpeechService {
         return await this.speakWithWebSpeech(text);
       }
     } catch (error) {
-      console.error("音声合成エラー:", error);
-      
       // 自動フォールバックが有効な場合
       if (settings.autoFallback && engine === "voicevox") {
-        console.log("VOICEVOXエラーのため、Web Speech APIにフォールバック");
         return await this.speakWithWebSpeech(text);
       }
 
@@ -124,7 +120,8 @@ export class IntegratedSpeechService {
       // Web API使用時はサーバー状態チェックをスキップ
       if (!config.useWebApi) {
         // ローカルAPI使用時のみサーバー状態確認
-        const isServerAvailable = await this.voicevoxService.checkServerStatus();
+        const isServerAvailable =
+          await this.voicevoxService.checkServerStatus();
         if (!isServerAvailable) {
           throw new Error("VOICEVOXサーバーが利用できません");
         }
@@ -132,48 +129,31 @@ export class IntegratedSpeechService {
 
       // 開始イベント
       this.events.onStart?.();
-      
-      // アニメーション制御：音声合成開始（確実に実行）
-      if (process.env.NODE_ENV === "development") {
-        console.log('[IntegratedSpeechService] VOICEVOX音声合成開始 - アニメーション制御を呼び出し', {
-          hasController: !!this.animationController,
-          timestamp: new Date().toISOString()
-        });
-      }
+
       if (this.animationController) {
         this.animationController.setSpeaking(true);
-        if (process.env.NODE_ENV === "development") {
-          console.log('[IntegratedSpeechService] setSpeaking(true) 実行完了');
-        }
-      } else {
-        if (process.env.NODE_ENV === "development") {
-          console.warn('[IntegratedSpeechService] アニメーションコントローラーが見つかりません');
-        }
       }
-      
+
       // 音声合成実行
-      const audioBlob = await this.voicevoxService.synthesizeVoice(text, config.speaker);
-      
+      const audioBlob = await this.voicevoxService.synthesizeVoice(
+        text,
+        config.speaker
+      );
+
       // 音声再生
       const success = await this.playAudioBlob(audioBlob);
 
       // クレジット表示
       if (useVoiceSettingsStore.getState().settings.showVoiceCredits) {
-        const credit = getRequiredCredit(config.speaker);
-        console.log(`音声合成: ${credit}`);
+        getRequiredCredit(config.speaker);
       }
 
       return success;
     } catch (error) {
-      console.error("VOICEVOX音声合成エラー:", error);
-      
-      // エラー時も確実に音声合成終了を通知
-      console.log('[IntegratedSpeechService] VOICEVOXエラー時 - アニメーション制御を呼び出し');
       if (this.animationController) {
         this.animationController.setSpeaking(false);
-        console.log('[IntegratedSpeechService] エラー時 setSpeaking(false) 実行完了');
       }
-      
+
       throw error;
     }
   }
@@ -182,49 +162,21 @@ export class IntegratedSpeechService {
    * Web Speech APIで音声合成
    */
   private async speakWithWebSpeech(text: string): Promise<boolean> {
-    // アニメーション制御：音声合成開始（確実に実行）
-    if (process.env.NODE_ENV === "development") {
-      console.log('[IntegratedSpeechService] Web Speech API音声合成開始 - アニメーション制御を呼び出し', {
-        hasController: !!this.animationController,
-        timestamp: new Date().toISOString()
-      });
-    }
     if (this.animationController) {
       this.animationController.setSpeaking(true);
-      if (process.env.NODE_ENV === "development") {
-        console.log('[IntegratedSpeechService] Web Speech setSpeaking(true) 実行完了');
-      }
-    } else {
-      if (process.env.NODE_ENV === "development") {
-        console.warn('[IntegratedSpeechService] アニメーションコントローラーが見つかりません（Web Speech）');
-      }
     }
-    
+
     try {
       const result = await this.webSpeechService.speak(text);
-      
-      // アニメーション制御：音声合成終了
-      if (process.env.NODE_ENV === "development") {
-        console.log('[IntegratedSpeechService] Web Speech API音声合成完了 - アニメーション制御を呼び出し');
-      }
+
       if (this.animationController) {
         this.animationController.setSpeaking(false);
-        if (process.env.NODE_ENV === "development") {
-          console.log('[IntegratedSpeechService] Web Speech setSpeaking(false) 実行完了');
-        }
       }
-      
+
       return result;
     } catch (error) {
-      // エラー時も音声合成終了を通知
-      if (process.env.NODE_ENV === "development") {
-        console.log('[IntegratedSpeechService] Web Speech APIエラー時 - アニメーション制御を呼び出し');
-      }
       if (this.animationController) {
         this.animationController.setSpeaking(false);
-        if (process.env.NODE_ENV === "development") {
-          console.log('[IntegratedSpeechService] Web Speech エラー時 setSpeaking(false) 実行完了');
-        }
       }
       throw error;
     }
@@ -251,39 +203,21 @@ export class IntegratedSpeechService {
 
         this.currentAudioElement.onended = () => {
           this.events.onSpeakEnd?.();
-          
-          // アニメーション制御：音声合成終了（確実に実行）
-          if (process.env.NODE_ENV === "development") {
-            console.log('[IntegratedSpeechService] VOICEVOX音声再生完了 - アニメーション制御を呼び出し', {
-              hasController: !!this.animationController,
-              timestamp: new Date().toISOString()
-            });
-          }
+
           if (this.animationController) {
             this.animationController.setSpeaking(false);
-            if (process.env.NODE_ENV === "development") {
-              console.log('[IntegratedSpeechService] VOICEVOX再生完了 setSpeaking(false) 実行完了');
-            }
           }
-          
+
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           resolve(true);
         };
 
-        this.currentAudioElement.onerror = (error) => {
-          console.error("音声再生エラー:", error);
-          
-          // アニメーション制御：エラー時も音声合成終了（確実に実行）
-          console.log('[IntegratedSpeechService] VOICEVOX音声再生エラー - アニメーション制御を呼び出し', {
-            hasController: !!this.animationController,
-            timestamp: new Date().toISOString()
-          });
+        this.currentAudioElement.onerror = () => {
           if (this.animationController) {
             this.animationController.setSpeaking(false);
-            console.log('[IntegratedSpeechService] VOICEVOX再生エラー時 setSpeaking(false) 実行完了');
           }
-          
+
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           reject(new Error("音声再生に失敗しました"));
@@ -291,12 +225,10 @@ export class IntegratedSpeechService {
 
         // 再生開始
         this.currentAudioElement.play().catch((error) => {
-          console.error("音声再生開始エラー:", error);
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           reject(error);
         });
-
       } catch (error) {
         reject(error);
       }
@@ -316,19 +248,9 @@ export class IntegratedSpeechService {
 
     // Web Speech API音声を停止
     this.webSpeechService.stop();
-    
-    // アニメーション制御：音声合成終了（確実に実行）
-    if (process.env.NODE_ENV === "development") {
-      console.log('[IntegratedSpeechService] 音声停止時 - アニメーション制御を呼び出し', {
-        hasController: !!this.animationController,
-        timestamp: new Date().toISOString()
-      });
-    }
+
     if (this.animationController) {
       this.animationController.setSpeaking(false);
-      if (process.env.NODE_ENV === "development") {
-        console.log('[IntegratedSpeechService] 停止時 setSpeaking(false) 実行完了');
-      }
     }
   }
 
@@ -387,7 +309,7 @@ export class IntegratedSpeechService {
   public switchEngine(engine: VoiceEngine): void {
     // 現在の音声を停止
     this.stop();
-    
+
     // 設定を更新
     useVoiceSettingsStore.getState().updateEngine(engine);
   }
@@ -397,7 +319,7 @@ export class IntegratedSpeechService {
    */
   public async testEngineAvailability(): Promise<EngineStatus> {
     const config = getVoicevoxConfig();
-    
+
     const status: EngineStatus = {
       webspeech: {
         available: false,
@@ -412,7 +334,8 @@ export class IntegratedSpeechService {
     try {
       status.webspeech.available = this.webSpeechService.isSynthesisSupported();
     } catch (error) {
-      status.webspeech.error = error instanceof Error ? error.message : "不明なエラー";
+      status.webspeech.error =
+        error instanceof Error ? error.message : "不明なエラー";
     }
 
     // VOICEVOXテスト
@@ -431,7 +354,7 @@ export class IntegratedSpeechService {
         // ローカルAPI使用時: 従来通りのテスト
         const connectionTest = await this.voicevoxService.testConnection();
         status.voicevox.serverRunning = connectionTest.success;
-        
+
         if (connectionTest.success) {
           const synthesisTest = await this.voicevoxService.testSynthesis();
           status.voicevox.available = synthesisTest.success;
@@ -443,7 +366,8 @@ export class IntegratedSpeechService {
         }
       }
     } catch (error) {
-      status.voicevox.error = error instanceof Error ? error.message : "不明なエラー";
+      status.voicevox.error =
+        error instanceof Error ? error.message : "不明なエラー";
     }
 
     return status;
@@ -454,7 +378,7 @@ export class IntegratedSpeechService {
    */
   public getState(): AudioProcessingState {
     const engine = getCurrentVoiceEngine();
-    
+
     if (engine === "voicevox" && this.currentAudioElement) {
       return {
         isRecording: false,
@@ -475,15 +399,15 @@ export class IntegratedSpeechService {
     try {
       return await this.voicevoxService.getSpeakers();
     } catch (error) {
-      console.error("VOICEVOX話者一覧取得エラー:", error);
-      
       // APIキー関連のエラーの場合は詳細なエラーメッセージを返す
       if (error instanceof Error && error.message.includes("APIキー")) {
         throw error; // そのまま再スロー
       }
-      
+
       // その他のエラーは一般的なメッセージに変換
-      throw new Error("VOICEVOX話者一覧の取得に失敗しました。設定を確認してください。");
+      throw new Error(
+        "VOICEVOX話者一覧の取得に失敗しました。設定を確認してください。"
+      );
     }
   }
 
@@ -512,4 +436,4 @@ export class IntegratedSpeechService {
 }
 
 // デフォルトインスタンス
-export const integratedSpeechService = new IntegratedSpeechService(); 
+export const integratedSpeechService = new IntegratedSpeechService();

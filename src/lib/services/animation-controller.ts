@@ -106,7 +106,7 @@ export class AnimationController {
   constructor() {
     // アニメーションループは外部から制御されるため、ここでは開始しない
     // this.startAnimationLoop();
-    
+
     // Fast Refresh対応: 音声合成状態を復元
     this.restoreSpeakingStateFromSession();
   }
@@ -116,30 +116,29 @@ export class AnimationController {
    */
   private restoreSpeakingStateFromSession(): void {
     if (typeof window === "undefined") return;
-    
+
     try {
-      const storedState = sessionStorage.getItem('animation-controller-speaking-state');
+      const storedState = sessionStorage.getItem(
+        "animation-controller-speaking-state"
+      );
       if (storedState) {
         const state = JSON.parse(storedState);
-        if (state.isSpeaking && Date.now() - state.timestamp < 30000) { // 30秒以内なら有効
-          console.log('[AnimationController] 音声合成状態を復元:', state);
+        if (state.isSpeaking && Date.now() - state.timestamp < 30000) {
+          // 30秒以内なら有効
           this.isSpeaking = true;
-          
+
           // 30秒後に自動クリア（安全装置）
           setTimeout(() => {
             if (this.isSpeaking) {
-              console.log('[AnimationController] 音声合成状態の自動クリア（安全装置）');
               this.setSpeaking(false);
             }
           }, 30000);
         } else {
           // 古い状態をクリア
-          sessionStorage.removeItem('animation-controller-speaking-state');
+          sessionStorage.removeItem("animation-controller-speaking-state");
         }
       }
-    } catch (error) {
-      console.error('[AnimationController] 音声合成状態の復元エラー:', error);
-    }
+    } catch {}
   }
 
   /**
@@ -147,20 +146,21 @@ export class AnimationController {
    */
   private saveSpeakingStateToSession(): void {
     if (typeof window === "undefined") return;
-    
+
     try {
       if (this.isSpeaking) {
         const state = {
           isSpeaking: true,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        sessionStorage.setItem('animation-controller-speaking-state', JSON.stringify(state));
+        sessionStorage.setItem(
+          "animation-controller-speaking-state",
+          JSON.stringify(state)
+        );
       } else {
-        sessionStorage.removeItem('animation-controller-speaking-state');
+        sessionStorage.removeItem("animation-controller-speaking-state");
       }
-    } catch (error) {
-      console.error('[AnimationController] 音声合成状態の保存エラー:', error);
-    }
+    } catch {}
   }
 
   /**
@@ -168,18 +168,18 @@ export class AnimationController {
    */
   private checkSpeakingStateFromSession(): boolean {
     if (typeof window === "undefined") return false;
-    
+
     try {
-      const storedState = sessionStorage.getItem('animation-controller-speaking-state');
+      const storedState = sessionStorage.getItem(
+        "animation-controller-speaking-state"
+      );
       if (storedState) {
         const state = JSON.parse(storedState);
         // 30秒以内の状態なら有効
         return state.isSpeaking && Date.now() - state.timestamp < 30000;
       }
-    } catch (error) {
-      console.error('[AnimationController] 音声合成状態のチェックエラー:', error);
-    }
-    
+    } catch {}
+
     return false;
   }
 
@@ -187,23 +187,16 @@ export class AnimationController {
    * VRMモデルを設定
    */
   public setVRMModel(model: VRM): void {
-    console.log('[AnimationController] VRMモデルを設定:', !!model);
     this.vrmModel = model;
-    
+
     if (model) {
-      console.log('[AnimationController] VRMモデル設定完了、自動アニメーションを開始');
-      
       // VRMモデルが設定されたら自動アニメーションを開始（重複実行を防ぐ）
       if (!this.animationFrame) {
-        console.log('[AnimationController] アニメーションループを開始');
         this.startAnimationLoop();
-      } else {
-        console.log('[AnimationController] アニメーションループは既に実行中');
       }
-      
+
       // 自動ジェスチャーを開始
       if (this.settings.autoSalute.enabled && !this.isSpeaking) {
-        console.log('[AnimationController] 自動サルートアニメーションを開始');
         this.startAutoSalute();
       }
     }
@@ -510,64 +503,33 @@ export class AnimationController {
    * 自動ラジャーを開始
    */
   public startAutoSalute(): void {
-    console.log('[AnimationController] startAutoSalute実行中...', {
-      hasVRMModel: !!this.vrmModel,
-      hasExistingTimer: !!this.autoSaluteTimer,
-      isEnabled: this.isEnabled
-    });
-    
     if (!this.vrmModel || this.autoSaluteTimer) {
-      console.log('[AnimationController] startAutoSalute条件に引っかかり処理をスキップ', {
-        vrmModelMissing: !this.vrmModel,
-        timerExists: !!this.autoSaluteTimer
-      });
       return;
     }
 
     const scheduleNextSalute = () => {
-      console.log('[AnimationController] タイマーを設定中...', {
-        interval: this.settings.autoSalute.interval,
-        isSpeaking: this.isSpeaking,
-        disableDuringSpeech: this.settings.autoSalute.disableDuringSpeech
-      });
-      
       this.autoSaluteTimer = setTimeout(() => {
         // セッションから最新の音声合成状態を確認
         const sessionSpeaking = this.checkSpeakingStateFromSession();
-        
-        console.log('[AnimationController] タイマー実行中...', {
-          isSpeaking: this.isSpeaking,
-          sessionSpeaking,
-          disableDuringSpeech: this.settings.autoSalute.disableDuringSpeech,
-          neutralOnly: this.settings.autoSalute.neutralOnly,
-          lastEmotion: this.lastEmotionAnalysis?.emotion,
-          timestamp: new Date().toISOString()
-        });
-        
-            // 音声合成中はスキップ（ローカル状態チェック）
+
+        // 音声合成中はスキップ（ローカル状態チェック）
         if (this.isSpeaking) {
-          if (process.env.NODE_ENV === "development") {
-            console.log('[AnimationController] 音声合成中のためスキップ（ローカル状態）、次回スケジュール');
-          }
           scheduleNextSalute();
           return;
         }
-        
+
         // 音声合成中はスキップ（セッション状態チェック）
         if (sessionSpeaking) {
-          if (process.env.NODE_ENV === "development") {
-            console.log('[AnimationController] 音声合成中のためスキップ（セッション状態）、次回スケジュール');
-          }
           this.isSpeaking = true; // ローカル状態も同期
           scheduleNextSalute();
           return;
         }
-        
+
         // 設定による音声合成中チェック
-        if (this.settings.autoSalute.disableDuringSpeech && (this.isSpeaking || sessionSpeaking)) {
-          if (process.env.NODE_ENV === "development") {
-            console.log('[AnimationController] 音声合成中のためスキップ（設定チェック）、次回スケジュール');
-          }
+        if (
+          this.settings.autoSalute.disableDuringSpeech &&
+          (this.isSpeaking || sessionSpeaking)
+        ) {
           scheduleNextSalute();
           return;
         }
@@ -578,20 +540,16 @@ export class AnimationController {
             this.lastEmotionAnalysis &&
             this.lastEmotionAnalysis.emotion !== "neutral"
           ) {
-            console.log('[AnimationController] ニュートラル感情でないためスキップ、次回スケジュール');
             // ニュートラルでない場合は次回まで待機
             scheduleNextSalute();
             return;
           }
         }
 
-        console.log('[AnimationController] ラジャーアニメーションを実行中...');
         // ラジャーアニメーションを実行
         this.playSaluteAnimation();
         scheduleNextSalute();
       }, this.settings.autoSalute.interval);
-      
-      console.log('[AnimationController] タイマー設定完了:', !!this.autoSaluteTimer);
     };
 
     scheduleNextSalute();
@@ -611,44 +569,25 @@ export class AnimationController {
    * ラジャーアニメーションを実行
    */
   private playSaluteAnimation(): void {
-    console.log('[AnimationController] playSaluteAnimation実行中...', {
-      hasVRMModel: !!this.vrmModel,
-      isEnabled: this.isEnabled,
-      isSpeaking: this.isSpeaking,
-      timestamp: new Date().toISOString()
-    });
-    
     // 音声合成中は実行しない（最終防御線）
     if (this.isSpeaking) {
-      console.log('[AnimationController] 音声合成中のためplaySaluteAnimationをスキップ（最終防御線）');
-      return;
-    }
-    
-    if (!this.vrmModel || !this.isEnabled) {
-      console.log('[AnimationController] playSaluteAnimation条件に引っかかり処理をスキップ', {
-        vrmModelMissing: !this.vrmModel,
-        isDisabled: !this.isEnabled
-      });
       return;
     }
 
-    console.log('[AnimationController] ニュートラルジェスチャーアニメーションをインポート中...');
+    if (!this.vrmModel || !this.isEnabled) {
+      return;
+    }
+
     // ニュートラルジェスチャーからラジャーアニメーションを取得
-    import("../animations/gestures/neutral-gestures").then(({ getNeutralGestureAnimation }) => {
-      console.log('[AnimationController] ニュートラルジェスチャーアニメーションインポート完了、アニメーションを取得中...');
-      const saluteAnimation = getNeutralGestureAnimation("salute");
-      console.log('[AnimationController] サルートアニメーション取得結果:', !!saluteAnimation);
-      
-      if (saluteAnimation) {
-        console.log('[AnimationController] サルートアニメーションを再生開始...');
-        const animationId = this.playAnimation(saluteAnimation, AnimationPriority.NORMAL);
-        console.log('[AnimationController] サルートアニメーションID:', animationId);
-      } else {
-        console.error('[AnimationController] サルートアニメーションが見つかりません');
-      }
-    }).catch((error) => {
-      console.error('[AnimationController] ニュートラルジェスチャーインポートエラー:', error);
-    });
+    import("../animations/gestures/neutral-gestures")
+      .then(({ getNeutralGestureAnimation }) => {
+        const saluteAnimation = getNeutralGestureAnimation("salute");
+
+        if (saluteAnimation) {
+          this.playAnimation(saluteAnimation, AnimationPriority.NORMAL);
+        }
+      })
+      .catch(() => {});
   }
 
   /**
@@ -656,60 +595,33 @@ export class AnimationController {
    */
   public setSpeaking(speaking: boolean): void {
     const previousState = this.isSpeaking;
-    
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[AnimationController] setSpeaking: ${speaking}, previous state: ${previousState}, timestamp: ${new Date().toISOString()}`);
-    }
-    
+
     // 状態が変更されない場合は早期終了
     if (previousState === speaking) {
-      if (process.env.NODE_ENV === "development") {
-        console.log('[AnimationController] 状態に変更なし、処理をスキップ');
-      }
       return;
     }
-    
+
     // 状態変更前の処理
     if (speaking && !this.isSpeaking) {
       // 音声合成開始：即座にタイマーをクリア
-      if (process.env.NODE_ENV === "development") {
-        console.log('[AnimationController] 音声合成開始 - 即座にタイマーをクリア');
-      }
       if (this.autoSaluteTimer) {
         clearTimeout(this.autoSaluteTimer);
         this.autoSaluteTimer = null;
-        if (process.env.NODE_ENV === "development") {
-          console.log('[AnimationController] 既存タイマーを強制クリア');
-        }
       }
     }
-    
+
     // 状態を更新
     this.isSpeaking = speaking;
-    
+
     // セッションストレージに状態を保存（Fast Refresh対応）
     this.saveSpeakingStateToSession();
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[AnimationController] 音声合成状態を更新・保存: ${speaking}`);
-    }
-    
+
     // 音声合成開始時は定期ジェスチャーを一時停止
     if (speaking) {
-      if (process.env.NODE_ENV === "development") {
-        console.log('[AnimationController] 音声合成開始 - 定期ジェスチャーを一時停止');
-      }
       this.pausePeriodicGestures();
     } else {
-      if (process.env.NODE_ENV === "development") {
-        console.log('[AnimationController] 音声合成終了 - 定期ジェスチャーを再開');
-      }
       // 音声合成終了時は定期ジェスチャーを再開
       this.resumePeriodicGestures();
-    }
-    
-    // 状態変更をデバッグパネルにも通知
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[AnimationController] 音声合成状態変更完了: ${previousState} → ${speaking}`);
     }
   }
 
@@ -717,38 +629,21 @@ export class AnimationController {
    * 定期ジェスチャーを一時停止
    */
   private pausePeriodicGestures(): void {
-    console.log('[AnimationController] 定期ジェスチャーを一時停止中...', {
-      hadSaluteTimer: !!this.autoSaluteTimer
-    });
-    
     // ラジャーアニメーションを一時停止（瞬きと呼吸は継続）
     this.stopAutoSalute();
-    
-    console.log('[AnimationController] 定期ジェスチャー一時停止完了', {
-      saluteTimerCleared: !this.autoSaluteTimer
-    });
   }
 
   /**
    * 定期ジェスチャーを再開
    */
   private resumePeriodicGestures(): void {
-    console.log('[AnimationController] 定期ジェスチャーを再開中...', {
-      autoSaluteEnabled: this.settings.autoSalute.enabled,
-      autoSaluteTimer: !!this.autoSaluteTimer,
-      isSpeaking: this.isSpeaking,
-      timestamp: new Date().toISOString()
-    });
-    
     // 音声合成が確実に終了していることを確認
     if (this.isSpeaking) {
-      console.log('[AnimationController] まだ音声合成中のため定期ジェスチャー再開をスキップ');
       return;
     }
-    
+
     // ラジャーアニメーションを再開
     if (this.settings.autoSalute.enabled) {
-      console.log('[AnimationController] 敬礼タイマーを再開');
       this.startAutoSalute();
     }
   }
@@ -1878,9 +1773,9 @@ export class AnimationController {
     this.isEnabled = enabled;
     if (!enabled) {
       this.activeAnimations.clear();
-          this.stopAutoBlinking();
-    this.stopAutoSalute();
-    this.stopBreathingAnimation();
+      this.stopAutoBlinking();
+      this.stopAutoSalute();
+      this.stopBreathingAnimation();
     }
   }
 

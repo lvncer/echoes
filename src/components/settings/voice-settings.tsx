@@ -81,7 +81,6 @@ export function VoiceSettings() {
         }
         return true;
       } catch (error) {
-        console.error("VOICEVOX話者読み込みエラー:", error);
         setVoicevoxSpeakers([]);
 
         if (showErrors) {
@@ -126,7 +125,6 @@ export function VoiceSettings() {
       // VOICEVOX話者は手動で読み込むため、初期化時は実行しない
       // ユーザーがAPIキーを設定してから手動で読み込む
     } catch (error) {
-      console.error("初期データ読み込みエラー:", error);
       setError(error instanceof Error ? error.message : "初期化に失敗しました");
     } finally {
       setLoading(false);
@@ -146,8 +144,7 @@ export function VoiceSettings() {
       const status = await integratedSpeechService.testEngineAvailability();
       setEngineStatus(status);
       return status;
-    } catch (error) {
-      console.error("エンジン状態テストエラー:", error);
+    } catch {
       return null;
     }
   };
@@ -169,9 +166,7 @@ export function VoiceSettings() {
           };
         }
       }
-    } catch (error) {
-      console.error("Web Speech API音声読み込みエラー:", error);
-    }
+    } catch {}
   };
 
   /**
@@ -190,7 +185,6 @@ export function VoiceSettings() {
         await testEngineStatus();
       }
     } catch (error) {
-      console.error("VOICEVOX設定反映エラー:", error);
       setConnectionTestResult(
         `設定反映エラー: ${
           error instanceof Error ? error.message : "不明なエラー"
@@ -739,7 +733,8 @@ export function VoiceSettings() {
                     </SelectTrigger>
                   </Select>
                   <p className="text-xs text-amber-400">
-                    ⚠️ 上記の「設定を反映」ボタンを押して話者一覧を読み込んでください
+                    ⚠️
+                    上記の「設定を反映」ボタンを押して話者一覧を読み込んでください
                   </p>
                 </div>
               )}

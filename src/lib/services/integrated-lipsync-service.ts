@@ -44,18 +44,11 @@ export class IntegratedLipSyncService {
     if (typeof window === "undefined") {
       return;
     }
-    
-    console.log('[IntegratedLipSyncService] アニメーションコントローラーのセットアップを開始');
-    
+
     // グローバルアニメーションコントローラーを取得
     if (window.__animationController) {
-      console.log('[IntegratedLipSyncService] アニメーションコントローラーが見つかりました');
-      
       // 音声合成サービスにアニメーションコントローラーを設定
       this.speechSynthesis.setAnimationController(window.__animationController);
-      console.log('[IntegratedLipSyncService] 音声合成サービスにアニメーションコントローラーを設定完了');
-    } else {
-      console.log('[IntegratedLipSyncService] アニメーションコントローラーが見つかりません');
     }
   }
 
@@ -164,7 +157,6 @@ export class IntegratedLipSyncService {
       } else {
         await this.basicLipSync.startLipSync(stream);
       }
-
     } catch (error) {
       throw error;
     }
@@ -186,19 +178,18 @@ export class IntegratedLipSyncService {
 
     // 表情をリセット
     this.resetExpression();
-
   }
 
   /**
    * VOICEVOX音声要素準備完了時の処理
    */
-  private async handleVoicevoxAudioReady(audioElement: HTMLAudioElement): Promise<void> {
+  private async handleVoicevoxAudioReady(
+    audioElement: HTMLAudioElement
+  ): Promise<void> {
     try {
       // VOICEVOX音声のリップシンク準備
       await this.startVoicevoxLipSync(audioElement);
-    } catch (error) {
-      console.error("VOICEVOX リップシンク準備エラー:", error);
-    }
+    } catch {}
   }
 
   /**
@@ -209,7 +200,7 @@ export class IntegratedLipSyncService {
 
     // 統合音声サービスから現在の音声要素を取得
     const audioElement = this.speechSynthesis.getCurrentAudioElement();
-    
+
     if (!audioElement) {
       // Web Speech API音声の場合：従来の解析
       await this.startTTSAnalysis();
@@ -250,14 +241,15 @@ export class IntegratedLipSyncService {
       if (this.ttsAudioContext.state === "suspended") {
         await this.ttsAudioContext.resume();
       }
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   /**
    * VOICEVOX音声のリップシンク開始
    */
-  private async startVoicevoxLipSync(audioElement: HTMLAudioElement): Promise<void> {
+  private async startVoicevoxLipSync(
+    audioElement: HTMLAudioElement
+  ): Promise<void> {
     try {
       // Web Audio APIでVOICEVOX音声を解析
       if (!this.ttsAudioContext) {
@@ -275,14 +267,14 @@ export class IntegratedLipSyncService {
           }
 
           const onPlay = () => {
-            audioElement.removeEventListener('play', onPlay);
+            audioElement.removeEventListener("play", onPlay);
             resolve();
           };
-          audioElement.addEventListener('play', onPlay);
+          audioElement.addEventListener("play", onPlay);
 
           // タイムアウト（5秒）
           setTimeout(() => {
-            audioElement.removeEventListener('play', onPlay);
+            audioElement.removeEventListener("play", onPlay);
             resolve();
           }, 5000);
         });
@@ -294,13 +286,12 @@ export class IntegratedLipSyncService {
       let source: MediaElementAudioSourceNode;
       try {
         source = this.ttsAudioContext.createMediaElementSource(audioElement);
-      } catch (error) {
+      } catch {
         // 既に作成済みの場合はエラーになるので、フォールバックを使用
-        console.warn("MediaElementSource作成済み、フォールバックを使用:", error);
         this.startTTSVolumeBasedLipSync();
         return;
       }
-      
+
       // アナライザーを作成
       this.ttsAnalyser = this.ttsAudioContext.createAnalyser();
       this.ttsAnalyser.fftSize = 256;
@@ -312,8 +303,7 @@ export class IntegratedLipSyncService {
 
       // リアルタイム解析開始
       this.startVoicevoxRealtimeLipSync();
-    } catch (error) {
-      console.error("VOICEVOX リップシンク開始エラー:", error);
+    } catch {
       // フォールバック：簡易リップシンク
       this.startTTSVolumeBasedLipSync();
     }
@@ -337,7 +327,8 @@ export class IntegratedLipSyncService {
       this.ttsAnalyser.getByteFrequencyData(dataArray);
 
       // 音量レベルを計算
-      const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+      const average =
+        dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
       const normalizedVolume = average / 255;
 
       // 周波数帯域別の解析
@@ -357,16 +348,26 @@ export class IntegratedLipSyncService {
   /**
    * 周波数帯域の平均を取得
    */
-  private getFrequencyBandAverage(dataArray: Uint8Array, startIndex: number, endIndex: number): number {
+  private getFrequencyBandAverage(
+    dataArray: Uint8Array,
+    startIndex: number,
+    endIndex: number
+  ): number {
     const bandData = dataArray.slice(startIndex, endIndex);
-    const average = bandData.reduce((sum, value) => sum + value, 0) / bandData.length;
+    const average =
+      bandData.reduce((sum, value) => sum + value, 0) / bandData.length;
     return average / 255;
   }
 
   /**
    * VOICEVOX音声に基づくリップシンク適用
    */
-  private applyVoicevoxLipSync(volume: number, lowFreq: number, midFreq: number, highFreq: number): void {
+  private applyVoicevoxLipSync(
+    volume: number,
+    lowFreq: number,
+    midFreq: number,
+    highFreq: number
+  ): void {
     // 音量に基づく基本的な口の開閉
     const mouthOpening = Math.min(volume * 1.5, 1.0);
 
@@ -403,11 +404,11 @@ export class IntegratedLipSyncService {
 
     // ブレンドシェイプを適用
     blendShapeService.resetMouthBlendShapes();
-    
+
     if (primaryWeight > 0) {
       blendShapeService.setBlendShapeWeight(primaryPhoneme, primaryWeight);
     }
-    
+
     if (secondaryWeight > 0 && secondaryPhoneme) {
       blendShapeService.setBlendShapeWeight(secondaryPhoneme, secondaryWeight);
     }
@@ -423,8 +424,7 @@ export class IntegratedLipSyncService {
       // 音声出力をキャプチャ（実際の実装では制限があるため、代替手法を使用）
       // ここでは音量ベースの簡易リップシンクを実装
       this.startTTSVolumeBasedLipSync();
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   /**
@@ -531,7 +531,6 @@ export class IntegratedLipSyncService {
 
     // 新しい表情を適用
     blendShapeService.setMultipleBlendShapes(emotionBlendShapes);
-
   }
 
   /**
@@ -590,7 +589,6 @@ export class IntegratedLipSyncService {
    * アニメーションコントローラーを動的に設定
    */
   public setAnimationController(): void {
-    console.log('[IntegratedLipSyncService] アニメーションコントローラーの動的設定を試行');
     this.setupAnimationController();
   }
 

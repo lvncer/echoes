@@ -2,17 +2,23 @@
 
 import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Camera, Monitor, RotateCcw, Trash2, RefreshCw } from "lucide-react";
 
 export function CameraSettings() {
-  const { 
-    sceneConfig, 
-    resetToDefaults, 
-    getStorageStatus, 
-    clearStorage, 
+  const {
+    sceneConfig,
+    resetToDefaults,
+    getStorageStatus,
+    clearStorage,
     forceInitialize,
     currentModel,
   } = useModelStore();
@@ -29,12 +35,10 @@ export function CameraSettings() {
   const handleClearStorage = async () => {
     clearStorage();
     localStorage.removeItem("echoes-model-store");
-    console.log("🗑️ ストレージをクリアしました");
   };
 
   const handleForceInit = async () => {
     await forceInitialize();
-    console.log("🔄 強制初期化を実行しました");
   };
 
   const status = getStorageStatus();
@@ -55,7 +59,9 @@ export function CameraSettings() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">カメラ位置</label>
+              <label className="text-sm font-medium text-gray-300">
+                カメラ位置
+              </label>
               <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
                 <code className="text-sm text-gray-300">
                   [{sceneConfig.cameraPosition.join(", ")}]
@@ -63,7 +69,9 @@ export function CameraSettings() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">カメラターゲット</label>
+              <label className="text-sm font-medium text-gray-300">
+                カメラターゲット
+              </label>
               <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
                 <code className="text-sm text-gray-300">
                   [{sceneConfig.cameraTarget.join(", ")}]
@@ -88,15 +96,22 @@ export function CameraSettings() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">利用可能モデル</label>
+              <label className="text-sm font-medium text-gray-300">
+                利用可能モデル
+              </label>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-gray-700 text-gray-300 border-gray-600">
+                <Badge
+                  variant="secondary"
+                  className="bg-gray-700 text-gray-300 border-gray-600"
+                >
                   {status.modelsCount}個
                 </Badge>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">現在のモデル</label>
+              <label className="text-sm font-medium text-gray-300">
+                現在のモデル
+              </label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-300">
                   {currentModel ? currentModel.name : "なし"}
@@ -104,13 +119,18 @@ export function CameraSettings() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300">有効性</label>
+              <label className="text-sm font-medium text-gray-300">
+                有効性
+              </label>
               <div className="flex items-center gap-2">
-                <Badge 
-                  variant={status.hasValidCurrentModel ? "default" : "destructive"}
-                  className={status.hasValidCurrentModel 
-                    ? "bg-green-600 text-white border-green-500" 
-                    : "bg-red-600 text-white border-red-500"
+                <Badge
+                  variant={
+                    status.hasValidCurrentModel ? "default" : "destructive"
+                  }
+                  className={
+                    status.hasValidCurrentModel
+                      ? "bg-green-600 text-white border-green-500"
+                      : "bg-red-600 text-white border-red-500"
                   }
                 >
                   {status.hasValidCurrentModel ? "有効" : "無効"}
@@ -167,4 +187,4 @@ export function CameraSettings() {
       </Card>
     </div>
   );
-} 
+}

@@ -12,22 +12,15 @@ export class ClientAIService {
     try {
       // カスタムプロンプト設定を取得
       const customPromptSettings = this.getCustomPromptSettings();
-      
-      // デバッグログ: クライアントサイドでの送信内容を確認
-      console.log("🔧 [Client AI Debug] サーバーに送信するデータ:", {
-        messagesCount: messages.length,
-        customPrompt: customPromptSettings,
-        timestamp: new Date().toISOString()
-      });
 
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           messages,
-          customPrompt: customPromptSettings
+          customPrompt: customPromptSettings,
         }),
       });
 
@@ -49,7 +42,6 @@ export class ClientAIService {
         processingTime: data.processingTime,
       };
     } catch (error) {
-
       // ユーザーフレンドリーなエラーメッセージ
       let userMessage = "AI応答の生成に失敗しました。";
 

@@ -66,7 +66,6 @@ export class GeminiService {
     } catch (error) {
       const _processingTime = Date.now() - startTime;
 
-
       if (error instanceof Error) {
         throw new Error(`Gemini API エラー: ${error.message}`);
       }
@@ -81,24 +80,12 @@ export class GeminiService {
   private convertMessagesToPrompt(messages: ChatMessage[]): string {
     // カスタムプロンプトまたはデフォルトプロンプトを取得
     const customPromptSettings = this.getCustomPromptSettings();
-    const systemPrompt = customPromptSettings.enabled 
-      ? customPromptSettings.content 
-      : `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
-
-1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
-2. 普通の文章のみで応答する
-3. 改行は自然な文章の区切りでのみ使用する
-4. 親しみやすく、自然な日本語で会話する
-5. 簡潔で分かりやすい回答を心がける`;
-
-    // デバッグログ: カスタムプロンプトの使用状況を確認
-    console.log("🔧 [Gemini Debug] カスタムプロンプト設定:", {
-      enabled: customPromptSettings.enabled,
-      contentLength: customPromptSettings.content.length,
-      isUsingCustom: customPromptSettings.enabled,
-      systemPromptPreview: systemPrompt.substring(0, 100) + "...",
-      lastUpdated: customPromptSettings.lastUpdated
-    });
+    const systemPrompt = customPromptSettings.enabled
+      ? customPromptSettings.content
+      : `
+      あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください。
+      マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない。普通の文章のみで応答する。
+      改行は自然な文章の区切りでのみ使用する。親しみやすく、自然な日本語で会話する。簡潔で分かりやすい回答を心がける`;
 
     const conversationHistory = messages
       .map((msg) => {
@@ -153,7 +140,7 @@ export class GeminiService {
         };
       }
     }
-    
+
     // サーバーサイドではデフォルト設定を返す
     return {
       enabled: false,

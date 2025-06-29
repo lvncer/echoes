@@ -8,9 +8,7 @@ import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
-import { AnimationDebugPanel } from "@/components/3d/animation-debug-panel";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
-
 import {
   AudioChatIntegrationService,
   type AudioChatConfig,
@@ -28,23 +26,18 @@ declare global {
 
 const initializeAnimationController = () => {
   if (typeof window !== "undefined" && !window.__animationController) {
-    console.log('[Main] アニメーションコントローラーを初期化中...');
     window.__animationController = new AnimationController();
-    
+
     // integratedLipSyncServiceにもアニメーションコントローラーを設定
     try {
-      console.log('[Main] integratedLipSyncServiceにアニメーションコントローラーを設定中...');
       integratedLipSyncService.setAnimationController();
-    } catch (error) {
-      console.error('[Main] integratedLipSyncServiceの設定エラー:', error);
-    }
+    } catch {}
   }
 };
 
 export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isDebugPanelVisible, setIsDebugPanelVisible] = useState(false);
 
   // 音声チャット関連の状態
   const [audioChatService, setAudioChatService] =
@@ -72,16 +65,10 @@ export default function Home() {
   // アプリケーション起動時にデフォルトモデルを初期化
   useEffect(() => {
     const initializeModel = async () => {
-      console.log("🏠 ルートページ: モデル初期化開始");
-
       const status = getStorageStatus();
-      console.log("📊 ストレージ状態:", status);
 
       if (!status.hasValidCurrentModel) {
-        console.log("⚠️ 有効なcurrentModelが存在しません。初期化を実行します");
         await forceInitialize();
-      } else {
-        console.log("✅ 有効なcurrentModelが存在します");
       }
     };
 
@@ -147,20 +134,12 @@ export default function Home() {
   // 音声チャットサービス初期化
   const initializeAudioChat = useCallback(async () => {
     try {
-      // デバッグ: カスタムプロンプト設定を確認
-      console.log("🔧 [Page Debug] 音声チャット初期化開始");
-      
       const stored = localStorage.getItem("ai-settings");
-      console.log("🔧 [Page Debug] localStorage 'ai-settings':", stored);
-      
+
       if (stored) {
         try {
-          const settings = JSON.parse(stored);
-          console.log("🔧 [Page Debug] 解析された設定:", settings);
-          console.log("🔧 [Page Debug] カスタムプロンプト:", settings?.state?.customPrompt);
-        } catch (e) {
-          console.error("🔧 [Page Debug] 設定パースエラー:", e);
-        }
+          JSON.parse(stored);
+        } catch {}
       }
 
       const service = new AudioChatIntegrationService(defaultConfig, callbacks);
@@ -171,13 +150,11 @@ export default function Home() {
         setIsInitialized(true);
         setIsVoiceChatActive(true);
         setError(null);
-        console.log("🔧 [Page Debug] 音声チャット初期化成功");
       } else {
         throw new Error("音声チャットの初期化に失敗しました");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "初期化エラー";
-      console.error("🔧 [Page Debug] 音声チャット初期化エラー:", err);
       setError(errorMessage);
     }
   }, [defaultConfig, callbacks]);
@@ -256,35 +233,31 @@ export default function Home() {
 
   // デバッグ用のグローバル関数を追加（開発環境のみ）
   useEffect(() => {
-    if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
-      (window as typeof window & { 
-        __debugEchoes?: {
-          checkCustomPrompt: () => unknown;
-          testAudioChat: () => void;
+    if (
+      process.env.NODE_ENV === "development" &&
+      typeof window !== "undefined"
+    ) {
+      (
+        window as typeof window & {
+          __debugEchoes?: {
+            checkCustomPrompt: () => unknown;
+            testAudioChat: () => void;
+          };
         }
-      }).__debugEchoes = {
+      ).__debugEchoes = {
         checkCustomPrompt: () => {
           const stored = localStorage.getItem("ai-settings");
-          console.log("🔍 localStorage 'ai-settings':", stored);
           if (stored) {
             try {
               const settings = JSON.parse(stored);
-              console.log("🔍 解析された設定:", settings);
-              console.log("🔍 カスタムプロンプト:", settings?.state?.customPrompt);
               return settings?.state?.customPrompt;
-            } catch (e) {
-              console.error("🔍 パースエラー:", e);
+            } catch {
               return null;
             }
           }
           return null;
         },
-        testAudioChat: () => {
-          console.log("🔍 音声チャットサービス:", audioChatService);
-          console.log("🔍 初期化状態:", isInitialized);
-          console.log("🔍 アクティブ状態:", isVoiceChatActive);
-          console.log("🔍 ステータス:", status);
-        }
+        testAudioChat: () => {},
       };
     }
   }, [audioChatService, isInitialized, isVoiceChatActive, status]);
@@ -424,14 +397,6 @@ export default function Home() {
       </div>
 
       <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-      
-      {/* デバッグパネル（開発環境のみ） */}
-      {process.env.NODE_ENV === "development" && (
-        <AnimationDebugPanel
-          isVisible={isDebugPanelVisible}
-          onToggleVisibility={() => setIsDebugPanelVisible(!isDebugPanelVisible)}
-        />
-      )}
     </main>
   );
 }

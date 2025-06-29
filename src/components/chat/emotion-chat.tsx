@@ -60,8 +60,7 @@ export function EmotionChat() {
     try {
       // カスタムプロンプト設定を取得
       const customPrompt = settings.customPrompt;
-      console.log("🔧 [Emotion Chat Debug] カスタムプロンプト送信:", customPrompt);
-      
+
       const result = await generateEmotionalResponse(input, customPrompt);
 
       if (result.success && result.data) {
