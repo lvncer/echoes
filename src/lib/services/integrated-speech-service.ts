@@ -1,12 +1,13 @@
 import { SpeechSynthesisService } from "./speech-synthesis";
 import { VoicevoxService } from "./voicevox-service";
-import { 
-  useVoiceSettingsStore, 
-  getCurrentVoiceEngine, 
+import {
+  useVoiceSettingsStore,
+  getCurrentVoiceEngine,
   getVoicevoxConfig,
-  type VoiceEngine 
+  type VoiceEngine
 } from "@/lib/stores/voice-settings-store";
 import { getRequiredCredit } from "@/lib/types/voicevox";
+import { AnimationController } from "./animation-controller";
 import type { AudioEvents, AudioProcessingState } from "@/lib/types/audio";
 
 export interface EngineStatus {
@@ -30,6 +31,7 @@ export class IntegratedSpeechService {
   private voicevoxService: VoicevoxService;
   private currentAudioElement: HTMLAudioElement | null = null;
   private events: Partial<AudioEvents> = {};
+  private animationController: AnimationController | null = null;
 
   constructor() {
     this.webSpeechService = new SpeechSynthesisService();
@@ -64,6 +66,14 @@ export class IntegratedSpeechService {
     
     // 各サービスにもイベントを設定
     this.webSpeechService.setEventListeners(events);
+  }
+
+  /**
+   * アニメーションコントローラーを設定
+   */
+  public setAnimationController(controller: AnimationController): void {
+    console.log('[IntegratedSpeechService] アニメーションコントローラーを設定:', controller);
+    this.animationController = controller;
   }
 
   /**
@@ -123,6 +133,24 @@ export class IntegratedSpeechService {
       // 開始イベント
       this.events.onStart?.();
       
+      // アニメーション制御：音声合成開始（確実に実行）
+      if (process.env.NODE_ENV === "development") {
+        console.log('[IntegratedSpeechService] VOICEVOX音声合成開始 - アニメーション制御を呼び出し', {
+          hasController: !!this.animationController,
+          timestamp: new Date().toISOString()
+        });
+      }
+      if (this.animationController) {
+        this.animationController.setSpeaking(true);
+        if (process.env.NODE_ENV === "development") {
+          console.log('[IntegratedSpeechService] setSpeaking(true) 実行完了');
+        }
+      } else {
+        if (process.env.NODE_ENV === "development") {
+          console.warn('[IntegratedSpeechService] アニメーションコントローラーが見つかりません');
+        }
+      }
+      
       // 音声合成実行
       const audioBlob = await this.voicevoxService.synthesizeVoice(text, config.speaker);
       
@@ -138,6 +166,14 @@ export class IntegratedSpeechService {
       return success;
     } catch (error) {
       console.error("VOICEVOX音声合成エラー:", error);
+      
+      // エラー時も確実に音声合成終了を通知
+      console.log('[IntegratedSpeechService] VOICEVOXエラー時 - アニメーション制御を呼び出し');
+      if (this.animationController) {
+        this.animationController.setSpeaking(false);
+        console.log('[IntegratedSpeechService] エラー時 setSpeaking(false) 実行完了');
+      }
+      
       throw error;
     }
   }
@@ -146,7 +182,52 @@ export class IntegratedSpeechService {
    * Web Speech APIで音声合成
    */
   private async speakWithWebSpeech(text: string): Promise<boolean> {
-    return this.webSpeechService.speak(text);
+    // アニメーション制御：音声合成開始（確実に実行）
+    if (process.env.NODE_ENV === "development") {
+      console.log('[IntegratedSpeechService] Web Speech API音声合成開始 - アニメーション制御を呼び出し', {
+        hasController: !!this.animationController,
+        timestamp: new Date().toISOString()
+      });
+    }
+    if (this.animationController) {
+      this.animationController.setSpeaking(true);
+      if (process.env.NODE_ENV === "development") {
+        console.log('[IntegratedSpeechService] Web Speech setSpeaking(true) 実行完了');
+      }
+    } else {
+      if (process.env.NODE_ENV === "development") {
+        console.warn('[IntegratedSpeechService] アニメーションコントローラーが見つかりません（Web Speech）');
+      }
+    }
+    
+    try {
+      const result = await this.webSpeechService.speak(text);
+      
+      // アニメーション制御：音声合成終了
+      if (process.env.NODE_ENV === "development") {
+        console.log('[IntegratedSpeechService] Web Speech API音声合成完了 - アニメーション制御を呼び出し');
+      }
+      if (this.animationController) {
+        this.animationController.setSpeaking(false);
+        if (process.env.NODE_ENV === "development") {
+          console.log('[IntegratedSpeechService] Web Speech setSpeaking(false) 実行完了');
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      // エラー時も音声合成終了を通知
+      if (process.env.NODE_ENV === "development") {
+        console.log('[IntegratedSpeechService] Web Speech APIエラー時 - アニメーション制御を呼び出し');
+      }
+      if (this.animationController) {
+        this.animationController.setSpeaking(false);
+        if (process.env.NODE_ENV === "development") {
+          console.log('[IntegratedSpeechService] Web Speech エラー時 setSpeaking(false) 実行完了');
+        }
+      }
+      throw error;
+    }
   }
 
   /**
@@ -170,6 +251,21 @@ export class IntegratedSpeechService {
 
         this.currentAudioElement.onended = () => {
           this.events.onSpeakEnd?.();
+          
+          // アニメーション制御：音声合成終了（確実に実行）
+          if (process.env.NODE_ENV === "development") {
+            console.log('[IntegratedSpeechService] VOICEVOX音声再生完了 - アニメーション制御を呼び出し', {
+              hasController: !!this.animationController,
+              timestamp: new Date().toISOString()
+            });
+          }
+          if (this.animationController) {
+            this.animationController.setSpeaking(false);
+            if (process.env.NODE_ENV === "development") {
+              console.log('[IntegratedSpeechService] VOICEVOX再生完了 setSpeaking(false) 実行完了');
+            }
+          }
+          
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           resolve(true);
@@ -177,6 +273,17 @@ export class IntegratedSpeechService {
 
         this.currentAudioElement.onerror = (error) => {
           console.error("音声再生エラー:", error);
+          
+          // アニメーション制御：エラー時も音声合成終了（確実に実行）
+          console.log('[IntegratedSpeechService] VOICEVOX音声再生エラー - アニメーション制御を呼び出し', {
+            hasController: !!this.animationController,
+            timestamp: new Date().toISOString()
+          });
+          if (this.animationController) {
+            this.animationController.setSpeaking(false);
+            console.log('[IntegratedSpeechService] VOICEVOX再生エラー時 setSpeaking(false) 実行完了');
+          }
+          
           URL.revokeObjectURL(audioUrl);
           this.currentAudioElement = null;
           reject(new Error("音声再生に失敗しました"));
@@ -209,6 +316,20 @@ export class IntegratedSpeechService {
 
     // Web Speech API音声を停止
     this.webSpeechService.stop();
+    
+    // アニメーション制御：音声合成終了（確実に実行）
+    if (process.env.NODE_ENV === "development") {
+      console.log('[IntegratedSpeechService] 音声停止時 - アニメーション制御を呼び出し', {
+        hasController: !!this.animationController,
+        timestamp: new Date().toISOString()
+      });
+    }
+    if (this.animationController) {
+      this.animationController.setSpeaking(false);
+      if (process.env.NODE_ENV === "development") {
+        console.log('[IntegratedSpeechService] 停止時 setSpeaking(false) 実行完了');
+      }
+    }
   }
 
   /**

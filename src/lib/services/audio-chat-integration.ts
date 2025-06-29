@@ -7,6 +7,7 @@ import { AudioInputService } from "./audio-input";
 import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { integratedLipSyncService } from "./integrated-lipsync-service";
+import { AnimationController } from "./animation-controller";
 import type {
   AudioConfig,
   AudioError,
@@ -65,6 +66,7 @@ export class AudioChatIntegrationService {
   private status: AudioChatStatus = "idle";
   private isActive = false;
   private lastStatusLogTime = 0;
+  private animationController: AnimationController | null = null;
 
   constructor(config: AudioChatConfig, callbacks: AudioChatCallbacks = {}) {
     this.config = config;
@@ -77,6 +79,29 @@ export class AudioChatIntegrationService {
 
     this.setupEventHandlers();
     this.updateServiceConfigs();
+    this.setupAnimationController();
+  }
+
+  /**
+   * アニメーションコントローラーのセットアップ
+   */
+  private setupAnimationController(): void {
+    console.log('[AudioChatIntegration] アニメーションコントローラーのセットアップを開始');
+    
+    // グローバルアニメーションコントローラーを取得
+    if (typeof window !== "undefined" && window.__animationController) {
+      console.log('[AudioChatIntegration] アニメーションコントローラーが見つかりました');
+      this.animationController = window.__animationController;
+      
+      // 音声合成サービスにアニメーションコントローラーを設定
+      this.speechSynthesis.setAnimationController(this.animationController);
+      console.log('[AudioChatIntegration] 音声合成サービスにアニメーションコントローラーを設定完了');
+    } else {
+      console.log('[AudioChatIntegration] アニメーションコントローラーが見つかりません', {
+        hasWindow: typeof window !== "undefined",
+        hasController: window ? !!window.__animationController : false
+      });
+    }
   }
 
   /**
@@ -352,13 +377,18 @@ export class AudioChatIntegrationService {
    */
   private async speakResponse(text: string): Promise<void> {
     try {
+      console.log('[AudioChatIntegration] speakResponse開始:', text);
+      
       if (!text || text.trim().length === 0) {
+        console.log('[AudioChatIntegration] テキストが空のため処理をスキップ');
         return;
       }
 
+      console.log('[AudioChatIntegration] integratedLipSyncServiceを呼び出し中...');
       // 統合リップシンクサービスでAI応答とリップシンクを開始
       await integratedLipSyncService.startAIResponseLipSync(text);
 
+      console.log('[AudioChatIntegration] 感情解析アニメーションを実行中...');
       // アニメーション制御サービスで感情解析とアニメーション実行
       if (typeof window !== "undefined") {
         const windowWithController = window as typeof window & {
@@ -373,9 +403,12 @@ export class AudioChatIntegrationService {
         }
       }
 
+      console.log('[AudioChatIntegration] 音声合成完了を監視中...');
       // 音声合成の完了を監視するためのPromiseを作成
       await this.waitForSpeechCompletion(text);
+      console.log('[AudioChatIntegration] speakResponse完了');
     } catch (error) {
+      console.error('[AudioChatIntegration] speakResponseエラー:', error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,

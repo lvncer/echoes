@@ -33,6 +33,30 @@ export class IntegratedLipSyncService {
     this.basicLipSync = new LipSyncService();
 
     this.setupTTSIntegration();
+    this.setupAnimationController();
+  }
+
+  /**
+   * アニメーションコントローラーのセットアップ
+   */
+  private setupAnimationController(): void {
+    // SSR中はスキップ
+    if (typeof window === "undefined") {
+      return;
+    }
+    
+    console.log('[IntegratedLipSyncService] アニメーションコントローラーのセットアップを開始');
+    
+    // グローバルアニメーションコントローラーを取得
+    if (window.__animationController) {
+      console.log('[IntegratedLipSyncService] アニメーションコントローラーが見つかりました');
+      
+      // 音声合成サービスにアニメーションコントローラーを設定
+      this.speechSynthesis.setAnimationController(window.__animationController);
+      console.log('[IntegratedLipSyncService] 音声合成サービスにアニメーションコントローラーを設定完了');
+    } else {
+      console.log('[IntegratedLipSyncService] アニメーションコントローラーが見つかりません');
+    }
   }
 
   /**
@@ -560,6 +584,14 @@ export class IntegratedLipSyncService {
 
   public setEmotionIntensity(intensity: number): void {
     this.emotionIntensity = Math.max(0, Math.min(1, intensity));
+  }
+
+  /**
+   * アニメーションコントローラーを動的に設定
+   */
+  public setAnimationController(): void {
+    console.log('[IntegratedLipSyncService] アニメーションコントローラーの動的設定を試行');
+    this.setupAnimationController();
   }
 
   // 状態取得メソッド
