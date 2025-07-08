@@ -128,8 +128,18 @@
     max-width: 1400px !important;
   }
   
+  /* チャット履歴モーダルの幅設定（設定モーダルと同一） */
+  .chat-history-modal-content {
+    width: 95vw !important;
+    max-width: 1400px !important;
+  }
+  
   @media (min-width: 640px) {
     .settings-modal-content {
+      max-width: 1400px !important;
+    }
+    
+    .chat-history-modal-content {
       max-width: 1400px !important;
     }
   }

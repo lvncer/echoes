@@ -117,7 +117,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden flex flex-col">
+      <DialogContent className="chat-history-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden flex flex-col">
         <DialogHeader className="border-b border-gray-700 pb-4 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-white">
             <MessageCircle className="w-6 h-6" />
