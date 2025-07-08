@@ -45,7 +45,7 @@ const Chat = memo(function Chat() {
 
       const message = input.trim();
       setInput("");
-      await sendMessage(message);
+      await sendMessage(message, false);
     },
     [input, isLoading, sendMessage]
   );

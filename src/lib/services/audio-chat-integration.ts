@@ -240,12 +240,28 @@ export class AudioChatIntegrationService {
     try {
       this.setStatus("processing");
 
-      // AI応答を取得
-      const aiResponse = await this.getAIResponse(transcript);
-      this.callbacks.onAIResponseReceived?.(aiResponse);
-
-      // 音声合成で応答を再生
-      await this.speakResponse(aiResponse);
+      // AI StoreのsendMessageを使用して音声チャットのメッセージを送信
+      // これによりチャット履歴にも自動的に保存される
+      if (typeof window !== "undefined") {
+        // AI storeのsendMessageを呼び出し
+        const { useAIStore } = await import("../stores/ai-store");
+        const aiStore = useAIStore.getState();
+        
+        // 音声フラグをtrueにしてメッセージを送信
+        await aiStore.sendMessage(transcript, true);
+        
+        // AI応答は既にsendMessage内で処理されているので、
+        // AI応答のコンテンツを取得してスピーチに使用
+        const messages = aiStore.messages;
+        const lastMessage = messages[messages.length - 1];
+        
+        if (lastMessage && lastMessage.role === "assistant") {
+          this.callbacks.onAIResponseReceived?.(lastMessage.content);
+          
+          // 音声合成で応答を再生
+          await this.speakResponse(lastMessage.content);
+        }
+      }
 
       // 確実にアイドル状態に戻す
       this.setStatus("idle");

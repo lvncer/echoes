@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Simple3DViewer } from "@/components/3d/model-3d-viewer";
-import { Box, Settings, Mic, MicOff } from "lucide-react";
+import { Box, Settings, Mic, MicOff, MessageCircle } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
+import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import {
   AudioChatIntegrationService,
@@ -38,6 +39,7 @@ const initializeAnimationController = () => {
 export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
 
   // 音声チャット関連の状態
   const [audioChatService, setAudioChatService] =
@@ -284,8 +286,16 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 設定ボタン - 右上 */}
-      <div className="absolute top-8 right-8 z-30">
+      {/* チャット履歴・設定ボタン - 右上 */}
+      <div className="absolute top-8 right-8 z-30 flex gap-3">
+        <Button
+          variant="default"
+          size="default"
+          onClick={() => setIsChatHistoryOpen(true)}
+          className="flex items-center gap-2 cursor-pointer"
+        >
+          <MessageCircle className="w-4 h-4 text-white" />
+        </Button>
         <Button
           variant="default"
           size="default"
@@ -397,6 +407,7 @@ export default function Home() {
       </div>
 
       <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <ChatHistoryModal open={isChatHistoryOpen} onOpenChange={setIsChatHistoryOpen} />
     </main>
   );
 }
