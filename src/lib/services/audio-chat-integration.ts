@@ -234,40 +234,57 @@ export class AudioChatIntegrationService {
    * 最終的な音声認識結果の処理
    */
   private async handleFinalTranscript(transcript: string): Promise<void> {
+    console.log(
+      "[デバッグ] handleFinalTranscript呼び出し transcript=",
+      transcript
+    );
     try {
       this.setStatus("processing");
 
-      // AI StoreのsendMessageを使用して音声チャットのメッセージを送信
-      // これによりチャット履歴にも自動的に保存される
       if (typeof window !== "undefined") {
-        // AI storeのsendMessageを呼び出し
         const { useAIStore } = await import("../stores/ai-store");
-        const aiStore = useAIStore.getState();
+        // sendMessage前のメッセージ数を記録
+        const prevLength = useAIStore.getState().messages.length;
 
-        // 音声フラグをtrueにしてメッセージを送信
-        await aiStore.sendMessage(transcript, true);
-
-        // AI応答は既にsendMessage内で処理されているので、
-        // AI応答のコンテンツを取得してスピーチに使用
-        const messages = aiStore.messages;
-        const lastMessage = messages[messages.length - 1];
-
-        if (lastMessage && lastMessage.role === "assistant") {
-          this.callbacks.onAIResponseReceived?.(lastMessage.content);
-
-          // 音声合成で応答を再生
-          await this.speakResponse(lastMessage.content);
-        }
+        await new Promise<void>((resolve) => {
+          useAIStore.getState().sendMessage(transcript, true);
+          let checked = 0;
+          const interval = setInterval(() => {
+            const messages = useAIStore.getState().messages;
+            const lastMessage = messages[messages.length - 1];
+            if (messages.length > prevLength && lastMessage) {
+              const isError =
+                /申し訳ありません|エラー|失敗|error|not available|unavailable|could not|できません|ありません/i.test(
+                  lastMessage.content
+                );
+              if (
+                lastMessage.role === "assistant" &&
+                lastMessage.content &&
+                lastMessage.content.trim().length > 0 &&
+                !isError
+              ) {
+                this.callbacks.onAIResponseReceived?.(lastMessage.content);
+                this.speakResponse(lastMessage.content);
+                clearInterval(interval);
+                resolve();
+              }
+            }
+            checked += 1;
+            if (checked > 100) {
+              // 100回=10秒
+              clearInterval(interval);
+              resolve();
+            }
+          }, 100);
+        });
       }
 
-      // 確実にアイドル状態に戻す
       this.setStatus("idle");
     } catch (error) {
       this.handleError({
         type: "ai-response-failed",
         message: `AI応答の取得に失敗しました: ${error}`,
       });
-      // エラー時も確実にアイドル状態に戻す
       this.setStatus("idle");
     }
   }
@@ -356,6 +373,22 @@ export class AudioChatIntegrationService {
       if (!text || text.trim().length === 0) {
         return;
       }
+      // 音声設定ストアの内容をログ出力
+      if (typeof window !== "undefined") {
+        try {
+          const { useVoiceSettingsStore } = await import(
+            "../stores/voice-settings-store"
+          );
+          const settings = useVoiceSettingsStore.getState().settings;
+          console.log("[デバッグ] 音声合成直前の設定値:", settings);
+        } catch (e) {
+          console.warn("[デバッグ] useVoiceSettingsStoreの取得に失敗", e);
+        }
+      }
+      console.log(
+        "[デバッグ] integratedLipSyncService.startAIResponseLipSync呼び出し直前: text=",
+        text
+      );
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
@@ -375,6 +408,7 @@ export class AudioChatIntegrationService {
       // 音声合成の完了を監視するためのPromiseを作成
       await this.waitForSpeechCompletion(text);
     } catch (error) {
+      console.error("[デバッグ] speakResponseでエラー発生", error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,
