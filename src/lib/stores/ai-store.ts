@@ -8,6 +8,7 @@ import type {
 } from "../types/ai";
 import { createAIConfigFromEnv } from "../config/env";
 import { ClientAIService } from "../services/client-ai";
+import { useChatHistoryStore } from "./chat-history-store";
 
 /**
  * AI ストアの状態
@@ -31,7 +32,7 @@ interface AIStore {
   switchProvider: (provider: keyof AISettings["providers"]) => void;
   updateCustomPrompt: (prompt: Partial<CustomPromptSettings>) => void;
   initializeFromEnv: () => void;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, isVoice?: boolean) => Promise<void>;
   clearMessages: () => void;
   testConnection: () => Promise<boolean>;
 }
@@ -193,7 +194,7 @@ export const useAIStore = create<AIStore>()(
       },
 
       // メッセージを送信
-      sendMessage: async (content: string) => {
+      sendMessage: async (content: string, isVoice: boolean = false) => {
         const { aiService, messages } = get();
 
         if (!aiService) {
@@ -206,12 +207,17 @@ export const useAIStore = create<AIStore>()(
           role: "user",
           content,
           timestamp: new Date(),
+          isVoice,
         };
 
         set((state) => ({
           messages: [...state.messages, userMessage],
           isLoading: true,
         }));
+
+        // チャット履歴にメッセージを保存
+        const historyStore = useChatHistoryStore.getState();
+        historyStore.addMessage(userMessage);
 
         try {
           // AI 応答を生成
@@ -221,10 +227,18 @@ export const useAIStore = create<AIStore>()(
           ]);
 
           // AI メッセージを追加
+          const aiMessage: ChatMessage = {
+            ...response.message,
+            isVoice,
+          };
+
           set((state) => ({
-            messages: [...state.messages, response.message],
+            messages: [...state.messages, aiMessage],
             isLoading: false,
           }));
+
+          // チャット履歴にAI応答を保存
+          historyStore.addMessage(aiMessage);
 
           // 感情アニメーション実行（ブラウザ環境でのみ）
           if (typeof window !== "undefined") {
@@ -268,12 +282,16 @@ export const useAIStore = create<AIStore>()(
             role: "assistant",
             content: errorContent,
             timestamp: new Date(),
+            isVoice,
           };
 
           set((state) => ({
             messages: [...state.messages, errorMessage],
             isLoading: false,
           }));
+
+          // チャット履歴にエラーメッセージも保存
+          historyStore.addMessage(errorMessage);
         }
       },
 

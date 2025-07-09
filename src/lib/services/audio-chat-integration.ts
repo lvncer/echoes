@@ -173,8 +173,6 @@ export class AudioChatIntegrationService {
       if (this.isActive) {
         return true;
       }
-
-      // マイクアクセス許可を取得
       const hasPermission = await this.audioInput.requestMicrophoneAccess(
         this.config.audioInput
       );
@@ -185,7 +183,6 @@ export class AudioChatIntegrationService {
         });
         return false;
       }
-
       this.isActive = true;
       this.setStatus("idle");
       return true;
@@ -237,24 +234,57 @@ export class AudioChatIntegrationService {
    * 最終的な音声認識結果の処理
    */
   private async handleFinalTranscript(transcript: string): Promise<void> {
+    console.log(
+      "[デバッグ] handleFinalTranscript呼び出し transcript=",
+      transcript
+    );
     try {
       this.setStatus("processing");
 
-      // AI応答を取得
-      const aiResponse = await this.getAIResponse(transcript);
-      this.callbacks.onAIResponseReceived?.(aiResponse);
+      if (typeof window !== "undefined") {
+        const { useAIStore } = await import("../stores/ai-store");
+        // sendMessage前のメッセージ数を記録
+        const prevLength = useAIStore.getState().messages.length;
 
-      // 音声合成で応答を再生
-      await this.speakResponse(aiResponse);
+        await new Promise<void>((resolve) => {
+          useAIStore.getState().sendMessage(transcript, true);
+          let checked = 0;
+          const interval = setInterval(() => {
+            const messages = useAIStore.getState().messages;
+            const lastMessage = messages[messages.length - 1];
+            if (messages.length > prevLength && lastMessage) {
+              const isError =
+                /申し訳ありません|エラー|失敗|error|not available|unavailable|could not|できません|ありません/i.test(
+                  lastMessage.content
+                );
+              if (
+                lastMessage.role === "assistant" &&
+                lastMessage.content &&
+                lastMessage.content.trim().length > 0 &&
+                !isError
+              ) {
+                this.callbacks.onAIResponseReceived?.(lastMessage.content);
+                this.speakResponse(lastMessage.content);
+                clearInterval(interval);
+                resolve();
+              }
+            }
+            checked += 1;
+            if (checked > 100) {
+              // 100回=10秒
+              clearInterval(interval);
+              resolve();
+            }
+          }, 100);
+        });
+      }
 
-      // 確実にアイドル状態に戻す
       this.setStatus("idle");
     } catch (error) {
       this.handleError({
         type: "ai-response-failed",
         message: `AI応答の取得に失敗しました: ${error}`,
       });
-      // エラー時も確実にアイドル状態に戻す
       this.setStatus("idle");
     }
   }
@@ -316,7 +346,6 @@ export class AudioChatIntegrationService {
       },
       body: JSON.stringify(requestBody),
     });
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
@@ -325,7 +354,6 @@ export class AudioChatIntegrationService {
         }`
       );
     }
-
     const data = await response.json();
 
     // APIレスポンスから適切にメッセージを取得
@@ -345,8 +373,22 @@ export class AudioChatIntegrationService {
       if (!text || text.trim().length === 0) {
         return;
       }
-
-      // 統合リップシンクサービスでAI応答とリップシンクを開始
+      // 音声設定ストアの内容をログ出力
+      if (typeof window !== "undefined") {
+        try {
+          const { useVoiceSettingsStore } = await import(
+            "../stores/voice-settings-store"
+          );
+          const settings = useVoiceSettingsStore.getState().settings;
+          console.log("[デバッグ] 音声合成直前の設定値:", settings);
+        } catch (e) {
+          console.warn("[デバッグ] useVoiceSettingsStoreの取得に失敗", e);
+        }
+      }
+      console.log(
+        "[デバッグ] integratedLipSyncService.startAIResponseLipSync呼び出し直前: text=",
+        text
+      );
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
@@ -366,6 +408,7 @@ export class AudioChatIntegrationService {
       // 音声合成の完了を監視するためのPromiseを作成
       await this.waitForSpeechCompletion(text);
     } catch (error) {
+      console.error("[デバッグ] speakResponseでエラー発生", error);
       this.handleError({
         type: "speech-synthesis-failed",
         message: `音声合成に失敗しました: ${error}`,

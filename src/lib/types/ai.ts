@@ -62,6 +62,45 @@ export interface ChatMessage {
   content: string;
   /** 送信時刻 */
   timestamp: Date;
+  /** 音声メッセージフラグ */
+  isVoice?: boolean;
+  /** セッションID */
+  sessionId?: string;
+}
+
+/**
+ * チャット履歴セッション
+ */
+export interface ChatSession {
+  /** セッションID */
+  id: string;
+  /** セッション名 */
+  title: string;
+  /** 開始時刻 */
+  startedAt: Date;
+  /** 最終更新時刻 */
+  lastUpdatedAt: Date;
+  /** メッセージ数 */
+  messageCount: number;
+  /** セッションの最初のメッセージ（タイトル生成用） */
+  firstMessage?: string;
+}
+
+/**
+ * チャット履歴フィルター
+ */
+export interface ChatHistoryFilter {
+  /** 日付範囲 */
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  /** 検索キーワード */
+  searchQuery?: string;
+  /** 音声メッセージのみ */
+  voiceOnly?: boolean;
+  /** セッションID */
+  sessionId?: string;
 }
 
 /**
