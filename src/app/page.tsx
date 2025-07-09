@@ -17,6 +17,7 @@ import {
   type AudioChatCallbacks,
 } from "@/lib/services/audio-chat-integration";
 import type { AudioError } from "@/lib/types/audio";
+import { useAIStore } from "@/lib/stores/ai-store";
 
 // アニメーションコントローラーの初期化
 declare global {
@@ -57,6 +58,11 @@ export default function Home() {
     getStorageStatus,
     forceInitialize,
   } = useModelStore();
+
+  // AIストアの初期化を必ず実行
+  useEffect(() => {
+    useAIStore.getState().initializeFromEnv();
+  }, []);
 
   // 初期化処理
   useEffect(() => {
@@ -407,7 +413,10 @@ export default function Home() {
       </div>
 
       <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-      <ChatHistoryModal open={isChatHistoryOpen} onOpenChange={setIsChatHistoryOpen} />
+      <ChatHistoryModal
+        open={isChatHistoryOpen}
+        onOpenChange={setIsChatHistoryOpen}
+      />
     </main>
   );
 }

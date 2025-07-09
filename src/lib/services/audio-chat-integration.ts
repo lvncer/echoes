@@ -173,8 +173,6 @@ export class AudioChatIntegrationService {
       if (this.isActive) {
         return true;
       }
-
-      // マイクアクセス許可を取得
       const hasPermission = await this.audioInput.requestMicrophoneAccess(
         this.config.audioInput
       );
@@ -185,7 +183,6 @@ export class AudioChatIntegrationService {
         });
         return false;
       }
-
       this.isActive = true;
       this.setStatus("idle");
       return true;
@@ -246,18 +243,18 @@ export class AudioChatIntegrationService {
         // AI storeのsendMessageを呼び出し
         const { useAIStore } = await import("../stores/ai-store");
         const aiStore = useAIStore.getState();
-        
+
         // 音声フラグをtrueにしてメッセージを送信
         await aiStore.sendMessage(transcript, true);
-        
+
         // AI応答は既にsendMessage内で処理されているので、
         // AI応答のコンテンツを取得してスピーチに使用
         const messages = aiStore.messages;
         const lastMessage = messages[messages.length - 1];
-        
+
         if (lastMessage && lastMessage.role === "assistant") {
           this.callbacks.onAIResponseReceived?.(lastMessage.content);
-          
+
           // 音声合成で応答を再生
           await this.speakResponse(lastMessage.content);
         }
@@ -332,7 +329,6 @@ export class AudioChatIntegrationService {
       },
       body: JSON.stringify(requestBody),
     });
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
@@ -341,7 +337,6 @@ export class AudioChatIntegrationService {
         }`
       );
     }
-
     const data = await response.json();
 
     // APIレスポンスから適切にメッセージを取得
@@ -361,8 +356,6 @@ export class AudioChatIntegrationService {
       if (!text || text.trim().length === 0) {
         return;
       }
-
-      // 統合リップシンクサービスでAI応答とリップシンクを開始
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // アニメーション制御サービスで感情解析とアニメーション実行

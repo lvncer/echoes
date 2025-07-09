@@ -81,8 +81,9 @@ export class IntegratedLipSyncService {
     responseText: string,
     emotion?: EmotionType
   ): Promise<void> {
-    if (!this.isAutoMode) return;
-
+    if (!this.isAutoMode) {
+      return;
+    }
     try {
       // 感情解析
       const detectedEmotion = emotion || this.analyzeTextEmotion(responseText);
@@ -102,7 +103,7 @@ export class IntegratedLipSyncService {
       } else {
         this.isTTSSpeaking = false;
       }
-    } catch (_error) {
+    } catch {
       this.isTTSSpeaking = false;
     }
   }
@@ -197,8 +198,6 @@ export class IntegratedLipSyncService {
    */
   private async handleTTSSpeechStart(): Promise<void> {
     this.isTTSSpeaking = true;
-
-    // 統合音声サービスから現在の音声要素を取得
     const audioElement = this.speechSynthesis.getCurrentAudioElement();
 
     if (!audioElement) {
@@ -241,7 +240,7 @@ export class IntegratedLipSyncService {
       if (this.ttsAudioContext.state === "suspended") {
         await this.ttsAudioContext.resume();
       }
-    } catch (_error) {}
+    } catch {}
   }
 
   /**
