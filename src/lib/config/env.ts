@@ -20,20 +20,41 @@ const envSchema = z.object({
 });
 
 /**
- * 環境変数を検証して取得
+ * セッションストレージから環境変数を取得
+ */
+function getSessionEnvConfig() {
+  if (typeof window === "undefined") return {};
+  
+  return {
+    OPENAI_API_KEY: sessionStorage.getItem("ENV_OPENAI_API_KEY") || undefined,
+    OPENAI_MODEL: sessionStorage.getItem("ENV_OPENAI_MODEL") || undefined,
+    OPENAI_MAX_TOKENS: sessionStorage.getItem("ENV_OPENAI_MAX_TOKENS") || undefined,
+    OPENAI_TEMPERATURE: sessionStorage.getItem("ENV_OPENAI_TEMPERATURE") || undefined,
+    GEMINI_API_KEY: sessionStorage.getItem("ENV_GEMINI_API_KEY") || undefined,
+    GEMINI_MODEL: sessionStorage.getItem("ENV_GEMINI_MODEL") || undefined,
+    GEMINI_MAX_TOKENS: sessionStorage.getItem("ENV_GEMINI_MAX_TOKENS") || undefined,
+    GEMINI_TEMPERATURE: sessionStorage.getItem("ENV_GEMINI_TEMPERATURE") || undefined,
+    AI_PROVIDER: sessionStorage.getItem("ENV_AI_PROVIDER") || undefined,
+    AI_BASE_URL: sessionStorage.getItem("ENV_AI_BASE_URL") || undefined,
+  };
+}
+
+/**
+ * 環境変数を検証して取得（セッションストレージ優先）
  */
 function getEnvConfig() {
+  const sessionEnv = getSessionEnvConfig();
   const env = {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    OPENAI_MODEL: process.env.OPENAI_MODEL,
-    OPENAI_MAX_TOKENS: process.env.OPENAI_MAX_TOKENS,
-    OPENAI_TEMPERATURE: process.env.OPENAI_TEMPERATURE,
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    GEMINI_MODEL: process.env.GEMINI_MODEL,
-    GEMINI_MAX_TOKENS: process.env.GEMINI_MAX_TOKENS,
-    GEMINI_TEMPERATURE: process.env.GEMINI_TEMPERATURE,
-    AI_PROVIDER: process.env.AI_PROVIDER,
-    AI_BASE_URL: process.env.AI_BASE_URL,
+    OPENAI_API_KEY: sessionEnv.OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+    OPENAI_MODEL: sessionEnv.OPENAI_MODEL || process.env.OPENAI_MODEL,
+    OPENAI_MAX_TOKENS: sessionEnv.OPENAI_MAX_TOKENS || process.env.OPENAI_MAX_TOKENS,
+    OPENAI_TEMPERATURE: sessionEnv.OPENAI_TEMPERATURE || process.env.OPENAI_TEMPERATURE,
+    GEMINI_API_KEY: sessionEnv.GEMINI_API_KEY || process.env.GEMINI_API_KEY,
+    GEMINI_MODEL: sessionEnv.GEMINI_MODEL || process.env.GEMINI_MODEL,
+    GEMINI_MAX_TOKENS: sessionEnv.GEMINI_MAX_TOKENS || process.env.GEMINI_MAX_TOKENS,
+    GEMINI_TEMPERATURE: sessionEnv.GEMINI_TEMPERATURE || process.env.GEMINI_TEMPERATURE,
+    AI_PROVIDER: sessionEnv.AI_PROVIDER || process.env.AI_PROVIDER,
+    AI_BASE_URL: sessionEnv.AI_BASE_URL || process.env.AI_BASE_URL,
   };
 
   try {
