@@ -13,6 +13,42 @@ export class ClientAIService {
       // カスタムプロンプト設定を取得
       const customPromptSettings = this.getCustomPromptSettings();
 
+      // sessionStorageからAI設定値を取得
+      let aiConfig = undefined;
+      if (typeof window !== "undefined") {
+        aiConfig = {
+          provider: sessionStorage.getItem("ENV_AI_PROVIDER") || undefined,
+          apiKey:
+            sessionStorage.getItem("ENV_AI_PROVIDER") === "openai"
+              ? sessionStorage.getItem("ENV_OPENAI_API_KEY") || undefined
+              : sessionStorage.getItem("ENV_AI_PROVIDER") === "gemini"
+              ? sessionStorage.getItem("ENV_GEMINI_API_KEY") || undefined
+              : undefined,
+          model:
+            sessionStorage.getItem("ENV_AI_PROVIDER") === "openai"
+              ? sessionStorage.getItem("ENV_OPENAI_MODEL") || undefined
+              : sessionStorage.getItem("ENV_AI_PROVIDER") === "gemini"
+              ? sessionStorage.getItem("ENV_GEMINI_MODEL") || undefined
+              : undefined,
+          maxTokens:
+            sessionStorage.getItem("ENV_AI_PROVIDER") === "openai"
+              ? Number(sessionStorage.getItem("ENV_OPENAI_MAX_TOKENS")) || undefined
+              : sessionStorage.getItem("ENV_AI_PROVIDER") === "gemini"
+              ? Number(sessionStorage.getItem("ENV_GEMINI_MAX_TOKENS")) || undefined
+              : undefined,
+          temperature:
+            sessionStorage.getItem("ENV_AI_PROVIDER") === "openai"
+              ? Number(sessionStorage.getItem("ENV_OPENAI_TEMPERATURE")) || undefined
+              : sessionStorage.getItem("ENV_AI_PROVIDER") === "gemini"
+              ? Number(sessionStorage.getItem("ENV_GEMINI_TEMPERATURE")) || undefined
+              : undefined,
+          baseUrl:
+            sessionStorage.getItem("ENV_AI_PROVIDER") === "openai" || sessionStorage.getItem("ENV_AI_PROVIDER") === "local"
+              ? sessionStorage.getItem("ENV_AI_BASE_URL") || undefined
+              : undefined,
+        };
+      }
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -21,6 +57,7 @@ export class ClientAIService {
         body: JSON.stringify({
           messages,
           customPrompt: customPromptSettings,
+          aiConfig,
         }),
       });
 

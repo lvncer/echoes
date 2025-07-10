@@ -8,11 +8,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ModelSelector } from "@/components/3d/model-selector";
-import { Box, MessageCircle, Camera, Volume2, ChevronRight } from "lucide-react";
+import { Box, MessageCircle, Camera, Volume2, ChevronRight, Settings } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { CameraSettings } from "./camera-settings";
 import { VoiceSettings } from "./voice-settings";
 import { AISettings } from "./ai-settings";
+import { EnvironmentSettings } from "./environment-settings";
 import { useModelStore } from "@/lib/stores/model-store";
 import { loadModel } from "@/lib/3d/loaders";
 import { useState } from "react";
@@ -22,7 +23,7 @@ interface SettingsModalProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type SettingsCategory = "models" | "voice" | "camera" | "ai";
+type SettingsCategory = "models" | "voice" | "camera" | "ai" | "environment";
 
 interface CategoryItem {
   id: SettingsCategory;
@@ -55,6 +56,12 @@ const categories: CategoryItem[] = [
     label: "AI設定",
     icon: MessageCircle,
     description: "カスタムプロンプト・API設定"
+  },
+  {
+    id: "environment",
+    label: "環境変数",
+    icon: Settings,
+    description: "API設定・環境変数の管理"
   }
 ];
 
@@ -169,6 +176,23 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               </p>
               <ErrorBoundary>
                 <AISettings />
+              </ErrorBoundary>
+            </div>
+          </div>
+        );
+
+      case "environment":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                環境変数設定
+              </h3>
+              <p className="text-gray-400 mb-6">
+                API設定と環境変数の管理を行います（セッション中のみ保持）
+              </p>
+              <ErrorBoundary>
+                <EnvironmentSettings />
               </ErrorBoundary>
             </div>
           </div>

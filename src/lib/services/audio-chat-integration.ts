@@ -80,7 +80,7 @@ export class AudioChatIntegrationService {
     this.setupEventHandlers();
     this.updateServiceConfigs();
     this.setupAnimationController();
-    
+
     // 初期化時に設定を同期して話者設定を確実に適用
     this.syncVoiceSettings();
   }
@@ -198,10 +198,10 @@ export class AudioChatIntegrationService {
         });
         return false;
       }
-      
+
       // 音声チャット開始時に設定を同期
       this.syncVoiceSettings();
-      
+
       this.isActive = true;
       this.setStatus("idle");
       return true;
@@ -227,7 +227,7 @@ export class AudioChatIntegrationService {
 
     // 話者設定を保持するため、設定をクリアしない
     // Note: 音声合成サービスの設定は保持される
-    
+
     this.isActive = false;
     this.setStatus("idle");
   }
@@ -256,10 +256,6 @@ export class AudioChatIntegrationService {
    * 最終的な音声認識結果の処理
    */
   private async handleFinalTranscript(transcript: string): Promise<void> {
-    console.log(
-      "[デバッグ] handleFinalTranscript呼び出し transcript=",
-      transcript
-    );
     try {
       this.setStatus("processing");
 
@@ -395,27 +391,20 @@ export class AudioChatIntegrationService {
       if (!text || text.trim().length === 0) {
         return;
       }
-      
+
       // 音声合成前に最新の設定を強制的に同期
       if (typeof window !== "undefined") {
         try {
-          const { useVoiceSettingsStore } = await import(
-            "../stores/voice-settings-store"
-          );
-          const settings = useVoiceSettingsStore.getState().settings;
-          console.log("[デバッグ] 音声合成直前の設定値:", settings);
-          
           // IntegratedSpeechServiceの設定を強制的に同期
           await this.speechSynthesis.syncSettings();
         } catch (e) {
-          console.warn("[デバッグ] useVoiceSettingsStoreの取得または設定同期に失敗", e);
+          console.warn(
+            "[デバッグ] useVoiceSettingsStoreの取得または設定同期に失敗",
+            e
+          );
         }
       }
-      
-      console.log(
-        "[デバッグ] integratedLipSyncService.startAIResponseLipSync呼び出し直前: text=",
-        text
-      );
+
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
@@ -573,7 +562,7 @@ export class AudioChatIntegrationService {
     this.stopAudioChat();
     this.audioInput.cleanup();
     this.speechRecognition.cleanup();
-    
+
     // 完全なクリーンアップ時のみ音声合成サービスをクリーンアップ
     // 通常の会話終了時は設定を保持
     this.speechSynthesis.cleanup();

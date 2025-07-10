@@ -6,7 +6,7 @@ import type { ChatMessage } from "../../../lib/types/ai";
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, customPrompt } = await request.json();
+    const { messages, customPrompt, aiConfig } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -15,8 +15,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // サーバーサイドで環境変数から設定を取得
-    const config = createAIConfigFromEnv();
+    // サーバーサイドで環境変数から設定を取得（フォールバック用）
+    const envConfig = createAIConfigFromEnv();
+
+    // bodyのaiConfigがあればそれを優先
+    const config =
+      aiConfig && aiConfig.provider
+        ? {
+            provider: aiConfig.provider,
+            apiKey: aiConfig.apiKey,
+            model: aiConfig.model,
+            maxTokens: aiConfig.maxTokens,
+            temperature: aiConfig.temperature,
+            baseUrl: aiConfig.baseUrl,
+          }
+        : envConfig;
 
     if (!config.apiKey) {
       const providerName = config.provider === "gemini" ? "Gemini" : "OpenAI";
