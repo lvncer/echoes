@@ -59,6 +59,15 @@ export class IntegratedSpeechService {
   }
 
   /**
+   * 現在の設定を強制的に同期
+   */
+  public syncSettings(): void {
+    const settings = useVoiceSettingsStore.getState().settings;
+    this.voicevoxService.updateConfig(settings.voicevox);
+    this.webSpeechService.updateConfig(settings.webspeech);
+  }
+
+  /**
    * イベントリスナーを設定
    */
   public setEventListeners(events: Partial<AudioEvents>): void {
@@ -115,7 +124,9 @@ export class IntegratedSpeechService {
    */
   private async speakWithVoicevox(text: string): Promise<boolean> {
     try {
+      // 最新の設定を取得して同期
       const config = getVoicevoxConfig();
+      this.voicevoxService.updateConfig(config);
 
       // Web API使用時はサーバー状態チェックをスキップ
       if (!config.useWebApi) {
@@ -134,7 +145,7 @@ export class IntegratedSpeechService {
         this.animationController.setSpeaking(true);
       }
 
-      // 音声合成実行
+      // 音声合成実行（最新の話者設定を使用）
       const audioBlob = await this.voicevoxService.synthesizeVoice(
         text,
         config.speaker

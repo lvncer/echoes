@@ -75,10 +75,33 @@ export function VoiceSettings() {
       try {
         const speakers = await integratedSpeechService.getVoicevoxSpeakers();
         setVoicevoxSpeakers(speakers);
+        
+        // 話者一覧読み込み成功時の処理
         if (showErrors) {
           setError(null); // エラーをクリア
           setConnectionTestResult("VOICEVOX話者一覧を正常に読み込みました。");
         }
+
+        // デフォルト話者の自動選択
+        const currentSpeaker = settings.voicevox.speaker;
+        const isCurrentSpeakerValid = speakers.some(speaker =>
+          speaker.styles.some(style => style.id === currentSpeaker)
+        );
+
+        if (!isCurrentSpeakerValid && speakers.length > 0) {
+          // 現在の話者が無効な場合、最初の話者を選択
+          const firstSpeaker = speakers[0];
+          const firstStyle = firstSpeaker.styles[0];
+          if (firstStyle) {
+            updateVoicevoxConfig({ speaker: firstStyle.id });
+            if (showErrors) {
+              setConnectionTestResult(
+                `VOICEVOX話者一覧を読み込み、デフォルト話者「${firstSpeaker.name} (${firstStyle.name})」を選択しました。`
+              );
+            }
+          }
+        }
+
         return true;
       } catch (error) {
         setVoicevoxSpeakers([]);
@@ -107,7 +130,7 @@ export function VoiceSettings() {
         return false;
       }
     },
-    [setError]
+    [setError, settings.voicevox.speaker, updateVoicevoxConfig]
   );
 
   /**
@@ -122,19 +145,53 @@ export function VoiceSettings() {
       // Web Speech API音声読み込み
       await loadWebSpeechVoices();
 
-      // VOICEVOX話者は手動で読み込むため、初期化時は実行しない
-      // ユーザーがAPIキーを設定してから手動で読み込む
+      // VOICEVOX設定チェック - APIキーが設定されている場合は自動読み込み
+      if (settings.engine === "voicevox" && settings.voicevox.useWebApi) {
+        const apiKey = settings.voicevox.apiKey;
+        if (apiKey && apiKey.trim()) {
+          // APIキーが設定されている場合は自動的に話者一覧を読み込む
+          try {
+            await loadVoicevoxSpeakers(false); // エラー表示は抑制
+          } catch (error) {
+            // 初期化時のエラーは警告程度に留める
+            console.warn("初期化時の話者読み込みに失敗:", error);
+          }
+        }
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "初期化に失敗しました");
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError]);
+  }, [setLoading, setError, settings.engine, settings.voicevox.useWebApi, settings.voicevox.apiKey, loadVoicevoxSpeakers]);
 
   // 初期化
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
+
+  // 設定変更時の自動話者読み込み
+  useEffect(() => {
+    // VOICEVOXエンジンが選択され、Web APIが有効で、APIキーが設定されている場合
+    if (
+      settings.engine === "voicevox" &&
+      settings.voicevox.useWebApi &&
+      settings.voicevox.apiKey &&
+      settings.voicevox.apiKey.trim() &&
+      voicevoxSpeakers.length === 0 // 話者一覧がまだ読み込まれていない場合
+    ) {
+      // 自動的に話者一覧を読み込む
+      loadVoicevoxSpeakers(false).catch((error) => {
+        console.warn("設定変更時の話者読み込みに失敗:", error);
+      });
+    }
+  }, [
+    settings.engine,
+    settings.voicevox.useWebApi,
+    settings.voicevox.apiKey,
+    voicevoxSpeakers.length,
+    loadVoicevoxSpeakers,
+  ]);
 
   /**
    * エンジン状態テスト
@@ -246,13 +303,32 @@ export function VoiceSettings() {
     setIsTestingSynthesis(true);
 
     try {
+      // 音声合成前に設定を同期
+      integratedSpeechService.syncSettings();
+      
       const testText = "こんにちは、音声合成のテストです。";
       const success = await integratedSpeechService.speak(testText);
 
       if (success) {
-        setConnectionTestResult("音声合成テスト成功！");
+        // 現在の話者情報を含むメッセージを表示
+        if (settings.engine === "voicevox") {
+          const currentSpeaker = voicevoxSpeakers.find(speaker =>
+            speaker.styles.some(style => style.id === settings.voicevox.speaker)
+          );
+          const currentStyle = currentSpeaker?.styles.find(style => style.id === settings.voicevox.speaker);
+          
+          if (currentSpeaker && currentStyle) {
+            setConnectionTestResult(
+              `音声合成テスト成功！話者: ${currentSpeaker.name} (${currentStyle.name})`
+            );
+          } else {
+            setConnectionTestResult("音声合成テスト成功！");
+          }
+        } else {
+          setConnectionTestResult("音声合成テスト成功！");
+        }
       } else {
-        setConnectionTestResult("音声合成テストに失敗しました。");
+        setConnectionTestResult("音声合成テストに失敗しました。話者設定を確認してください。");
       }
     } catch (error) {
       setConnectionTestResult(
@@ -285,7 +361,20 @@ export function VoiceSettings() {
    * VOICEVOX話者変更
    */
   const handleVoicevoxSpeakerChange = (speakerId: string) => {
-    updateVoicevoxConfig({ speaker: parseInt(speakerId, 10) });
+    const speakerIdNum = parseInt(speakerId, 10);
+    updateVoicevoxConfig({ speaker: speakerIdNum });
+    
+    // 選択された話者の情報を表示
+    const selectedSpeaker = voicevoxSpeakers.find(speaker =>
+      speaker.styles.some(style => style.id === speakerIdNum)
+    );
+    const selectedStyle = selectedSpeaker?.styles.find(style => style.id === speakerIdNum);
+    
+    if (selectedSpeaker && selectedStyle) {
+      setConnectionTestResult(
+        `話者を「${selectedSpeaker.name} (${selectedStyle.name})」に変更しました。`
+      );
+    }
   };
 
   /**
@@ -708,23 +797,48 @@ export function VoiceSettings() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">話者</label>
               {voicevoxSpeakers.length > 0 ? (
-                <Select
-                  value={settings.voicevox.speaker.toString()}
-                  onValueChange={handleVoicevoxSpeakerChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="話者を選択してください" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {voicevoxSpeakers.map((speaker) =>
-                      speaker.styles.map((style) => (
-                        <SelectItem key={style.id} value={style.id.toString()}>
-                          {speaker.name} ({style.name})
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <Select
+                    value={settings.voicevox.speaker.toString()}
+                    onValueChange={handleVoicevoxSpeakerChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="話者を選択してください" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {voicevoxSpeakers.map((speaker) =>
+                        speaker.styles.map((style) => (
+                          <SelectItem key={style.id} value={style.id.toString()}>
+                            {speaker.name} ({style.name})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* 現在選択されている話者の情報を表示 */}
+                  {(() => {
+                    const currentSpeaker = voicevoxSpeakers.find(speaker =>
+                      speaker.styles.some(style => style.id === settings.voicevox.speaker)
+                    );
+                    const currentStyle = currentSpeaker?.styles.find(style => style.id === settings.voicevox.speaker);
+                    
+                    if (currentSpeaker && currentStyle) {
+                      return (
+                        <div className="flex items-center space-x-2 text-xs">
+                          <Badge variant="outline" className="text-green-400 border-green-400">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            選択中
+                          </Badge>
+                          <span className="text-gray-300">
+                            {currentSpeaker.name} ({currentStyle.name})
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
               ) : (
                 <div className="space-y-2">
                   <Select disabled>
