@@ -75,7 +75,7 @@ export function VoiceSettings() {
       try {
         const speakers = await integratedSpeechService.getVoicevoxSpeakers();
         setVoicevoxSpeakers(speakers);
-        
+
         // 話者一覧読み込み成功時の処理
         if (showErrors) {
           setError(null); // エラーをクリア
@@ -84,8 +84,8 @@ export function VoiceSettings() {
 
         // デフォルト話者の自動選択
         const currentSpeaker = settings.voicevox.speaker;
-        const isCurrentSpeakerValid = speakers.some(speaker =>
-          speaker.styles.some(style => style.id === currentSpeaker)
+        const isCurrentSpeakerValid = speakers.some((speaker) =>
+          speaker.styles.some((style) => style.id === currentSpeaker)
         );
 
         if (!isCurrentSpeakerValid && speakers.length > 0) {
@@ -163,7 +163,14 @@ export function VoiceSettings() {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setError, settings.engine, settings.voicevox.useWebApi, settings.voicevox.apiKey, loadVoicevoxSpeakers]);
+  }, [
+    setLoading,
+    setError,
+    settings.engine,
+    settings.voicevox.useWebApi,
+    settings.voicevox.apiKey,
+    loadVoicevoxSpeakers,
+  ]);
 
   // 初期化
   useEffect(() => {
@@ -305,18 +312,22 @@ export function VoiceSettings() {
     try {
       // 音声合成前に設定を同期
       integratedSpeechService.syncSettings();
-      
+
       const testText = "こんにちは、音声合成のテストです。";
       const success = await integratedSpeechService.speak(testText);
 
       if (success) {
         // 現在の話者情報を含むメッセージを表示
         if (settings.engine === "voicevox") {
-          const currentSpeaker = voicevoxSpeakers.find(speaker =>
-            speaker.styles.some(style => style.id === settings.voicevox.speaker)
+          const currentSpeaker = voicevoxSpeakers.find((speaker) =>
+            speaker.styles.some(
+              (style) => style.id === settings.voicevox.speaker
+            )
           );
-          const currentStyle = currentSpeaker?.styles.find(style => style.id === settings.voicevox.speaker);
-          
+          const currentStyle = currentSpeaker?.styles.find(
+            (style) => style.id === settings.voicevox.speaker
+          );
+
           if (currentSpeaker && currentStyle) {
             setConnectionTestResult(
               `音声合成テスト成功！話者: ${currentSpeaker.name} (${currentStyle.name})`
@@ -328,7 +339,9 @@ export function VoiceSettings() {
           setConnectionTestResult("音声合成テスト成功！");
         }
       } else {
-        setConnectionTestResult("音声合成テストに失敗しました。話者設定を確認してください。");
+        setConnectionTestResult(
+          "音声合成テストに失敗しました。話者設定を確認してください。"
+        );
       }
     } catch (error) {
       setConnectionTestResult(
@@ -363,13 +376,15 @@ export function VoiceSettings() {
   const handleVoicevoxSpeakerChange = (speakerId: string) => {
     const speakerIdNum = parseInt(speakerId, 10);
     updateVoicevoxConfig({ speaker: speakerIdNum });
-    
+
     // 選択された話者の情報を表示
-    const selectedSpeaker = voicevoxSpeakers.find(speaker =>
-      speaker.styles.some(style => style.id === speakerIdNum)
+    const selectedSpeaker = voicevoxSpeakers.find((speaker) =>
+      speaker.styles.some((style) => style.id === speakerIdNum)
     );
-    const selectedStyle = selectedSpeaker?.styles.find(style => style.id === speakerIdNum);
-    
+    const selectedStyle = selectedSpeaker?.styles.find(
+      (style) => style.id === speakerIdNum
+    );
+
     if (selectedSpeaker && selectedStyle) {
       setConnectionTestResult(
         `話者を「${selectedSpeaker.name} (${selectedStyle.name})」に変更しました。`
@@ -802,31 +817,41 @@ export function VoiceSettings() {
                     value={settings.voicevox.speaker.toString()}
                     onValueChange={handleVoicevoxSpeakerChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-white">
                       <SelectValue placeholder="話者を選択してください" />
                     </SelectTrigger>
                     <SelectContent>
                       {voicevoxSpeakers.map((speaker) =>
                         speaker.styles.map((style) => (
-                          <SelectItem key={style.id} value={style.id.toString()}>
+                          <SelectItem
+                            key={style.id}
+                            value={style.id.toString()}
+                          >
                             {speaker.name} ({style.name})
                           </SelectItem>
                         ))
                       )}
                     </SelectContent>
                   </Select>
-                  
+
                   {/* 現在選択されている話者の情報を表示 */}
                   {(() => {
-                    const currentSpeaker = voicevoxSpeakers.find(speaker =>
-                      speaker.styles.some(style => style.id === settings.voicevox.speaker)
+                    const currentSpeaker = voicevoxSpeakers.find((speaker) =>
+                      speaker.styles.some(
+                        (style) => style.id === settings.voicevox.speaker
+                      )
                     );
-                    const currentStyle = currentSpeaker?.styles.find(style => style.id === settings.voicevox.speaker);
-                    
+                    const currentStyle = currentSpeaker?.styles.find(
+                      (style) => style.id === settings.voicevox.speaker
+                    );
+
                     if (currentSpeaker && currentStyle) {
                       return (
                         <div className="flex items-center space-x-2 text-xs">
-                          <Badge variant="outline" className="text-green-400 border-green-400">
+                          <Badge
+                            variant="outline"
+                            className="text-green-400 border-green-400"
+                          >
                             <CheckCircle className="w-3 h-3 mr-1" />
                             選択中
                           </Badge>

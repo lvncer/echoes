@@ -48,7 +48,6 @@ export default function Home() {
   const [status, setStatus] = useState<AudioChatStatus>("idle");
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentTranscript, setCurrentTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
 
   // モデルストアからデフォルトモデル初期化関数を取得
@@ -123,9 +122,6 @@ export default function Home() {
       onListeningEnd: () => {
         setIsListening(false);
       },
-      onTranscriptReceived: (transcript: string, _isFinal: boolean) => {
-        setCurrentTranscript(transcript);
-      },
       onAIResponseReceived: (_response: string) => {},
       onSpeechStart: () => {},
       onSpeechEnd: () => {},
@@ -174,7 +170,6 @@ export default function Home() {
       setIsInitialized(false);
       setIsVoiceChatActive(false);
       setIsListening(false);
-      setCurrentTranscript("");
       setError(null);
     }
   }, [audioChatService]);
@@ -318,13 +313,6 @@ export default function Home() {
           <div className="bg-red-50/95 backdrop-blur-sm border border-red-200 rounded-lg p-3 shadow-lg">
             <p className="text-sm text-red-600">{error}</p>
           </div>
-        </div>
-      )}
-
-      {/* 音声認識結果表示 */}
-      {currentTranscript && (
-        <div className="absolute top-20 left-8 right-8 z-20">
-          <p className="text-sm text-white">{currentTranscript}</p>
         </div>
       )}
 
