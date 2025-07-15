@@ -6,7 +6,7 @@
 
 Echoes は、AI と 3D アバターによるリアルタイム音声会話を実現するアプリケーションです。
 
-![/public/images/echoes-top.jpeg](/public/images/echoes-top.jpeg)
+![public/images/toppage.jpeg](public/images/toppage.jpeg)
 
 **主な機能:**
 
@@ -16,28 +16,28 @@ Echoes は、AI と 3D アバターによるリアルタイム音声会話を実
 - **3D アニメーション**: VRM モデルによるリアルタイム表現
 - **音声合成**: VoiceVox による自然な音声出力
 
-![/public/images/setting-page.jpeg](/public/images/setting-page.jpeg)
+### 設定画面
+
+![public/images/settings1.jpeg](public/images/settings1.jpeg)
+![public/images/settings2-3dmodel.jpeg](public/images/settings2-3dmodel.jpeg)
+![public/images/settings3-voice1.jpeg](public/images/settings3-voice1.jpeg)
+![public/images/settings3-voice2.jpeg](public/images/settings3-voice2.jpeg)
+![public/images/settings4-camera.jpeg](public/images/settings4-camera.jpeg)
+![public/images/settings5-ai.jpeg](public/images/settings5-ai.jpeg)
+![public/images/settings6-env.jpeg](public/images/settings6-env.jpeg)
 
 ## Quick Start
 
 ### 1. 依存関係のインストール
 
 ```bash
-npm install
+bun i
 ```
 
-### 2. 環境変数の設定
-
-以下のコマンドを実行し、`.env.example`をコピーして、 `.env.local` ファイルを作成してください。
+### 2. 開発サーバーの起動
 
 ```bash
-cp .env.example .emv.local
-```
-
-### 3. 開発サーバーの起動
-
-```bash
-npm run dev
+bun run dev
 ```
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開いてアプリケーションにアクセスできます。
