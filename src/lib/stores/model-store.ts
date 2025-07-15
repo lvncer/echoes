@@ -219,7 +219,7 @@ export const useModelStore = create<ModelStore>()(
           set({ isLoading: true, error: undefined });
 
           // デフォルトモデルのパス
-          const defaultModelPath = "/models/test/AliciaSolid.vrm";
+          const defaultModelPath = "/models/AliciaSolid.vrm";
 
           // ファイルをfetchで取得
           const response = await fetch(defaultModelPath);
