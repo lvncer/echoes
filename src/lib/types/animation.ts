@@ -93,7 +93,7 @@ export interface AnimationControlSettings {
     speed: number; // 0.5-2.0, デフォルト: 1.0
   };
 
-  autoSalute: {
+  autoHeadShake: {
     enabled: boolean; // デフォルト: true
     interval: number; // 15000 ms (15秒)
     intensity: number; // 0-1, デフォルト: 1.0

@@ -219,7 +219,7 @@ export const useModelStore = create<ModelStore>()(
           set({ isLoading: true, error: undefined });
 
           // デフォルトモデルのパス
-          const defaultModelPath = "/models/AliciaSolid.vrm";
+          const defaultModelPath = "/models/lvncer-0.1.vrm";
 
           // ファイルをfetchで取得
           const response = await fetch(defaultModelPath);
@@ -231,7 +231,7 @@ export const useModelStore = create<ModelStore>()(
 
           // Blobからファイルオブジェクトを作成
           const blob = await response.blob();
-          const file = new File([blob], "AliciaSolid.vrm", {
+          const file = new File([blob], "lvncer-0.1.vrm", {
             type: "application/octet-stream",
           });
 
