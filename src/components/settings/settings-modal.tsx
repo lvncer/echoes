@@ -8,7 +8,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ModelSelector } from "@/components/3d/model-selector";
-import { Box, MessageCircle, Camera, Volume2, ChevronRight, Settings } from "lucide-react";
+import { Box, MessageCircle, Camera, Volume2, ChevronRight, Settings, HelpCircle } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { CameraSettings } from "./camera-settings";
 import { VoiceSettings } from "./voice-settings";
@@ -23,7 +23,7 @@ interface SettingsModalProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type SettingsCategory = "models" | "voice" | "camera" | "ai" | "environment";
+type SettingsCategory = "help" | "models" | "voice" | "camera" | "ai" | "environment";
 
 interface CategoryItem {
   id: SettingsCategory;
@@ -33,6 +33,12 @@ interface CategoryItem {
 }
 
 const categories: CategoryItem[] = [
+  {
+    id: "help",
+    label: "操作方法",
+    icon: HelpCircle,
+    description: "アプリの使い方とヒント"
+  },
   {
     id: "models",
     label: "3Dモデル",
@@ -66,7 +72,7 @@ const categories: CategoryItem[] = [
 ];
 
 export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
-  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("models");
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("help");
   
   const {
     availableModels,
@@ -81,6 +87,70 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
 
   const renderContent = () => {
     switch (activeCategory) {
+      case "help":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                操作方法
+              </h3>
+              <p className="text-gray-400 mb-6">
+                アプリの使い方とヒントを確認できます
+              </p>
+              <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl p-6 shadow-lg space-y-6">
+                <ErrorBoundary>
+                  <div className="space-y-4">
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-2">🎤 音声チャット機能</h4>
+                      <ul className="text-gray-300 space-y-1 text-sm">
+                        <li>• 下部の丸いマイクボタンをクリックして音声チャットを有効化</li>
+                        <li>• <kbd className="bg-gray-700 px-2 py-1 rounded">Space</kbd> キーを押している間、音声を録音</li>
+                        <li>• ボタンの色で状態を確認できます：
+                          <ul className="ml-4 mt-1 space-y-1">
+                            <li>- <span className="text-gray-400">グレー</span>：音声チャット無効</li>
+                            <li>- <span className="text-blue-400">ブルー</span>：待機中</li>
+                            <li>- <span className="text-red-400">レッド</span>：録音中</li>
+                            <li>- <span className="text-yellow-400">イエロー</span>：AI処理中</li>
+                            <li>- <span className="text-green-400">グリーン</span>：音声再生中</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="border-l-4 border-green-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-2">🎨 3Dモデル設定</h4>
+                      <ul className="text-gray-300 space-y-1 text-sm">
+                        <li>• 「3Dモデル」タブでVRM、glTF、GLBファイルをアップロード</li>
+                        <li>• アップロード後、モデルを選択して切り替え可能</li>
+                        <li>• 不要なモデルは削除ボタンで削除できます</li>
+                      </ul>
+                    </div>
+
+                    <div className="border-l-4 border-purple-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-2">🔧 その他の設定</h4>
+                      <ul className="text-gray-300 space-y-1 text-sm">
+                        <li>• <strong>音声設定</strong>：VOICEVOX連携や音声合成の調整</li>
+                        <li>• <strong>カメラ・システム</strong>：3Dシーンの表示設定</li>
+                        <li>• <strong>AI設定</strong>：カスタムプロンプトとAPI設定</li>
+                        <li>• <strong>環境変数</strong>：Gemini APIキーなどの設定</li>
+                      </ul>
+                    </div>
+
+                    <div className="border-l-4 border-orange-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-2">💡 ヒント</h4>
+                      <ul className="text-gray-300 space-y-1 text-sm">
+                        <li>• 右上の履歴ボタンで過去の会話を確認できます</li>
+                        <li>• 3Dモデルが表示されない場合は、まずモデルをアップロード</li>
+                        <li>• AI応答が遅い場合は、環境変数でAPIキーを確認</li>
+                      </ul>
+                    </div>
+                  </div>
+                </ErrorBoundary>
+              </div>
+            </div>
+          </div>
+        );
+
       case "models":
         return (
           <div className="space-y-6">
