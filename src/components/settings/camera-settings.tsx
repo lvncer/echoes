@@ -44,9 +44,9 @@ export function CameraSettings() {
   const status = getStorageStatus();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* カメラ設定 */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Camera className="w-5 h-5" />
@@ -58,21 +58,21 @@ export function CameraSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-4">
               <label className="text-sm font-medium text-gray-300">
                 カメラ位置
               </label>
-              <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+              <div className="rounded-lg p-3 border border-gray-600">
                 <code className="text-sm text-gray-300">
                   [{sceneConfig.cameraPosition.join(", ")}]
                 </code>
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <label className="text-sm font-medium text-gray-300">
                 カメラターゲット
               </label>
-              <div className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+              <div className="rounded-lg p-3 border border-gray-600">
                 <code className="text-sm text-gray-300">
                   [{sceneConfig.cameraTarget.join(", ")}]
                 </code>
@@ -83,7 +83,7 @@ export function CameraSettings() {
       </Card>
 
       {/* モデル状態 */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Monitor className="w-5 h-5" />
@@ -144,7 +144,7 @@ export function CameraSettings() {
       <Separator className="bg-gray-700" />
 
       {/* システム操作 */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="text-white">システム操作</CardTitle>
           <CardDescription className="text-gray-400">
@@ -152,11 +152,11 @@ export function CameraSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Button
               onClick={handleResetSettings}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer bg-gray-900/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               <RotateCcw className="w-4 h-4" />
               設定をリセット
@@ -164,7 +164,7 @@ export function CameraSettings() {
             <Button
               onClick={handleClearStorage}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer bg-gray-900/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               <Trash2 className="w-4 h-4" />
               ストレージクリア
@@ -172,16 +172,11 @@ export function CameraSettings() {
             <Button
               onClick={handleForceInit}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-600 hover:text-white"
+              className="w-full flex items-center justify-center gap-2 cursor-pointer bg-gray-900/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               <RefreshCw className="w-4 h-4" />
               モデル強制初期化
             </Button>
-          </div>
-          <div className="mt-4 p-3 bg-blue-900/30 rounded-lg border border-blue-700/50">
-            <p className="text-sm text-blue-300">
-              💡 ブラウザの開発者ツールでログを確認できます
-            </p>
           </div>
         </CardContent>
       </Card>

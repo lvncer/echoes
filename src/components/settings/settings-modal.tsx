@@ -8,7 +8,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ModelSelector } from "@/components/3d/model-selector";
-import { Box, MessageCircle, Camera, Volume2, ChevronRight, Settings } from "lucide-react";
+import {
+  Box,
+  MessageCircle,
+  Camera,
+  Volume2,
+  ChevronRight,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { CameraSettings } from "./camera-settings";
 import { VoiceSettings } from "./voice-settings";
@@ -23,7 +31,13 @@ interface SettingsModalProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type SettingsCategory = "models" | "voice" | "camera" | "ai" | "environment";
+type SettingsCategory =
+  | "help"
+  | "models"
+  | "voice"
+  | "camera"
+  | "ai"
+  | "environment";
 
 interface CategoryItem {
   id: SettingsCategory;
@@ -34,40 +48,47 @@ interface CategoryItem {
 
 const categories: CategoryItem[] = [
   {
+    id: "help",
+    label: "操作方法",
+    icon: HelpCircle,
+    description: "アプリの使い方とヒント",
+  },
+  {
     id: "models",
     label: "3Dモデル",
     icon: Box,
-    description: "VRM、glTF、GLBファイルの管理"
+    description: "VRM、glTF、GLBファイルの管理",
   },
   {
     id: "voice",
     label: "音声設定",
     icon: Volume2,
-    description: "音声合成エンジンの設定"
+    description: "音声合成エンジンの設定",
   },
   {
     id: "camera",
     label: "カメラ・システム",
     icon: Camera,
-    description: "3Dシーンとシステム設定"
+    description: "3Dシーンとシステム設定",
   },
   {
     id: "ai",
     label: "AI設定",
     icon: MessageCircle,
-    description: "カスタムプロンプト・API設定"
+    description: "カスタムプロンプト・API設定",
   },
   {
     id: "environment",
     label: "環境変数",
     icon: Settings,
-    description: "API設定・環境変数の管理"
-  }
+    description: "API設定・環境変数の管理",
+  },
 ];
 
 export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
-  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("models");
-  
+  const [activeCategory, setActiveCategory] =
+    useState<SettingsCategory>("help");
+
   const {
     availableModels,
     currentModel,
@@ -81,6 +102,119 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
 
   const renderContent = () => {
     switch (activeCategory) {
+      case "help":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                操作方法
+              </h3>
+              <p className="text-gray-400 mb-6">
+                アプリの使い方とヒントを確認できます
+              </p>
+              <div className="p-6 space-y-6">
+                <ErrorBoundary>
+                  <div className="space-y-8">
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-2">
+                        🎤 音声チャット機能
+                      </h4>
+                      <ul className="text-gray-300 space-y-3 text-sm">
+                        <li>
+                          •
+                          下部の丸いマイクボタンをクリックして音声チャットを有効化
+                        </li>
+                        <li>
+                          •
+                          <kbd className="bg-gray-700 px-2 py-1 rounded mx-1">
+                            Space
+                          </kbd>
+                          キーを押している間、音声を録音
+                        </li>
+                        <li>
+                          • ボタンの色で状態を確認できます：
+                          <ul className="ml-4 mt-2 space-y-2">
+                            <li>
+                              <span className="text-gray-400">グレー</span>
+                              ：音声チャット無効
+                            </li>
+                            <li>
+                              <span className="text-blue-400">ブルー</span>
+                              ：待機中
+                            </li>
+                            <li>
+                              <span className="text-red-400">レッド</span>
+                              ：録音中
+                            </li>
+                            <li>
+                              <span className="text-yellow-400">イエロー</span>
+                              ：AI処理中
+                            </li>
+                            <li>
+                              <span className="text-green-400">グリーン</span>
+                              ：音声再生中
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="border-l-4 border-green-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-3">
+                        🎨 3Dモデル設定
+                      </h4>
+                      <ul className="text-gray-300 space-y-3 text-sm">
+                        <li>
+                          •
+                          「3Dモデル」タブでVRM、glTF、GLBファイルをアップロード
+                        </li>
+                        <li>• アップロード後、モデルを選択して切り替え可能</li>
+                        <li>• 不要なモデルは削除ボタンで削除できます</li>
+                      </ul>
+                    </div>
+
+                    <div className="border-l-4 border-purple-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-3">
+                        🔧 その他の設定
+                      </h4>
+                      <ul className="text-gray-300 space-y-3 text-sm">
+                        <li>
+                          • <strong>音声設定</strong>
+                          ：VOICEVOX連携や音声合成の調整
+                        </li>
+                        <li>
+                          • <strong>カメラ・システム</strong>
+                          ：3Dシーンの表示設定
+                        </li>
+                        <li>
+                          • <strong>AI設定</strong>：カスタムプロンプトとAPI設定
+                        </li>
+                        <li>
+                          • <strong>環境変数</strong>：Gemini APIキーなどの設定
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="border-l-4 border-orange-500 pl-4">
+                      <h4 className="text-lg font-medium text-white mb-3">
+                        💡 ヒント
+                      </h4>
+                      <ul className="text-gray-300 space-y-3 text-sm">
+                        <li>• 右上の履歴ボタンで過去の会話を確認できます</li>
+                        <li>
+                          •
+                          3Dモデルが表示されない場合は、まずモデルをアップロード
+                        </li>
+                        <li>• AI応答が遅い場合は、環境変数でAPIキーを確認</li>
+                      </ul>
+                    </div>
+                  </div>
+                </ErrorBoundary>
+              </div>
+            </div>
+          </div>
+        );
+
       case "models":
         return (
           <div className="space-y-6">
@@ -91,7 +225,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               <p className="text-gray-400 mb-6">
                 VRM、glTF、GLBファイルをアップロードして使用できます
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+              <div className="p-6">
                 <ErrorBoundary>
                   <ModelSelector
                     models={availableModels}
@@ -105,7 +239,9 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                         if (result.success && result.model) {
                           addModel(result.model);
                         } else {
-                          throw new Error(result.error || "モデルの読み込みに失敗");
+                          throw new Error(
+                            result.error || "モデルの読み込みに失敗"
+                          );
                         }
                       } catch (error) {
                         const errorMessage =
@@ -130,13 +266,13 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-white">
                 音声合成設定
               </h3>
               <p className="text-gray-400 mb-6">
                 Web Speech APIとVOICEVOXの音声合成設定を行います
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+              <div className="p-4">
                 <ErrorBoundary>
                   <VoiceSettings />
                 </ErrorBoundary>
@@ -152,10 +288,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               <h3 className="text-xl font-semibold text-white mb-2">
                 カメラ・システム設定
               </h3>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-400 mb-3">
                 3Dシーンのカメラ設定とシステム管理を行います
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+              <div className="p-4">
                 <ErrorBoundary>
                   <CameraSettings />
                 </ErrorBoundary>
@@ -168,10 +304,8 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                AI設定
-              </h3>
-              <p className="text-gray-400 mb-6">
+              <h3 className="text-xl font-semibold text-white mb-2">AI設定</h3>
+              <p className="text-gray-400 mb-3">
                 カスタムプロンプトとGoogle Gemini APIの設定を行います
               </p>
               <ErrorBoundary>
@@ -188,7 +322,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               <h3 className="text-xl font-semibold text-white mb-2">
                 環境変数設定
               </h3>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-400 mb-3">
                 API設定と環境変数の管理を行います（セッション中のみ保持）
               </p>
               <ErrorBoundary>
@@ -205,11 +339,11 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden flex flex-col"
+      <DialogContent
+        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900/95 backdrop-blur-2xl border-0 text-white overflow-hidden flex flex-col shadow-2xl"
         showCloseButton={true}
       >
-        <DialogHeader className="border-b border-gray-700 pb-4 flex-shrink-0">
+        <DialogHeader className="border-b border-gray-700/50 pb-4 flex-shrink-0 backdrop-blur-sm">
           <DialogTitle className="text-2xl font-bold text-white">
             設定
           </DialogTitle>
@@ -217,10 +351,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
             3Dモデルの管理とAI設定を行います
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="flex flex-1 min-h-0">
           {/* 左側サイドバー */}
-          <div className="w-72 flex-shrink-0 border-r border-gray-700 bg-gray-800/30">
+          <div className="w-72 flex-shrink-0 border-r border-gray-700/30 bg-gray-800/30 backdrop-blur-xl">
             <div className="p-4">
               <h4 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
                 カテゴリ
@@ -229,31 +363,51 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                 {categories.map((category) => {
                   const Icon = category.icon;
                   const isActive = activeCategory === category.id;
-                  
+
                   return (
                     <button
                       key={category.id}
                       onClick={() => setActiveCategory(category.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 group ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300 group backdrop-blur-sm ${
                         isActive
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                          : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                          ? "bg-blue-600/90 text-white shadow-lg shadow-blue-600/30 scale-105"
+                          : "text-gray-300 hover:bg-gray-700/40 hover:text-white hover:scale-105"
                       }`}
                     >
-                      <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`} />
+                      <Icon
+                        className={`w-5 h-5 ${
+                          isActive
+                            ? "text-white"
+                            : "text-gray-400 group-hover:text-white"
+                        }`}
+                      />
                       <div className="flex-1 min-w-0">
-                        <div className={`font-medium ${isActive ? "text-white" : "text-gray-300 group-hover:text-white"}`}>
+                        <div
+                          className={`font-medium ${
+                            isActive
+                              ? "text-white"
+                              : "text-gray-300 group-hover:text-white"
+                          }`}
+                        >
                           {category.label}
                         </div>
-                        <div className={`text-xs mt-1 ${isActive ? "text-blue-100" : "text-gray-500 group-hover:text-gray-400"}`}>
+                        <div
+                          className={`text-xs mt-1 ${
+                            isActive
+                              ? "text-blue-100"
+                              : "text-gray-500 group-hover:text-gray-400"
+                          }`}
+                        >
                           {category.description}
                         </div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${
-                        isActive 
-                          ? "text-white rotate-90" 
-                          : "text-gray-500 group-hover:text-gray-400"
-                      }`} />
+                      <ChevronRight
+                        className={`w-4 h-4 transition-transform ${
+                          isActive
+                            ? "text-white rotate-90"
+                            : "text-gray-500 group-hover:text-gray-400"
+                        }`}
+                      />
                     </button>
                   );
                 })}
@@ -264,13 +418,11 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
           {/* 右側コンテンツエリア */}
           <div className="flex-1 flex flex-col min-h-0">
             <div className="flex-1 overflow-y-auto scrollbar-thin">
-              <div className="p-6">
-                {renderContent()}
-              </div>
+              <div className="p-6">{renderContent()}</div>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-} 
+}

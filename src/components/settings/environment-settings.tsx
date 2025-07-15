@@ -150,9 +150,9 @@ export function EnvironmentSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 警告メッセージ */}
-      <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4">
+      <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-6">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
           <div>
@@ -166,7 +166,7 @@ export function EnvironmentSettings() {
       </div>
 
       {/* AI プロバイダー選択 */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="text-white">AI プロバイダー設定</CardTitle>
           <CardDescription>
@@ -225,7 +225,7 @@ export function EnvironmentSettings() {
 
       {/* OpenAI 設定 - OpenAI選択時のみ表示 */}
       {(config.aiProvider === "openai" || config.aiProvider === "local") && (
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="bg-gray-900/50 border-gray-900/50">
           <CardHeader>
             <CardTitle className="text-white">OpenAI 設定</CardTitle>
             <CardDescription>OpenAI API の設定を行います</CardDescription>
@@ -319,7 +319,7 @@ export function EnvironmentSettings() {
 
       {/* Gemini 設定 - Gemini選択時のみ表示 */}
       {config.aiProvider === "gemini" && (
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="bg-gray-900/50 border-gray-900/50">
           <CardHeader>
             <CardTitle className="text-white">Google Gemini 設定</CardTitle>
             <CardDescription>

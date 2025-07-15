@@ -77,18 +77,18 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
   };
 
   const MessageItem = ({ message }: { message: ChatMessage }) => (
-    <div className={`flex gap-3 p-3 rounded-lg border ${
+    <div className={`flex gap-3 p-3 rounded-xl backdrop-blur-sm border-0 ${
       message.role === "user" 
-        ? "bg-blue-600/10 border-blue-600/30" 
-        : "bg-gray-800/50 border-gray-700"
+        ? "bg-blue-600/20 ring-1 ring-blue-600/30" 
+        : "bg-gray-800/40"
     }`}>
       <div className="flex-shrink-0">
         {message.role === "user" ? (
-          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-full bg-blue-500/90 backdrop-blur-sm flex items-center justify-center">
             <span className="text-white text-xs font-semibold">U</span>
           </div>
         ) : (
-          <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-full bg-gray-500/90 backdrop-blur-sm flex items-center justify-center">
             <span className="text-white text-xs font-semibold">AI</span>
           </div>
         )}
@@ -102,7 +102,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
             {formatTimestamp(message.timestamp)}
           </span>
           {message.isVoice && (
-            <Badge variant="outline" className="text-xs border-blue-500 text-blue-300">
+            <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-300 bg-blue-500/10 backdrop-blur-sm">
               <Mic className="w-3 h-3 mr-1" />
               音声
             </Badge>
@@ -117,8 +117,8 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="chat-history-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden flex flex-col">
-        <DialogHeader className="border-b border-gray-700 pb-4 flex-shrink-0">
+      <DialogContent className="chat-history-modal-content min-h-[700px] max-h-[90vh] bg-gray-900/95 backdrop-blur-2xl border-0 text-white overflow-hidden flex flex-col shadow-2xl">
+        <DialogHeader className="border-b border-gray-700/50 pb-4 flex-shrink-0 backdrop-blur-sm">
           <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-white">
             <MessageCircle className="w-6 h-6" />
             チャット履歴
@@ -130,14 +130,14 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
 
         <div className="flex flex-1 min-h-0">
           <Tabs defaultValue="sessions" className="w-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mx-6 mb-4 bg-gray-800 border-gray-700">
-              <TabsTrigger value="sessions" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">セッション別</TabsTrigger>
-              <TabsTrigger value="search" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">検索・フィルター</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mx-6 mb-4 bg-gray-800/80 backdrop-blur-lg border-0">
+              <TabsTrigger value="sessions" className="text-gray-300 data-[state=active]:bg-blue-600/90 data-[state=active]:text-white backdrop-blur-sm">セッション別</TabsTrigger>
+              <TabsTrigger value="search" className="text-gray-300 data-[state=active]:bg-blue-600/90 data-[state=active]:text-white backdrop-blur-sm">検索・フィルター</TabsTrigger>
             </TabsList>
 
             <TabsContent value="sessions" className="flex-1 m-0 flex">
               <div className="flex w-full h-full">
-                <div className="w-1/3 flex-shrink-0 border-r border-gray-700 bg-gray-800/30">
+                <div className="w-1/3 flex-shrink-0 border-r border-gray-700/30 bg-gray-800/30 backdrop-blur-xl">
                   <div className="p-4 space-y-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -145,7 +145,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
                         placeholder="セッションを検索..."
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
+                        className="pl-10 bg-gray-700/80 backdrop-blur-sm border-gray-600/30 text-white placeholder-gray-400 focus:border-blue-500 rounded-xl"
                       />
                     </div>
                     
@@ -153,10 +153,10 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
                       {filteredSessions.map((session) => (
                         <Card
                           key={session.id}
-                          className={`cursor-pointer transition-colors bg-gray-800 border-gray-700 ${
+                          className={`cursor-pointer transition-colors bg-gray-800/60 backdrop-blur-sm border-0 rounded-xl ${
                             selectedSession === session.id
-                              ? "bg-blue-600/20 border-blue-500"
-                              : "hover:bg-gray-700/50"
+                              ? "bg-blue-600/30 ring-1 ring-blue-500/50"
+                              : "hover:bg-gray-700/60"
                           }`}
                           onClick={() => setSelectedSession(session.id)}
                         >
@@ -172,7 +172,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
                                   e.stopPropagation();
                                   handleDeleteSession(session.id);
                                 }}
-                                className="w-6 h-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-600/20"
+                                className="w-6 h-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-600/20 rounded-lg"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </Button>
@@ -193,7 +193,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
                   </div>
                 </div>
 
-                <div className="flex-1 flex flex-col bg-gray-900/50">
+                <div className="flex-1 flex flex-col bg-gray-900/30 backdrop-blur-sm">
                   {selectedSession ? (
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
                       {sessionMessages.map((message) => (
@@ -221,14 +221,14 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
                       placeholder="メッセージを検索..."
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
-                      className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
+                      className="pl-10 bg-gray-700/80 backdrop-blur-sm border-gray-600/30 text-white placeholder-gray-400 focus:border-blue-500 rounded-xl"
                     />
                   </div>
                   <Button
                     variant="outline"
                     onClick={() => setFilter({ voiceOnly: !filter.voiceOnly })}
-                    className={`border-gray-600 text-gray-300 hover:bg-gray-700 ${
-                      filter.voiceOnly ? "bg-blue-600/20 border-blue-500 text-blue-300" : ""
+                    className={`border-gray-600/30 text-gray-300 hover:bg-gray-700/60 backdrop-blur-sm rounded-xl ${
+                      filter.voiceOnly ? "bg-blue-600/30 border-blue-500/50 text-blue-300" : ""
                     }`}
                   >
                     <Mic className="w-4 h-4 mr-2" />
@@ -246,7 +246,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
           </Tabs>
         </div>
 
-        <div className="p-4 border-t border-gray-700 bg-gray-800/50 flex-shrink-0">
+        <div className="p-4 border-t border-gray-700/30 bg-gray-800/30 backdrop-blur-lg flex-shrink-0">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-400">
               {sessions.length} セッション • {messages.length} メッセージ
@@ -256,7 +256,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
               size="sm"
               onClick={clearHistory}
               disabled={messages.length === 0}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600/90 hover:bg-red-700/90 text-white backdrop-blur-sm rounded-xl"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               すべて削除
