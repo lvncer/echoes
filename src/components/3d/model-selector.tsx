@@ -51,12 +51,7 @@ export function ModelSelector({
   );
 
   return (
-    <div className="bg-gray-800/50 rounded-lg shadow-lg p-4 space-y-4 border border-gray-700">
-      <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-        <FileText className="w-5 h-5" />
-        3Dモデル管理
-      </h3>
-
+    <div className="space-y-10">
       {/* ファイルアップロード領域 */}
       <div
         className={`

@@ -91,12 +91,12 @@ export function AISettings() {
     promptText !== customPrompt.content || isEnabled !== customPrompt.enabled;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* カスタムプロンプト設定 */}
-      <Card className="bg-gray-800/50 border-gray-700">
-        <div className="p-6">
+      <Card className="bg-gray-900/50 border-gray-900/50">
+        <div className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <div>
+            <div className="space-y-2">
               <h4 className="text-lg font-semibold text-white mb-1">
                 カスタムプロンプト設定
               </h4>
@@ -127,7 +127,7 @@ export function AISettings() {
                 onChange={(e) => setPromptText(e.target.value)}
                 disabled={!isEnabled}
                 placeholder="AIへの指示を入力してください..."
-                className={`w-full h-32 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                className={`w-full h-32 px-4 py-3 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
                   !isEnabled ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               />
@@ -146,7 +146,7 @@ export function AISettings() {
               <Button
                 onClick={handleSave}
                 disabled={!hasChanges || isSaving}
-                className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
               >
                 <Save className="w-4 h-4 mr-2" />
                 {isSaving ? "保存中..." : "設定を保存"}
@@ -155,14 +155,14 @@ export function AISettings() {
               <Button
                 onClick={handleReset}
                 variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="cursor-pointer bg-gray-900/50 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-700"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 デフォルトに戻す
               </Button>
 
               {/* 開発環境でのみデバッグボタンを表示 */}
-              {process.env.NODE_ENV === "development" && (
+              {/* {process.env.NODE_ENV === "development" && (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {
@@ -203,7 +203,7 @@ export function AISettings() {
                     ストレージクリア
                   </Button>
                 </div>
-              )}
+              )} */}
 
               {hasChanges && (
                 <p className="text-sm text-yellow-400">
@@ -218,18 +218,14 @@ export function AISettings() {
       <Separator className="bg-gray-700" />
 
       {/* AI チャット設定 */}
-      <Card className="bg-gray-800/50 border-gray-700">
-        <div className="p-6">
-          <div className="mb-4">
-            <h4 className="text-lg font-semibold text-white mb-1">
-              AI チャット・API設定
-            </h4>
-            <p className="text-sm text-gray-400">
-              Google Gemini APIの設定とチャット機能
-            </p>
-          </div>
-          <Chat />
-        </div>
+      <Card className="bg-gray-900/50 border-gray-900/50">
+        <h4 className="text-lg font-semibold text-white">
+          AI チャット・API設定
+        </h4>
+        <p className="text-sm text-gray-400">
+          Google Gemini APIの設定とチャット機能
+        </p>
+        <Chat />
       </Card>
     </div>
   );

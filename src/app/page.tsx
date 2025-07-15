@@ -352,7 +352,7 @@ export default function Home() {
             variant="outline"
             size="lg"
             className={`
-              relative w-16 h-16 rounded-full backdrop-blur-xl shadow-2xl border-2 transition-all duration-300 
+              relative w-16 h-16 rounded-full backdrop-blur-xl shadow-2xl border-2 transition-all duration-300 cursor-pointer
               ${
                 isVoiceChatActive
                   ? status === "listening"

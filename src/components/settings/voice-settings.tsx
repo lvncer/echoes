@@ -435,7 +435,7 @@ export function VoiceSettings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* エラー表示 */}
       {error && (
         <Card className="border-red-500 bg-red-900/30">
@@ -449,7 +449,7 @@ export function VoiceSettings() {
       )}
 
       {/* 音声エンジン選択 */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="flex items-center text-white">
             <Volume2 className="w-5 h-5 mr-2" />
@@ -628,7 +628,7 @@ export function VoiceSettings() {
 
       {/* VOICEVOX設定 */}
       {settings.engine === "voicevox" && (
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="bg-gray-900/50 border-gray-900/50">
           <CardHeader>
             <CardTitle className="text-white">VOICEVOX 設定</CardTitle>
             <CardDescription className="text-gray-400">
@@ -729,35 +729,6 @@ export function VoiceSettings() {
               </div>
             )}
 
-            {/* 設定反映ボタン */}
-            <div className="pt-2">
-              <Button
-                onClick={handleApplyVoicevoxSettings}
-                disabled={
-                  isTestingConnection ||
-                  (settings.voicevox.useWebApi &&
-                    !(settings.voicevox.apiKey ?? "").trim())
-                }
-                className="w-full"
-                variant="default"
-              >
-                {isTestingConnection ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    設定を反映中...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    設定を反映
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-gray-400 mt-1 text-center">
-                APIキーや設定を変更した後、このボタンで話者一覧を読み込みます
-              </p>
-            </div>
-
             {/* サーバー接続設定 */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">
@@ -786,6 +757,7 @@ export function VoiceSettings() {
                       !(settings.voicevox.apiKey ?? "").trim())
                   }
                   variant="outline"
+                  className="border-blue-600/90 cursor-pointer text-white bg-blue-600/90 hover:text-white hover:bg-blue-800/90"
                 >
                   {isTestingConnection ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -894,12 +866,41 @@ export function VoiceSettings() {
                 step={1000}
               />
             </div>
+
+            {/* 設定反映ボタン */}
+            <div className="pt-12">
+              <Button
+                onClick={handleApplyVoicevoxSettings}
+                disabled={
+                  isTestingConnection ||
+                  (settings.voicevox.useWebApi &&
+                    !(settings.voicevox.apiKey ?? "").trim())
+                }
+                className="w-full cursor-pointer bg-blue-600/90 hover:bg-blue-800/90"
+                variant="default"
+              >
+                {isTestingConnection ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    設定を反映中...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    設定を反映
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-gray-400 mt-1 text-center">
+                APIキーや設定を変更した後、このボタンで話者一覧を読み込みます
+              </p>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* 共通設定 */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="flex items-center text-white">
             <Settings className="w-5 h-5 mr-2" />
@@ -938,7 +939,7 @@ export function VoiceSettings() {
       </Card>
 
       {/* テスト・操作ボタン */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="text-white">テスト・操作</CardTitle>
         </CardHeader>
@@ -948,6 +949,7 @@ export function VoiceSettings() {
               onClick={handleSynthesisTest}
               disabled={isTestingSynthesis}
               variant="outline"
+              className="cursor-pointer bg-gray-900/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               {isTestingSynthesis ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -960,12 +962,17 @@ export function VoiceSettings() {
             <Button
               onClick={() => integratedSpeechService.clearVoicevoxCache()}
               variant="outline"
+              className="cursor-pointer bg-gray-900/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
             >
               <VolumeX className="w-4 h-4 mr-2" />
               キャッシュクリア
             </Button>
 
-            <Button onClick={handleResetSettings} variant="outline">
+            <Button
+              onClick={handleResetSettings}
+              variant="outline"
+              className="cursor-pointer bg-gray-900/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+            >
               設定リセット
             </Button>
           </div>
@@ -973,10 +980,10 @@ export function VoiceSettings() {
           {/* テスト結果表示 */}
           {connectionTestResult && (
             <div
-              className={`p-3 rounded-md text-sm ${
-                connectionTestResult.includes("成功")
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
+              className={`p-1 rounded-md text-sm ${
+                connectionTestResult.includes("正常")
+                  ? "text-green-500"
+                  : "text-red-500"
               }`}
             >
               {connectionTestResult}
