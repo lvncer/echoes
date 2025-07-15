@@ -293,7 +293,7 @@ export default function Home() {
           variant="default"
           size="default"
           onClick={() => setIsChatHistoryOpen(true)}
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer bg-gray-800/90 hover:bg-gray-700/90 backdrop-blur-xl border border-gray-600/30 shadow-lg"
         >
           <MessageCircle className="w-4 h-4 text-white" />
         </Button>
@@ -301,7 +301,7 @@ export default function Home() {
           variant="default"
           size="default"
           onClick={() => setIsSettingsOpen(true)}
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer bg-gray-800/90 hover:bg-gray-700/90 backdrop-blur-xl border border-gray-600/30 shadow-lg"
         >
           <Settings className="w-4 h-4 text-white" />
         </Button>
@@ -310,33 +310,33 @@ export default function Home() {
       {/* エラー表示 */}
       {error && (
         <div className="absolute top-20 left-4 right-4 z-20">
-          <div className="bg-red-50/95 backdrop-blur-sm border border-red-200 rounded-lg p-3 shadow-lg">
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="bg-red-500/20 backdrop-blur-xl border border-red-400/30 rounded-2xl p-4 shadow-xl">
+            <p className="text-sm text-red-100 font-medium">{error}</p>
           </div>
         </div>
       )}
 
       {/* モデル読み込み案内（モデルが読み込まれていない場合） */}
       {!currentModel && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10">
-          <div className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-xl text-center max-w-sm mx-4 border border-white/20">
-            <Box className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-lg z-10">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl text-center max-w-sm mx-4 border border-white/20">
+            <Box className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-3">
               3Dモデルが必要です
             </h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+            <p className="text-gray-300 text-sm leading-relaxed mb-6">
               3Dモデルを読み込んで
               <br />
               音声会話を始めましょう
             </p>
             <Button
               onClick={() => setIsSettingsOpen(true)}
-              className="w-full flex items-center gap-2"
+              className="w-full flex items-center gap-2 bg-blue-600/90 hover:bg-blue-700/90 backdrop-blur-sm border border-blue-500/30"
             >
               <Settings className="w-4 h-4" />
               モデルを読み込む
             </Button>
-            <div className="mt-3 text-xs text-gray-500">
+            <div className="mt-4 text-xs text-gray-400">
               設定ページでVRM、glTF、GLBファイルを選択
             </div>
           </div>
@@ -346,57 +346,33 @@ export default function Home() {
       {/* 音声操作UI - 下部中央オーバーレイ */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
         <div className="flex flex-col items-center gap-3">
-          {/* 音声チャット切り替えボタン */}
+          {/* 統合されたマイクボタン */}
           <Button
             onClick={toggleVoiceChat}
             variant="outline"
             size="lg"
-            className={`flex items-center gap-2 backdrop-blur-sm shadow-lg border ${
-              isVoiceChatActive
-                ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
-                : "bg-white/90 hover:bg-white/95 text-gray-900 border-white/20"
-            }`}
+            className={`
+              relative w-16 h-16 rounded-full backdrop-blur-xl shadow-2xl border-2 transition-all duration-300 
+              ${
+                isVoiceChatActive
+                  ? status === "listening"
+                    ? "bg-red-500/90 hover:bg-red-600/90 border-red-400/50 shadow-red-500/50"
+                    : status === "processing"
+                    ? "bg-yellow-500/90 hover:bg-yellow-600/90 border-yellow-400/50 shadow-yellow-500/50 animate-pulse"
+                    : status === "speaking"
+                    ? "bg-green-500/90 hover:bg-green-600/90 border-green-400/50 shadow-green-500/50 animate-pulse"
+                    : "bg-blue-500/90 hover:bg-blue-600/90 border-blue-400/50 shadow-blue-500/50"
+                  : "bg-gray-800/90 hover:bg-gray-700/90 border-gray-600/50 shadow-gray-800/50"
+              }
+            `}
             disabled={status === "processing" || status === "speaking"}
           >
             {isVoiceChatActive ? (
-              <Mic className="w-5 h-5" />
+              <Mic className="w-8 h-8 text-white" />
             ) : (
-              <MicOff className="w-5 h-5" />
+              <MicOff className="w-8 h-8 text-white" />
             )}
-            {isVoiceChatActive ? "音声チャット ON" : "音声チャット OFF"}
           </Button>
-
-          {/* 音声入力状態表示 */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-white/20">
-            {isVoiceChatActive ? (
-              status === "listening" ? (
-                <div className="flex items-center gap-2 text-red-600">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-sm">録音中...</span>
-                </div>
-              ) : status === "processing" ? (
-                <div className="flex items-center gap-2 text-yellow-600">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-sm">AI処理中...</span>
-                </div>
-              ) : status === "speaking" ? (
-                <div className="flex items-center gap-2 text-green-600">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium text-sm">音声再生中...</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Mic className="w-4 h-4" />
-                  <span className="text-sm">Spaceキーで話す</span>
-                </div>
-              )
-            ) : (
-              <div className="flex items-center gap-2 text-gray-500">
-                <MicOff className="w-4 h-4" />
-                <span className="text-sm">音声チャット無効</span>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

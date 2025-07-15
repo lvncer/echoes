@@ -91,7 +91,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               <p className="text-gray-400 mb-6">
                 VRM、glTF、GLBファイルをアップロードして使用できます
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+              <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
                 <ErrorBoundary>
                   <ModelSelector
                     models={availableModels}
@@ -136,7 +136,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               <p className="text-gray-400 mb-6">
                 Web Speech APIとVOICEVOXの音声合成設定を行います
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+              <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
                 <ErrorBoundary>
                   <VoiceSettings />
                 </ErrorBoundary>
@@ -155,7 +155,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
               <p className="text-gray-400 mb-6">
                 3Dシーンのカメラ設定とシステム管理を行います
               </p>
-              <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+              <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl p-6 shadow-lg">
                 <ErrorBoundary>
                   <CameraSettings />
                 </ErrorBoundary>
@@ -206,10 +206,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900 border-gray-700 text-white overflow-hidden flex flex-col"
+        className="settings-modal-content min-h-[700px] max-h-[90vh] bg-gray-900/95 backdrop-blur-2xl border-0 text-white overflow-hidden flex flex-col shadow-2xl"
         showCloseButton={true}
       >
-        <DialogHeader className="border-b border-gray-700 pb-4 flex-shrink-0">
+        <DialogHeader className="border-b border-gray-700/50 pb-4 flex-shrink-0 backdrop-blur-sm">
           <DialogTitle className="text-2xl font-bold text-white">
             設定
           </DialogTitle>
@@ -220,7 +220,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         
         <div className="flex flex-1 min-h-0">
           {/* 左側サイドバー */}
-          <div className="w-72 flex-shrink-0 border-r border-gray-700 bg-gray-800/30">
+          <div className="w-72 flex-shrink-0 border-r border-gray-700/30 bg-gray-800/30 backdrop-blur-xl">
             <div className="p-4">
               <h4 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
                 カテゴリ
@@ -234,10 +234,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                     <button
                       key={category.id}
                       onClick={() => setActiveCategory(category.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 group ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300 group backdrop-blur-sm ${
                         isActive
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                          : "text-gray-300 hover:bg-gray-700/50 hover:text-white"
+                          ? "bg-blue-600/90 text-white shadow-lg shadow-blue-600/30 scale-105"
+                          : "text-gray-300 hover:bg-gray-700/40 hover:text-white hover:scale-105"
                       }`}
                     >
                       <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`} />
