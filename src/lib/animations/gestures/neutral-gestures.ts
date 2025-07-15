@@ -5,9 +5,9 @@ import type { AnimationSequence } from "@/lib/types/animation";
  * 平常状態での自然な動作・癖・待機アニメーション
  */
 
-// ラジャー（右手で額付近への敬礼）
-export const salute: AnimationSequence = {
-  name: "salute",
+// 首横振り（自然な頭の動き）
+export const headShake: AnimationSequence = {
+  name: "headShake",
   duration: 6000,
   loop: false,
   easing: "ease-in-out",
@@ -23,39 +23,34 @@ export const salute: AnimationSequence = {
         RightHand: { rotation: [0, 0, 0] },
       },
       blendShapes: {
-        // 口の状態
-        A: 0, // あ形
-        O: 0, // お形
-      },
-    },
-    {
-      time: 1200,
-      bones: {
-        // ラジャー開始 - 肩の準備
-        Head: { rotation: [0.1, 0, 0] },
-        RightShoulder: { rotation: [0.1, 0, 0] }, // 肩を少し上げ始める
-        RightUpperArm: { rotation: [-0.2, 0.1, 0.1] }, // 上腕を準備位置に
-        RightLowerArm: { rotation: [0, 0, 0.3] }, // 肘を少し曲げ始める
-        RightHand: { rotation: [0, 0, 0] },
-      },
-      blendShapes: {
-        // ラジャー時は口の変化なし
         A: 0,
         O: 0,
       },
     },
     {
-      time: 2250,
+      time: 1200,
       bones: {
-        // ラジャー実行 - 手を額付近に持っていく
-        Head: { rotation: [0.2, 0, 0] },
-        RightShoulder: { rotation: [0.1, 0, 0] }, // 肩をもう少し上げる
-        RightUpperArm: { rotation: [0.4, 0, 1.1] }, // 前に振り上げて敬礼位置に
-        RightLowerArm: { rotation: [0.4, 1.3, 0.2] }, // 肘を曲げて額付近に
+        Head: { rotation: [0, 0.3, 0] },
+        RightShoulder: { rotation: [0, 0, 0] },
+        RightUpperArm: { rotation: [0, 0, 0] },
+        RightLowerArm: { rotation: [0, 0, 0] },
         RightHand: { rotation: [0, 0, 0] },
       },
       blendShapes: {
-        // ラジャー時は口の変化なし
+        A: 0,
+        O: 0,
+      },
+    },
+    {
+      time: 3000,
+      bones: {
+        Head: { rotation: [0, -0.3, 0] },
+        RightShoulder: { rotation: [0, 0, 0] },
+        RightUpperArm: { rotation: [0, 0, 0] },
+        RightLowerArm: { rotation: [0, 0, 0] },
+        RightHand: { rotation: [0, 0, 0] },
+      },
+      blendShapes: {
         A: 0,
         O: 0,
       },
@@ -175,11 +170,11 @@ export const hairTouch: AnimationSequence = {
 };
 
 // ニュートラルジェスチャーの型定義
-export type NeutralGestureType = "salute" | "lightHeadShake" | "hairTouch";
+export type NeutralGestureType = "headShake" | "lightHeadShake" | "hairTouch";
 
 // ニュートラルジェスチャーのマッピング
 const neutralGestures = {
-  salute,
+  headShake,
   lightHeadShake,
   hairTouch,
 } as const;
@@ -207,7 +202,7 @@ export function getNeutralGestureDescription(
   gestureType: NeutralGestureType
 ): string {
   const descriptions = {
-    salute: "ラジャー（敬礼） - 右手で額付近への敬礼動作",
+    headShake: "首横振り - 左右にゆっくりと首を振る自然な動作",
     lightHeadShake: "軽い首振り - 左右にゆっくりと首を振る",
     hairTouch: "髪をかき上げる - 手で前髪や髪の毛を整える",
   };

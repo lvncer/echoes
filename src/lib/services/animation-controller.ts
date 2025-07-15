@@ -18,6 +18,7 @@ import {
   getGesturesByCategory as getGesturesByCategoryFromAnimations,
   getGestureDescription as getGestureDescriptionFromAnimations,
 } from "@/lib/animations/gesture-animations";
+import { getNeutralGestureAnimation } from "@/lib/animations/gestures/neutral-gestures";
 import {
   emotionAnalyzer,
   type EmotionAnalysisResult,
@@ -73,7 +74,7 @@ export class AnimationController {
       intensity: 0.5,
       speed: 1.0,
     },
-    autoSalute: {
+    autoHeadShake: {
       enabled: true,
       interval: 15000, // 15秒
       intensity: 1.0,
@@ -96,7 +97,7 @@ export class AnimationController {
 
   // 自動アニメーション管理
   private autoBlinkTimer: NodeJS.Timeout | null = null;
-  private autoSaluteTimer: NodeJS.Timeout | null = null;
+  private autoHeadShakeTimer: NodeJS.Timeout | null = null;
   private isSpeaking = false; // 音声合成中の状態管理
   private breathingAnimationId: string | null = null;
   private currentEmotionAnimationId: string | null = null;
@@ -196,8 +197,8 @@ export class AnimationController {
       }
 
       // 自動ジェスチャーを開始
-      if (this.settings.autoSalute.enabled && !this.isSpeaking) {
-        this.startAutoSalute();
+      if (this.settings.autoHeadShake.enabled && !this.isSpeaking) {
+        this.startAutoHeadShake();
       }
     }
 
@@ -255,8 +256,8 @@ export class AnimationController {
     if (this.settings.breathing.enabled) {
       this.startBreathingAnimation();
     }
-    if (this.settings.autoSalute.enabled) {
-      this.startAutoSalute();
+    if (this.settings.autoHeadShake.enabled) {
+      this.startAutoHeadShake();
     }
   }
 
@@ -274,15 +275,15 @@ export class AnimationController {
 
     // ジェスチャーアニメーションで使用されているボーン名と設定値を参考にした自然な立ち姿勢
     const naturalPoseAdjustments = {
-      // 腕・手の位置調整（腕を後ろで組むポーズ）
-      LeftShoulder: { rotation: [0, 0, 0] }, // 肩は基本姿勢
+      // 腕・手の位置調整 - 自然に垂直に下げた姿勢
+      LeftShoulder: { rotation: [0, 0, 0] },
       RightShoulder: { rotation: [0, 0, 0] },
-      LeftUpperArm: { rotation: [-0.1, -0.5, 1.3] }, // 腕を後ろに回す
-      RightUpperArm: { rotation: [-0.1, 0.5, -1.3] },
-      LeftLowerArm: { rotation: [-0.1, -0.5, 0.0] }, // 肘を曲げて手を腰の後ろに
-      RightLowerArm: { rotation: [-0.1, 0.5, -0.0] },
-      LeftHand: { rotation: [0, 0, 0] }, // 手も基本姿勢
-      RightHand: { rotation: [0, 0, 0] },
+      LeftUpperArm: { rotation: [0, 0, -1.3] },
+      RightUpperArm: { rotation: [0, 0, 1.3] },
+      LeftLowerArm: { rotation: [0, 0, -0.2] },
+      RightLowerArm: { rotation: [0, 0, 0.2] },
+      LeftHand: { rotation: [0, 0.3, -0.3] },
+      RightHand: { rotation: [0, 0.3, 0.3] },
 
       // 体幹の調整（基本姿勢）
       Spine: { rotation: [0, 0, 0] },
@@ -500,94 +501,90 @@ export class AnimationController {
   }
 
   /**
-   * 自動ラジャーを開始
+   * 自動首横振りを開始
    */
-  public startAutoSalute(): void {
-    if (!this.vrmModel || this.autoSaluteTimer) {
+  public startAutoHeadShake(): void {
+    if (!this.vrmModel || this.autoHeadShakeTimer) {
       return;
     }
 
-    const scheduleNextSalute = () => {
-      this.autoSaluteTimer = setTimeout(() => {
+    const scheduleNextHeadShake = () => {
+      this.autoHeadShakeTimer = setTimeout(() => {
         // セッションから最新の音声合成状態を確認
         const sessionSpeaking = this.checkSpeakingStateFromSession();
 
         // 音声合成中はスキップ（ローカル状態チェック）
         if (this.isSpeaking) {
-          scheduleNextSalute();
+          scheduleNextHeadShake();
           return;
         }
 
         // 音声合成中はスキップ（セッション状態チェック）
         if (sessionSpeaking) {
           this.isSpeaking = true; // ローカル状態も同期
-          scheduleNextSalute();
+          scheduleNextHeadShake();
           return;
         }
 
-        // 設定による音声合成中チェック
+        // 設定による音声合成中チェック（追加の保護層）
         if (
-          this.settings.autoSalute.disableDuringSpeech &&
+          this.settings.autoHeadShake.disableDuringSpeech &&
           (this.isSpeaking || sessionSpeaking)
         ) {
-          scheduleNextSalute();
+          scheduleNextHeadShake();
           return;
         }
 
-        // ニュートラル感情時のみ実行
-        if (this.settings.autoSalute.neutralOnly) {
+        // 感情状態をチェック
+        if (this.settings.autoHeadShake.neutralOnly) {
           if (
             this.lastEmotionAnalysis &&
             this.lastEmotionAnalysis.emotion !== "neutral"
           ) {
-            // ニュートラルでない場合は次回まで待機
-            scheduleNextSalute();
+            scheduleNextHeadShake();
             return;
           }
         }
 
-        // ラジャーアニメーションを実行
-        this.playSaluteAnimation();
-        scheduleNextSalute();
-      }, this.settings.autoSalute.interval);
+        // アニメーション実行
+        this.playHeadShakeAnimation();
+        scheduleNextHeadShake();
+      }, this.settings.autoHeadShake.interval);
     };
 
-    scheduleNextSalute();
+    scheduleNextHeadShake();
   }
 
   /**
-   * 自動ラジャーを停止
+   * 自動首横振りを停止
    */
-  public stopAutoSalute(): void {
-    if (this.autoSaluteTimer) {
-      clearTimeout(this.autoSaluteTimer);
-      this.autoSaluteTimer = null;
+  public stopAutoHeadShake(): void {
+    if (this.autoHeadShakeTimer) {
+      clearTimeout(this.autoHeadShakeTimer);
+      this.autoHeadShakeTimer = null;
     }
   }
 
   /**
-   * ラジャーアニメーションを実行
+   * 首横振りアニメーションを実行
    */
-  private playSaluteAnimation(): void {
-    // 音声合成中は実行しない（最終防御線）
-    if (this.isSpeaking) {
+  private playHeadShakeAnimation(): void {
+    if (!this.vrmModel) {
+      console.warn("VRM model not loaded");
       return;
     }
 
-    if (!this.vrmModel || !this.isEnabled) {
+    // 現在再生中のアニメーションをチェック
+    if (!this.isEnabled) {
       return;
     }
 
-    // ニュートラルジェスチャーからラジャーアニメーションを取得
-    import("../animations/gestures/neutral-gestures")
-      .then(({ getNeutralGestureAnimation }) => {
-        const saluteAnimation = getNeutralGestureAnimation("salute");
+    // 首横振りアニメーションを実行
+    const headShakeAnimation = getNeutralGestureAnimation("headShake");
 
-        if (saluteAnimation) {
-          this.playAnimation(saluteAnimation, AnimationPriority.NORMAL);
-        }
-      })
-      .catch(() => {});
+    if (headShakeAnimation) {
+      this.playAnimation(headShakeAnimation, AnimationPriority.NORMAL);
+    }
   }
 
   /**
@@ -604,9 +601,9 @@ export class AnimationController {
     // 状態変更前の処理
     if (speaking && !this.isSpeaking) {
       // 音声合成開始：即座にタイマーをクリア
-      if (this.autoSaluteTimer) {
-        clearTimeout(this.autoSaluteTimer);
-        this.autoSaluteTimer = null;
+      if (this.autoHeadShakeTimer) {
+        clearTimeout(this.autoHeadShakeTimer);
+        this.autoHeadShakeTimer = null;
       }
     }
 
@@ -630,7 +627,7 @@ export class AnimationController {
    */
   private pausePeriodicGestures(): void {
     // ラジャーアニメーションを一時停止（瞬きと呼吸は継続）
-    this.stopAutoSalute();
+    this.stopAutoHeadShake();
   }
 
   /**
@@ -643,8 +640,8 @@ export class AnimationController {
     }
 
     // ラジャーアニメーションを再開
-    if (this.settings.autoSalute.enabled) {
-      this.startAutoSalute();
+    if (this.settings.autoHeadShake.enabled) {
+      this.startAutoHeadShake();
     }
   }
 
@@ -1774,7 +1771,7 @@ export class AnimationController {
     if (!enabled) {
       this.activeAnimations.clear();
       this.stopAutoBlinking();
-      this.stopAutoSalute();
+      this.stopAutoHeadShake();
       this.stopBreathingAnimation();
     }
   }
