@@ -274,14 +274,14 @@ export class AnimationController {
 
     // ジェスチャーアニメーションで使用されているボーン名と設定値を参考にした自然な立ち姿勢
     const naturalPoseAdjustments = {
-      // 腕・手の位置調整（腕を後ろで組むポーズ）
-      LeftShoulder: { rotation: [0, 0, 0] }, // 肩は基本姿勢
+      // 腕・手の位置調整 - 自然に垂直に下げた姿勢
+      LeftShoulder: { rotation: [0, 0, 0] },
       RightShoulder: { rotation: [0, 0, 0] },
-      LeftUpperArm: { rotation: [-0.1, -0.5, 1.3] }, // 腕を後ろに回す
-      RightUpperArm: { rotation: [-0.1, 0.5, -1.3] },
-      LeftLowerArm: { rotation: [-0.1, -0.5, 0.0] }, // 肘を曲げて手を腰の後ろに
-      RightLowerArm: { rotation: [-0.1, 0.5, -0.0] },
-      LeftHand: { rotation: [0, 0, 0] }, // 手も基本姿勢
+      LeftUpperArm: { rotation: [0.1, 0.2, 0] }, // 少し前に向け、やや外側に
+      RightUpperArm: { rotation: [0.1, -0.2, 0] }, // 少し前に向け、やや外側に
+      LeftLowerArm: { rotation: [0, 0, 0] },
+      RightLowerArm: { rotation: [0, 0, 0] },
+      LeftHand: { rotation: [0, 0, 0] },
       RightHand: { rotation: [0, 0, 0] },
 
       // 体幹の調整（基本姿勢）
