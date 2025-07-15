@@ -130,7 +130,7 @@ export const DEFAULT_SCENE_CONFIG: SceneConfig = {
   ambientLightIntensity: 0.7, // 環境光を少し明るく
   directionalLightIntensity: 0.9, // メインライトを強化
   directionalLightPosition: [2, 3, 2], // より自然な照明角度
-  cameraPosition: [0, 1.6, -2.5], // 適度な距離で少し上方向から見下ろす自然な角度
+  cameraPosition: [0, 1.6, -2.5], // モデル表示角度を最適化（新モデル用調整）
   cameraTarget: [0, 1.3, 0], // 顔の中心をターゲットに
   enableShadows: true,
   enableOrbitControls: true,

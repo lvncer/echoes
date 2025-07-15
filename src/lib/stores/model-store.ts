@@ -242,7 +242,7 @@ export const useModelStore = create<ModelStore>()(
             // デフォルトモデルとしてマーク
             const defaultModel = {
               ...result.model,
-              name: "ニコニ立体ちゃん（デフォルト）",
+              name: "らんさーちゃん（デフォルト）",
               isDefault: true,
             };
 

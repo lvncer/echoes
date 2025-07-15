@@ -197,9 +197,9 @@ export class AnimationController {
       }
 
       // 自動ジェスチャーを開始
-          if (this.settings.autoHeadShake.enabled && !this.isSpeaking) {
-      this.startAutoHeadShake();
-    }
+      if (this.settings.autoHeadShake.enabled && !this.isSpeaking) {
+        this.startAutoHeadShake();
+      }
     }
 
     // ブレンドシェイプサービスにもVRMモデルを設定
@@ -510,25 +510,41 @@ export class AnimationController {
 
     const scheduleNextHeadShake = () => {
       this.autoHeadShakeTimer = setTimeout(() => {
-        // 音声合成中かつ無効化設定がオンの場合はスキップ
+        // セッションから最新の音声合成状態を確認
+        const sessionSpeaking = this.checkSpeakingStateFromSession();
+
+        // 音声合成中はスキップ（ローカル状態チェック）
+        if (this.isSpeaking) {
+          scheduleNextHeadShake();
+          return;
+        }
+
+        // 音声合成中はスキップ（セッション状態チェック）
+        if (sessionSpeaking) {
+          this.isSpeaking = true; // ローカル状態も同期
+          scheduleNextHeadShake();
+          return;
+        }
+
+        // 設定による音声合成中チェック（追加の保護層）
         if (
           this.settings.autoHeadShake.disableDuringSpeech &&
-          this.isSpeaking
+          (this.isSpeaking || sessionSpeaking)
         ) {
           scheduleNextHeadShake();
           return;
         }
 
-                 // 感情状態をチェック
-         if (this.settings.autoHeadShake.neutralOnly) {
-           if (
-             this.lastEmotionAnalysis &&
-             this.lastEmotionAnalysis.emotion !== "neutral"
-           ) {
-             scheduleNextHeadShake();
-             return;
-           }
-         }
+        // 感情状態をチェック
+        if (this.settings.autoHeadShake.neutralOnly) {
+          if (
+            this.lastEmotionAnalysis &&
+            this.lastEmotionAnalysis.emotion !== "neutral"
+          ) {
+            scheduleNextHeadShake();
+            return;
+          }
+        }
 
         // アニメーション実行
         this.playHeadShakeAnimation();
@@ -558,10 +574,10 @@ export class AnimationController {
       return;
     }
 
-         // 現在再生中のアニメーションをチェック
-     if (!this.isEnabled) {
-       return;
-     }
+    // 現在再生中のアニメーションをチェック
+    if (!this.isEnabled) {
+      return;
+    }
 
     // 首横振りアニメーションを実行
     const headShakeAnimation = getNeutralGestureAnimation("headShake");
