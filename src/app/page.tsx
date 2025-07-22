@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
+import { TextChatInput } from "@/components/chat/text-chat-input";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import {
   AudioChatIntegrationService,
@@ -342,6 +343,15 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* テキストチャット入力 - 下部左側オーバーレイ */}
+      <div className="absolute bottom-6 left-6 z-30">
+        <TextChatInput
+          isVoiceChatActive={isVoiceChatActive}
+          voiceChatStatus={status}
+          className="w-80"
+        />
+      </div>
 
       {/* 音声操作UI - 下部中央オーバーレイ */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
