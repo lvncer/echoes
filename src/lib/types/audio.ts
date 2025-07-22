@@ -64,7 +64,9 @@ export interface AudioError {
     | "speech-recognition-failed"
     | "speech-synthesis-failed"
     | "initialization-failed"
-    | "ai-response-failed";
+    | "ai-response-failed"
+    | "invalid-state"
+    | "template-message-failed";
   message: string;
   originalError?: Error;
 }
