@@ -106,7 +106,7 @@ export default function Home() {
       },
       aiResponse: {
         provider: "gemini",
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         maxTokens: 1000,
         temperature: 0.7,
       },
