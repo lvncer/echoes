@@ -556,6 +556,54 @@ export class AudioChatIntegrationService {
   }
 
   /**
+   * テンプレートメッセージからAI応答を実行
+   * テンプレートパネルから呼び出される
+   */
+  public async processTemplateMessage(message: string): Promise<boolean> {
+    try {
+      if (this.status !== "idle") {
+        this.handleError({
+          type: "invalid-state",
+          message: "現在別の処理が実行中です",
+        });
+        return false;
+      }
+
+      // 処理状態に変更
+      this.setStatus("processing");
+
+      // AI応答を取得
+      const aiResponse = await this.getAIResponse(message);
+
+      if (!aiResponse) {
+        this.handleError({
+          type: "ai-response-failed",
+          message: "AI応答を取得できませんでした",
+        });
+        this.setStatus("idle");
+        return false;
+      }
+
+      // コールバック実行
+      this.callbacks.onAIResponseReceived?.(aiResponse);
+
+      // 音声合成開始
+      this.setStatus("speaking");
+      await this.speakResponse(aiResponse);
+
+      this.setStatus("idle");
+      return true;
+    } catch (error) {
+      this.handleError({
+        type: "template-message-failed",
+        message: `テンプレートメッセージの処理に失敗しました: ${error}`,
+      });
+      this.setStatus("idle");
+      return false;
+    }
+  }
+
+  /**
    * リソースクリーンアップ
    */
   public cleanup(): void {

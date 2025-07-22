@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Simple3DViewer } from "@/components/3d/model-3d-viewer";
-import { Box, Settings, Mic, MicOff, MessageCircle } from "lucide-react";
+import { Box, Settings, Mic, MicOff, MessageCircle, Lightbulb } from "lucide-react";
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
+import { MessageTemplatePanel } from "@/components/chat/message-template-panel";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import {
   AudioChatIntegrationService,
@@ -41,6 +42,7 @@ export default function Home() {
   const [isVoiceChatActive, setIsVoiceChatActive] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
+  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
 
   // 音声チャット関連の状態
   const [audioChatService, setAudioChatService] =
@@ -200,6 +202,38 @@ export default function Home() {
     }
   }, [isVoiceChatActive, isInitialized, stopAudioChat, initializeAudioChat]);
 
+  // テンプレートメッセージ処理
+  const handleTemplateMessage = useCallback(async (message: string) => {
+    if (!audioChatService) {
+      // 音声チャットが初期化されていない場合は初期化してから実行
+      try {
+        const service = new AudioChatIntegrationService(defaultConfig, callbacks);
+        const success = await service.startAudioChat();
+        
+        if (success) {
+          setAudioChatService(service);
+          setIsInitialized(true);
+          setIsVoiceChatActive(true);
+          setError(null);
+          
+          // テンプレートメッセージを処理
+          await service.processTemplateMessage(message);
+        } else {
+          setError("音声チャットの初期化に失敗しました");
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "初期化エラー";
+        setError(errorMessage);
+      }
+    } else if (isInitialized) {
+      // 既に初期化されている場合は直接処理
+      const success = await audioChatService.processTemplateMessage(message);
+      if (!success) {
+        setError("テンプレートメッセージの処理に失敗しました");
+      }
+    }
+  }, [audioChatService, isInitialized, defaultConfig, callbacks]);
+
   // Spaceキーでの音声入力制御
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -287,7 +321,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* チャット履歴・設定ボタン - 右上 */}
+      {/* チャット履歴・テンプレート・設定ボタン - 右上 */}
       <div className="absolute top-8 right-8 z-30 flex gap-3">
         <Button
           variant="default"
@@ -296,6 +330,18 @@ export default function Home() {
           className="flex items-center gap-2 cursor-pointer bg-gray-800/90 hover:bg-gray-700/90 backdrop-blur-xl border border-gray-600/30 shadow-lg"
         >
           <MessageCircle className="w-4 h-4 text-white" />
+        </Button>
+        <Button
+          variant="default"
+          size="default"
+          onClick={() => setIsTemplateOpen(!isTemplateOpen)}
+          className={`flex items-center gap-2 cursor-pointer backdrop-blur-xl border shadow-lg transition-colors duration-200 ${
+            isTemplateOpen
+              ? "bg-yellow-600/90 hover:bg-yellow-700/90 border-yellow-500/30"
+              : "bg-gray-800/90 hover:bg-gray-700/90 border-gray-600/30"
+          }`}
+        >
+          <Lightbulb className={`w-4 h-4 ${isTemplateOpen ? "text-yellow-100" : "text-white"}`} />
         </Button>
         <Button
           variant="default"
@@ -380,6 +426,11 @@ export default function Home() {
       <ChatHistoryModal
         open={isChatHistoryOpen}
         onOpenChange={setIsChatHistoryOpen}
+      />
+      <MessageTemplatePanel
+        isOpen={isTemplateOpen}
+        onClose={() => setIsTemplateOpen(false)}
+        onTemplateSelect={handleTemplateMessage}
       />
     </main>
   );
