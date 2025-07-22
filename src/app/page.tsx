@@ -344,18 +344,15 @@ export default function Home() {
         </div>
       )}
 
-      {/* テキストチャット入力 - 下部左側オーバーレイ */}
-      <div className="absolute bottom-6 left-6 z-30">
-        <TextChatInput
-          isVoiceChatActive={isVoiceChatActive}
-          voiceChatStatus={status}
-          className="w-80"
-        />
-      </div>
-
-      {/* 音声操作UI - 下部中央オーバーレイ */}
+      {/* 操作UIコンテナ - 下部中央 */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-4">
+          {/* テキストチャット入力 */}
+          <TextChatInput
+            isVoiceChatActive={isVoiceChatActive}
+            voiceChatStatus={status}
+          />
+
           {/* 統合されたマイクボタン */}
           <Button
             onClick={toggleVoiceChat}
