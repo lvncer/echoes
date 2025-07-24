@@ -23,6 +23,7 @@ interface AIStore {
   // チャット
   messages: ChatMessage[];
   isLoading: boolean;
+  lastAIMessage: ChatMessage | null;
 
   // アクション
   updateProviderConfig: (
@@ -98,6 +99,7 @@ export const useAIStore = create<AIStore>()(
       aiService: null,
       messages: [],
       isLoading: false,
+      lastAIMessage: null,
 
       // プロバイダー設定を更新
       updateProviderConfig: (provider, config) => {
@@ -235,6 +237,7 @@ export const useAIStore = create<AIStore>()(
           set((state) => ({
             messages: [...state.messages, aiMessage],
             isLoading: false,
+            lastAIMessage: aiMessage,
           }));
 
           // チャット履歴にAI応答を保存
@@ -283,11 +286,13 @@ export const useAIStore = create<AIStore>()(
             content: errorContent,
             timestamp: new Date(),
             isVoice,
+            isError: true,
           };
 
           set((state) => ({
             messages: [...state.messages, errorMessage],
             isLoading: false,
+            lastAIMessage: errorMessage,
           }));
 
           // チャット履歴にエラーメッセージも保存
@@ -297,7 +302,7 @@ export const useAIStore = create<AIStore>()(
 
       // メッセージをクリア
       clearMessages: () => {
-        set({ messages: [] });
+        set({ messages: [], lastAIMessage: null });
       },
 
       // 接続テスト
