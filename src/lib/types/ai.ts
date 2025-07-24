@@ -64,6 +64,8 @@ export interface ChatMessage {
   timestamp: Date;
   /** 音声メッセージフラグ */
   isVoice?: boolean;
+  /** エラーメッセージかどうかのフラグ */
+  isError?: boolean;
   /** セッションID */
   sessionId?: string;
 }

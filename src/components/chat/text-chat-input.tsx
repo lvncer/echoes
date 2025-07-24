@@ -21,11 +21,25 @@ export function TextChatInput({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const { sendMessage, isLoading } = useAIStore();
+  const { sendMessage, isLoading, lastAIMessage } = useAIStore();
+  const prevLastAIMessageId = useRef<string | null>(null);
 
   useEffect(() => {
     setIsProcessing(isLoading);
   }, [isLoading]);
+
+  useEffect(() => {
+    if (
+      lastAIMessage &&
+      lastAIMessage.id !== prevLastAIMessageId.current &&
+      lastAIMessage.role === "assistant" &&
+      !lastAIMessage.isError &&
+      !isVoiceChatActive // 音声チャットが有効でない場合のみリップシンクを実行
+    ) {
+      integratedLipSyncService.startAIResponseLipSync(lastAIMessage.content);
+      prevLastAIMessageId.current = lastAIMessage.id;
+    }
+  }, [lastAIMessage, isVoiceChatActive]);
 
   const canUseTextChat =
     !isVoiceChatActive || (isVoiceChatActive && voiceChatStatus === "idle");
@@ -34,25 +48,15 @@ export function TextChatInput({
     e.preventDefault();
     if (!input.trim() || !canUseTextChat || isProcessing) return;
 
+    setIsProcessing(true);
     const messageText = input.trim();
     setInput("");
-    setIsProcessing(true);
 
     try {
       await sendMessage(messageText, true);
-      setTimeout(async () => {
-        const latestMessages = useAIStore.getState().messages;
-        const latestAIMessage = latestMessages[latestMessages.length - 1];
-        if (latestAIMessage && latestAIMessage.role === "assistant") {
-          await integratedLipSyncService.startAIResponseLipSync(
-            latestAIMessage.content
-          );
-        }
-        setIsProcessing(false);
-      }, 1000);
     } catch (error) {
       console.error("テキストチャット送信エラー:", error);
-      setIsProcessing(false);
+      setIsProcessing(false); // エラー時は手動で解除
     }
   };
 
@@ -84,4 +88,4 @@ export function TextChatInput({
       </Button>
     </form>
   );
-} 
+}
