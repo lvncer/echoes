@@ -35,7 +35,7 @@ export class EmotionService {
     emotions: EmotionTag[];
   }> {
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.0-flash"),
       system: `
         あなたは感情豊かなAIです。以下の感情タグを使って応答してください：
         [emotion:happy:0.8] - 喜び（強度0.8）

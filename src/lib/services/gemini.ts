@@ -36,7 +36,7 @@ export class GeminiService {
 
       // モデルを取得
       const model = this.genAI.getGenerativeModel({
-        model: config.model || "gemini-1.5-flash",
+        model: config.model || "gemini-2.0-flash",
         generationConfig: {
           maxOutputTokens: config.maxTokens,
           temperature: config.temperature,
@@ -111,7 +111,7 @@ export class GeminiService {
   public async testConnection(): Promise<boolean> {
     try {
       const model = this.genAI.getGenerativeModel({
-        model: this.config.model || "gemini-1.5-flash",
+        model: this.config.model || "gemini-2.0-flash",
       });
 
       const result = await model.generateContent("Hello");

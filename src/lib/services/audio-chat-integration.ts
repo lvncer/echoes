@@ -13,6 +13,9 @@ import type {
   AudioError,
   SpeechRecognitionResult,
 } from "../types/audio";
+import { useAIStore } from "../stores/ai-store";
+import { useChatHistoryStore } from "../stores/chat-history-store";
+import type { ChatMessage } from "../types/ai";
 
 export interface AudioChatConfig {
   // 音声入力設定
@@ -311,29 +314,10 @@ export class AudioChatIntegrationService {
    * AI応答の取得
    */
   private async getAIResponse(userMessage: string): Promise<string> {
-    // カスタムプロンプト設定を取得
-    const getCustomPromptSettings = () => {
-      if (typeof window === "undefined") return null;
-
-      try {
-        const stored = localStorage.getItem("ai-settings");
-
-        if (!stored) {
-          return null;
-        }
-
-        const settings = JSON.parse(stored);
-
-        // Zustandの永続化形式に合わせてアクセス
-        const customPrompt = settings?.state?.settings?.customPrompt || null;
-
-        return customPrompt;
-      } catch {
-        return null;
-      }
-    };
-
-    const customPrompt = getCustomPromptSettings();
+    // ストアから設定を取得
+    const { settings } = useAIStore.getState();
+    const customPrompt = settings.customPrompt;
+    const aiConfig = settings.currentProvider;
 
     // 既存のchat APIエンドポイントと互換性のある形式でリクエスト
     const messages = [
@@ -348,8 +332,10 @@ export class AudioChatIntegrationService {
     const requestBody: {
       messages: typeof messages;
       customPrompt?: { enabled: boolean; content: string };
+      aiConfig?: typeof aiConfig; // aiConfigを追加
     } = {
       messages,
+      aiConfig, // aiConfigをリクエストに含める
     };
 
     // カスタムプロンプトが有効な場合は追加
@@ -553,6 +539,76 @@ export class AudioChatIntegrationService {
    */
   public async getVoicevoxSpeakers() {
     return await this.speechSynthesis.getVoicevoxSpeakers();
+  }
+
+  /**
+   * テンプレートメッセージからAI応答を実行
+   * テンプレートパネルから呼び出される
+   */
+  public async processTemplateMessage(message: string): Promise<boolean> {
+    try {
+      if (this.status !== "idle") {
+        this.handleError({
+          type: "invalid-state",
+          message: "現在別の処理が実行中です",
+        });
+        return false;
+      }
+
+      const historyStore = useChatHistoryStore.getState();
+
+      // ユーザーメッセージを履歴に追加
+      const userMessage: ChatMessage = {
+        id: `user_${Date.now()}`,
+        role: "user",
+        content: message,
+        timestamp: new Date(),
+        isVoice: true,
+      };
+      historyStore.addMessage(userMessage);
+
+      // 処理状態に変更
+      this.setStatus("processing");
+
+      // AI応答を取得
+      const aiResponse = await this.getAIResponse(message);
+
+      if (!aiResponse) {
+        this.handleError({
+          type: "ai-response-failed",
+          message: "AI応答を取得できませんでした",
+        });
+        this.setStatus("idle");
+        return false;
+      }
+
+      // AI応答を履歴に追加
+      const aiMessage: ChatMessage = {
+        id: `assistant_${Date.now()}`,
+        role: "assistant",
+        content: aiResponse,
+        timestamp: new Date(),
+        isVoice: true,
+      };
+      historyStore.addMessage(aiMessage);
+
+      // コールバック実行
+      this.callbacks.onAIResponseReceived?.(aiResponse);
+
+      // 音声合成開始
+      this.setStatus("speaking");
+      await this.speakResponse(aiResponse);
+
+      this.setStatus("idle");
+      return true;
+    } catch (error) {
+      this.handleError({
+        type: "template-message-failed",
+        message: `テンプレートメッセージの処理に失敗しました: ${error}`,
+      });
+      this.setStatus("idle");
+      return false;
+    }
   }
 
   /**
