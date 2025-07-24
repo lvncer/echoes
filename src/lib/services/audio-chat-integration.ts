@@ -91,13 +91,18 @@ export class AudioChatIntegrationService {
   /**
    * アニメーションコントローラーのセットアップ
    */
-  private setupAnimationController(): void {
-    // グローバルアニメーションコントローラーを取得
-    if (typeof window !== "undefined" && window.__animationController) {
-      this.animationController = window.__animationController;
+  private async setupAnimationController(): Promise<void> {
+    // サービスコンテナからアニメーションコントローラーを取得
+    try {
+      const { serviceContainer } = await import("./service-container");
+      this.animationController = serviceContainer.animationController;
 
       // 音声合成サービスにアニメーションコントローラーを設定
-      this.speechSynthesis.setAnimationController(this.animationController);
+      if (this.animationController) {
+        this.speechSynthesis.setAnimationController(this.animationController);
+      }
+    } catch (error) {
+      console.warn("Failed to load animation controller from service container:", error);
     }
   }
 
@@ -394,17 +399,8 @@ export class AudioChatIntegrationService {
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
-      if (typeof window !== "undefined") {
-        const windowWithController = window as typeof window & {
-          __animationController?: {
-            analyzeAndPlayEmotionAnimation: (text: string) => void;
-          };
-        };
-        if (windowWithController.__animationController) {
-          windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
-            text
-          );
-        }
+      if (this.animationController) {
+        this.animationController.analyzeAndPlayEmotionAnimation(text);
       }
 
       // 音声合成の完了を監視するためのPromiseを作成

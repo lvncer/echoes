@@ -1814,11 +1814,14 @@ export function getGestureDescription(gestureType: GestureType): string {
   return getGestureDescriptionFromAnimations(gestureType);
 }
 
-export function playGestureAnimation(
+export async function playGestureAnimation(
   gestureType: GestureType,
   intensity: number = 1.0
-): void {
-  if (typeof window !== "undefined" && window.__animationController) {
-    window.__animationController.playGestureAnimation(gestureType, intensity);
+): Promise<void> {
+  try {
+    const { serviceContainer } = await import("./service-container");
+    serviceContainer.animationController.playGestureAnimation(gestureType, intensity);
+  } catch (error) {
+    console.warn("Failed to play global gesture animation:", error);
   }
 }

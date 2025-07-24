@@ -7,19 +7,10 @@ import { Group } from "three";
 import { Model3D, VRMModelInfo, GLTFModelInfo } from "@/lib/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
 import { getEmotionBridge } from "@/lib/services/emotion-bridge";
-
-// アニメーションコントローラーのグローバルインスタンス取得
-declare global {
-  interface Window {
-    __animationController?: import("@/lib/services/animation-controller").AnimationController;
-  }
-}
+import { serviceContainer } from "@/lib/services/service-container";
 
 const getAnimationController = () => {
-  if (typeof window !== "undefined" && window.__animationController) {
-    return window.__animationController;
-  }
-  return null;
+  return serviceContainer.animationController;
 };
 
 interface ModelViewerProps {

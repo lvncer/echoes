@@ -6,36 +6,32 @@ import { Box, Settings, Mic, MicOff, MessageCircle, Lightbulb } from "lucide-rea
 import { ErrorBoundary } from "@/components/error/error-boundary";
 import { useModelStore } from "@/lib/stores/model-store";
 import { Button } from "@/components/ui/button";
-import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
 import { MessageTemplatePanel } from "@/components/chat/message-template-panel";
 import { TextChatInput } from "@/components/chat/text-chat-input";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
+import { useServices } from "@/lib/contexts/service-context";
 import {
-  AudioChatIntegrationService,
+  AudioChatOrchestrator,
   type AudioChatConfig,
   type AudioChatStatus,
   type AudioChatCallbacks,
-} from "@/lib/services/audio-chat-integration";
+} from "@/lib/services/audio-chat-orchestrator";
+import { errorHandler } from "@/lib/services/error-handler";
 import type { AudioError } from "@/lib/types/audio";
 import { useAIStore } from "@/lib/stores/ai-store";
 
-// アニメーションコントローラーの初期化
-declare global {
-  interface Window {
-    __animationController?: AnimationController;
-  }
-}
-
-const initializeAnimationController = () => {
-  if (typeof window !== "undefined" && !window.__animationController) {
-    window.__animationController = new AnimationController();
-
-    // integratedLipSyncServiceにもアニメーションコントローラーを設定
-    try {
-      integratedLipSyncService.setAnimationController();
-    } catch {}
+const initializeServices = (services: ReturnType<typeof useServices>) => {
+  try {
+    integratedLipSyncService.setAnimationController(services.animationController);
+    errorHandler.setCallbacks({
+      onError: (error) => {
+        console.error(`[${error.type.toUpperCase()}] ${error.code}: ${error.message}`, error.details);
+      },
+    });
+  } catch (error) {
+    errorHandler.handleUnknownError("サービス初期化に失敗しました", error);
   }
 };
 
@@ -45,9 +41,11 @@ export default function Home() {
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
   const [isTemplateOpen, setIsTemplateOpen] = useState(false);
 
+  const services = useServices();
+
   // 音声チャット関連の状態
-  const [audioChatService, setAudioChatService] =
-    useState<AudioChatIntegrationService | null>(null);
+  const [audioChatOrchestrator, setAudioChatOrchestrator] =
+    useState<AudioChatOrchestrator | null>(null);
   const [status, setStatus] = useState<AudioChatStatus>("idle");
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,9 +66,8 @@ export default function Home() {
 
   // 初期化処理
   useEffect(() => {
-    // アニメーションコントローラーを初期化
-    initializeAnimationController();
-  }, []);
+    initializeServices(services);
+  }, [services]);
 
   // アプリケーション起動時にデフォルトモデルを初期化
   useEffect(() => {
@@ -146,14 +143,24 @@ export default function Home() {
       if (stored) {
         try {
           JSON.parse(stored);
-        } catch {}
+        } catch (error) {
+          errorHandler.handleValidationError("INVALID_SETTINGS", "設定の解析に失敗しました", error);
+        }
       }
 
-      const service = new AudioChatIntegrationService(defaultConfig, callbacks);
-      const success = await service.startAudioChat();
+      const orchestrator = new AudioChatOrchestrator(
+        services.audioInputService,
+        services.speechRecognitionService,
+        services.speechService,
+        services.animationController,
+        defaultConfig,
+        callbacks
+      );
+      
+      const success = await orchestrator.startAudioChat();
 
       if (success) {
-        setAudioChatService(service);
+        setAudioChatOrchestrator(orchestrator);
         setIsInitialized(true);
         setIsVoiceChatActive(true);
         setError(null);
@@ -162,37 +169,40 @@ export default function Home() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "初期化エラー";
+      errorHandler.handleAudioError("INITIALIZATION_FAILED", errorMessage, err);
       setError(errorMessage);
     }
-  }, [defaultConfig, callbacks]);
+  }, [defaultConfig, callbacks, services]);
 
   // 音声チャット停止
   const stopAudioChat = useCallback(() => {
-    if (audioChatService) {
-      audioChatService.stopAudioChat();
+    if (audioChatOrchestrator) {
+      audioChatOrchestrator.stopAudioChat();
       setIsInitialized(false);
       setIsVoiceChatActive(false);
       setIsListening(false);
       setError(null);
     }
-  }, [audioChatService]);
+  }, [audioChatOrchestrator]);
 
   // プッシュトゥトーク開始
   const startListening = useCallback(() => {
-    if (audioChatService && status === "idle") {
-      const success = audioChatService.startListening();
+    if (audioChatOrchestrator && status === "idle") {
+      const success = audioChatOrchestrator.startListening();
       if (!success) {
-        setError("音声入力を開始できませんでした");
+        const error = "音声入力を開始できませんでした";
+        errorHandler.handleAudioError("LISTENING_START_FAILED", error);
+        setError(error);
       }
     }
-  }, [audioChatService, status]);
+  }, [audioChatOrchestrator, status]);
 
   // プッシュトゥトーク終了
   const stopListening = useCallback(() => {
-    if (audioChatService && isListening) {
-      audioChatService.stopListening();
+    if (audioChatOrchestrator && isListening) {
+      audioChatOrchestrator.stopListening();
     }
-  }, [audioChatService, isListening]);
+  }, [audioChatOrchestrator, isListening]);
 
   // 音声チャット切り替え
   const toggleVoiceChat = useCallback(() => {
@@ -205,35 +215,50 @@ export default function Home() {
 
   // テンプレートメッセージ処理
   const handleTemplateMessage = useCallback(async (message: string) => {
-    if (!audioChatService) {
+    if (!audioChatOrchestrator) {
       // 音声チャットが初期化されていない場合は初期化してから実行
       try {
-        const service = new AudioChatIntegrationService(defaultConfig, callbacks);
-        const success = await service.startAudioChat();
+        const orchestrator = new AudioChatOrchestrator(
+          services.audioInputService,
+          services.speechRecognitionService,
+          services.speechService,
+          services.animationController,
+          defaultConfig,
+          callbacks
+        );
+        const success = await orchestrator.startAudioChat();
         
         if (success) {
-          setAudioChatService(service);
+          setAudioChatOrchestrator(orchestrator);
           setIsInitialized(true);
           setIsVoiceChatActive(true);
           setError(null);
           
-          // テンプレートメッセージを処理
-          await service.processTemplateMessage(message);
+          // テンプレートメッセージを処理（AI応答を直接送信）
+          const { useAIStore } = await import("@/lib/stores/ai-store");
+          useAIStore.getState().sendMessage(message, true);
         } else {
-          setError("音声チャットの初期化に失敗しました");
+          const error = "音声チャットの初期化に失敗しました";
+          errorHandler.handleAudioError("TEMPLATE_INIT_FAILED", error);
+          setError(error);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "初期化エラー";
+        errorHandler.handleAudioError("TEMPLATE_PROCESSING_FAILED", errorMessage, err);
         setError(errorMessage);
       }
     } else if (isInitialized) {
       // 既に初期化されている場合は直接処理
-      const success = await audioChatService.processTemplateMessage(message);
-      if (!success) {
-        setError("テンプレートメッセージの処理に失敗しました");
+      try {
+        const { useAIStore } = await import("@/lib/stores/ai-store");
+        useAIStore.getState().sendMessage(message, true);
+      } catch (err) {
+        const error = "テンプレートメッセージの処理に失敗しました";
+        errorHandler.handleAudioError("TEMPLATE_SEND_FAILED", error, err);
+        setError(error);
       }
     }
-  }, [audioChatService, isInitialized, defaultConfig, callbacks]);
+  }, [audioChatOrchestrator, isInitialized, defaultConfig, callbacks, services]);
 
   // Spaceキーでの音声入力制御
   useEffect(() => {
@@ -263,11 +288,11 @@ export default function Home() {
   // クリーンアップ
   useEffect(() => {
     return () => {
-      if (audioChatService) {
-        audioChatService.cleanup();
+      if (audioChatOrchestrator) {
+        audioChatOrchestrator.stopAudioChat();
       }
     };
-  }, [audioChatService]);
+  }, [audioChatOrchestrator]);
 
   // デバッグ用のグローバル関数を追加（開発環境のみ）
   useEffect(() => {
@@ -295,10 +320,15 @@ export default function Home() {
           }
           return null;
         },
-        testAudioChat: () => {},
+        testAudioChat: () => {
+          if (audioChatOrchestrator) {
+            console.log("Audio Chat Status:", audioChatOrchestrator.getStatus());
+            console.log("Is Active:", audioChatOrchestrator.isAudioChatActive());
+          }
+        },
       };
     }
-  }, [audioChatService, isInitialized, isVoiceChatActive, status]);
+  }, [audioChatOrchestrator, isInitialized, isVoiceChatActive, status]);
 
   return (
     <main className="h-screen relative overflow-hidden">

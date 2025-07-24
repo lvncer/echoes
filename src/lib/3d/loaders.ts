@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { VRM, VRMLoaderPlugin } from "@pixiv/three-vrm";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Group, LoadingManager } from "three";
+import * as THREE from "three";
 import {
   Model3D,
   VRMModelInfo,
@@ -11,7 +10,7 @@ import {
   LoadOptions,
 } from "@/lib/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
-import { AnimationController } from "@/lib/services/animation-controller";
+import { serviceContainer } from "@/lib/services/service-container";
 
 // ローディングマネージャー
 const loadingManager = new LoadingManager();
@@ -32,7 +31,7 @@ export async function loadVRMModel(
     const arrayBuffer = await file.arrayBuffer();
 
     // GLTFとしてロード（VRMはglTFベース）
-    const gltf = await new Promise<any>((resolve, reject) => {
+    const gltf = await new Promise<GLTF>((resolve, reject) => {
       gltfLoader.parse(
         arrayBuffer,
         "",
@@ -68,31 +67,14 @@ export async function loadVRMModel(
     blendShapeService.setVRM(vrm);
 
     // アニメーション制御サービスにVRMを設定
-    // シングルトンインスタンスを取得して設定
-    const getAnimationController = () => {
-      // グローバルに保存されたインスタンスを取得
-      if (
-        typeof window !== "undefined" &&
-        (window as any).__animationController
-      ) {
-        return (window as any).__animationController;
-      }
-      // 新しいインスタンスを作成してグローバルに保存
-      const controller = new AnimationController();
-      if (typeof window !== "undefined") {
-        (window as any).__animationController = controller;
-      }
-      return controller;
-    };
-
-    const animationController = getAnimationController();
+    const animationController = serviceContainer.animationController;
     animationController.setVRMModel(vrm);
 
     // ブレンドシェイプ情報をログ出力（デバッグ用）
     const vrmInfo = blendShapeService.getVRMInfo();
 
     if (vrmInfo.hasBlendShapeProxy) {
-      const availableShapes = blendShapeService.getAvailableBlendShapes();
+      const _availableShapes = blendShapeService.getAvailableBlendShapes();
 
       // 基本的なブレンドシェイプの対応状況をテスト
       const basicShapes = [
@@ -106,7 +88,7 @@ export async function loadVRMModel(
         "Sorrow",
         "Fun",
       ];
-      const supportedShapes = basicShapes.filter((shape) =>
+      const _supportedShapes = basicShapes.filter((shape) =>
         blendShapeService.isBlendShapeAvailable(shape)
       );
     }
@@ -121,12 +103,12 @@ export async function loadVRMModel(
       createdAt: new Date(),
       vrm,
       meta: {
-        title: (vrm.meta as any)?.title,
-        author: (vrm.meta as any)?.author,
-        version: (vrm.meta as any)?.version,
-        description: (vrm.meta as any)?.description,
-        licenseUrl: (vrm.meta as any)?.licenseUrl,
-        contactInformation: (vrm.meta as any)?.contactInformation,
+        title: (vrm.meta as { name?: string })?.name || "Unknown",
+        author: (vrm.meta as { author?: string })?.author || "Unknown",
+        version: vrm.meta?.metaVersion || "1.0",
+        description: (vrm.meta as { description?: string })?.description || "",
+        licenseUrl: (vrm.meta as { licenseUrl?: string })?.licenseUrl || "",
+        contactInformation: (vrm.meta as { contactInformation?: string })?.contactInformation || "",
       },
     };
 
@@ -169,7 +151,7 @@ export async function loadGLTFModel(
     const arrayBuffer = await file.arrayBuffer();
 
     // GLTFとしてロード
-    const gltf = await new Promise<any>((resolve, reject) => {
+    const gltf = await new Promise<GLTF>((resolve, reject) => {
       gltfLoader.parse(
         arrayBuffer,
         "",
@@ -198,10 +180,7 @@ export async function loadGLTFModel(
     }
 
     // アニメーションの処理
-    const animations = gltf.animations || [];
-    const animationNames = animations.map(
-      (anim: any) => anim.name || "Unnamed"
-    );
+    const _animations = gltf.animations || [];
 
     // ファイル拡張子を判定
     const extension = file.name.split(".").pop()?.toLowerCase() as
@@ -273,7 +252,7 @@ export async function loadModel(
  * モデルのサムネイルを生成（将来実装）
  */
 export async function generateModelThumbnail(
-  model: Model3D
+  _model: Model3D
 ): Promise<string | undefined> {
   // TODO: Three.jsでレンダリングしてサムネイル画像を生成
   return undefined;
@@ -302,7 +281,7 @@ export function getModelInfo(model: Model3D): {
     if (scene) {
       scene.traverse((child) => {
         if (child.type === "Mesh") {
-          const mesh = child as any;
+          const mesh = child as THREE.Mesh;
           if (mesh.geometry) {
             const geometry = mesh.geometry;
             vertices += geometry.attributes.position?.count || 0;
@@ -310,12 +289,13 @@ export function getModelInfo(model: Model3D): {
           }
           if (mesh.material) {
             materials++;
-            if (mesh.material.map) textures++;
+            const material = mesh.material as THREE.Material & { map?: THREE.Texture };
+            if (material.map) textures++;
           }
         }
       });
     }
-  } catch (error) {
+  } catch (_error) {
   }
 
   return { vertices, faces, materials, textures };
@@ -337,6 +317,6 @@ export function setupLoadingProgress(
     onComplete?.();
   };
 
-  loadingManager.onError = (url) => {
+  loadingManager.onError = (_url) => {
   };
 }
