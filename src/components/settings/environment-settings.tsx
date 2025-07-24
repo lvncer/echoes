@@ -69,8 +69,7 @@ export function EnvironmentSettings() {
     const activeProviderConfig = localConfig[currentProvider];
     if (
       !activeProviderConfig.apiKey &&
-      currentProvider !== "local" &&
-      currentProvider !== "gemini"
+      currentProvider !== "local"
     ) {
       alert(`${currentProvider.toUpperCase()} APIキーが必要です`);
       return;
@@ -128,7 +127,10 @@ export function EnvironmentSettings() {
             <label className="text-sm font-medium text-gray-300 mb-2 block">
               プロバイダー
             </label>
-            <Select value={currentProvider} onValueChange={handleProviderChange}>
+            <Select
+              value={currentProvider}
+              onValueChange={handleProviderChange}
+            >
               <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                 <SelectValue />
               </SelectTrigger>
@@ -149,11 +151,7 @@ export function EnvironmentSettings() {
               <Input
                 value={activeConfig.baseUrl || ""}
                 onChange={(e) =>
-                  handleConfigChange(
-                    currentProvider,
-                    "baseUrl",
-                    e.target.value
-                  )
+                  handleConfigChange(currentProvider, "baseUrl", e.target.value)
                 }
                 placeholder={
                   currentProvider === "local"
@@ -208,13 +206,53 @@ export function EnvironmentSettings() {
             <label className="text-sm font-medium text-gray-300 mb-2 block">
               モデル
             </label>
-            <Input
-              value={activeConfig.model}
-              onChange={(e) =>
-                handleConfigChange(currentProvider, "model", e.target.value)
-              }
-              className="bg-gray-700 border-gray-600 text-white"
-            />
+            {currentProvider === "gemini" ? (
+              <Select
+                value={activeConfig.model}
+                onValueChange={(value) =>
+                  handleConfigChange(currentProvider, "model", value)
+                }
+              >
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gemini-2.0-flash">
+                    Gemini 2.0 Flash
+                  </SelectItem>
+                  <SelectItem value="gemini-1.5-flash">
+                    Gemini 1.5 Flash
+                  </SelectItem>
+                  <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
+                  <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : currentProvider === "openai" ? (
+              <Select
+                value={activeConfig.model}
+                onValueChange={(value) =>
+                  handleConfigChange(currentProvider, "model", value)
+                }
+              >
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                  <SelectItem value="gpt-4">GPT-4</SelectItem>
+                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value={activeConfig.model}
+                onChange={(e) =>
+                  handleConfigChange(currentProvider, "model", e.target.value)
+                }
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            )}
           </div>
 
           <div>
