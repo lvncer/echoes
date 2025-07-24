@@ -10,6 +10,7 @@ import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
 import { MessageTemplatePanel } from "@/components/chat/message-template-panel";
+import { TextChatInput } from "@/components/chat/text-chat-input";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import {
   AudioChatIntegrationService,
