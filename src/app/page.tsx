@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AnimationController } from "@/lib/services/animation-controller";
 import { SettingsModal } from "@/components/settings/settings-modal";
 import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
+import { TextChatInput } from "@/components/chat/text-chat-input";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import {
   AudioChatIntegrationService,
@@ -343,9 +344,15 @@ export default function Home() {
         </div>
       )}
 
-      {/* 音声操作UI - 下部中央オーバーレイ */}
+      {/* 操作UIコンテナ - 下部中央 */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-4">
+          {/* テキストチャット入力 */}
+          <TextChatInput
+            isVoiceChatActive={isVoiceChatActive}
+            voiceChatStatus={status}
+          />
+
           {/* 統合されたマイクボタン */}
           <Button
             onClick={toggleVoiceChat}
