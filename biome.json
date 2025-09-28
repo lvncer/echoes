@@ -4,5 +4,17 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineWidth": 100
+  },
+  "files": {
+    "includes": [
+      "src/**",
+      "docs/**",
+      "*.{ts,tsx,js,jsx,json,css,md,mdx,mjs,cjs,yml,yaml}",
+      "eslint.config.mjs",
+      "postcss.config.mjs",
+      "next.config.ts",
+      "tsconfig.json",
+      "components.json"
+    ]
   }
 }
