@@ -53,5 +53,8 @@ next-env.d.ts
 CLAUDE.md
 .mcp.json
 
+# windsurf
+.windsurf/
+
 # npm lockfile (using bun instead)
 package-lock.json
