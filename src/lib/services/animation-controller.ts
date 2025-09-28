@@ -7,8 +7,8 @@ import type {
   AnimationState,
   AnimationEvents,
   KeyFrame,
-} from "@/lib/types/animation";
-import { AnimationPriority } from "@/lib/types/animation";
+} from "@/types/animation";
+import { AnimationPriority } from "@/types/animation";
 import { getEmotionAnimation } from "@/lib/animations/emotion-animations";
 import {
   getGestureAnimation,

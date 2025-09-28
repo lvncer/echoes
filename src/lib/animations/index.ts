@@ -17,7 +17,7 @@ export {
   getAvailableEmotions,
 } from "./emotion-animations";
 
-import type { AnimationSequence, EmotionAnimation } from "@/lib/types/animation";
+import type { AnimationSequence, EmotionAnimation } from "@/types/animation";
 
 // 新しい構造からのインポート
 import {

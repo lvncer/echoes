@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { OpenAIService } from "../../../lib/services/openai";
-import { GeminiService } from "../../../lib/services/gemini";
-import { createAIConfigFromEnv } from "../../../lib/config/env";
-import type { ChatMessage } from "../../../lib/types/ai";
+import { OpenAIService } from "@/lib/services/openai";
+import { GeminiService } from "@/lib/services/gemini";
+import { createAIConfigFromEnv } from "@/lib/config/env";
+import type { ChatMessage } from "@/types/ai";
 
 export async function POST(request: NextRequest) {
   try {

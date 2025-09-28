@@ -1,4 +1,4 @@
-import type { AIProviderConfig, AIRequest, AIResponse, AIError, AIProvider } from "../types/ai";
+import type { AIProviderConfig, AIRequest, AIResponse, AIError, AIProvider } from "@/types/ai";
 import { OpenAIService } from "./openai";
 
 /**

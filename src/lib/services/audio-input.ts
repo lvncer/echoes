@@ -3,7 +3,7 @@ import type {
   AudioInputConfig,
   AudioEvents,
   AudioProcessingState,
-} from "@/lib/types/audio";
+} from "@/types/audio";
 import { getAudioContext, getLocalizedErrorMessage } from "@/lib/utils/audio-support";
 
 export class AudioInputService {

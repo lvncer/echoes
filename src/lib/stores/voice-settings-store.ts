@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { VoicevoxConfig } from "@/lib/types/voicevox";
-import { VOICEVOX_WEB_API_CONFIG } from "@/lib/types/voicevox";
-import type { SpeechSynthesisConfig } from "@/lib/types/audio";
+import type { VoicevoxConfig } from "@/types/voicevox";
+import { VOICEVOX_WEB_API_CONFIG } from "@/types/voicevox";
+import type { SpeechSynthesisConfig } from "@/types/audio";
 
 export type VoiceEngine = "webspeech" | "voicevox";
 

@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { AIProviderConfig, ChatMessage, AIResponse } from "../types/ai";
-import { useAIStore } from "../stores/ai-store";
+import type { AIProviderConfig, ChatMessage, AIResponse } from "@/types/ai";
+import { useAIStore } from "@/lib/stores/ai-store";
 
 /**
  * Google Gemini API サービス

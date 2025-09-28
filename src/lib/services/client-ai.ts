@@ -1,5 +1,5 @@
-import type { ChatMessage, AIResponse } from "../types/ai";
-import { useAIStore } from "../stores/ai-store";
+import type { ChatMessage, AIResponse } from "@/types/ai";
+import { useAIStore } from "@/lib/stores/ai-store";
 
 /**
  * クライアントサイド用 AI サービス

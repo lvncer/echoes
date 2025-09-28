@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { Upload, Trash2, Info, FileText } from "lucide-react";
-import { Model3D, ModelSelectorProps } from "@/lib/types/3d";
+import { Model3D, ModelSelectorProps } from "@/types/3d";
 
 /**
  * モデル選択・管理コンポーネント

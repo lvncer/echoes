@@ -1,4 +1,4 @@
-import type { BrowserSupport, AudioCapabilities } from "@/lib/types/audio";
+import type { BrowserSupport, AudioCapabilities } from "@/types/audio";
 
 /**
  * ブラウザの音声機能サポート状況を検出

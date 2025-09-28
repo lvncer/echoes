@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AIProviderConfig } from "../types/ai";
+import type { AIProviderConfig } from "@/types/ai";
 
 /**
  * 環境変数のスキーマ定義

@@ -10,7 +10,7 @@ import {
   DEFAULT_SCENE_CONFIG,
   DEFAULT_CAMERA_CONFIG,
   DEFAULT_ANIMATION_STATE,
-} from "@/lib/types/3d";
+} from "@/types/3d";
 import { loadModel } from "@/lib/3d/loaders";
 
 interface ModelStore extends ModelDisplayState {

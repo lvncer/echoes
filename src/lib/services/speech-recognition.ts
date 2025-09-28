@@ -3,7 +3,7 @@ import type {
   SpeechRecognitionResult,
   AudioEvents,
   AudioProcessingState,
-} from "@/lib/types/audio";
+} from "@/types/audio";
 import {
   getSpeechRecognition,
   getLocalizedErrorMessage,

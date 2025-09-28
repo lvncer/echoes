@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { VRM } from "@pixiv/three-vrm";
 import { Group } from "three";
-import { Model3D, VRMModelInfo, GLTFModelInfo } from "@/lib/types/3d";
+import { Model3D, VRMModelInfo, GLTFModelInfo } from "@/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
 import { getEmotionBridge } from "@/lib/services/emotion-bridge";
 import { serviceContainer } from "@/lib/services/service-container";

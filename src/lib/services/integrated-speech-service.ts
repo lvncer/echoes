@@ -6,9 +6,9 @@ import {
   getVoicevoxConfig,
   type VoiceEngine,
 } from "@/lib/stores/voice-settings-store";
-import { getRequiredCredit } from "@/lib/types/voicevox";
+import { getRequiredCredit } from "@/types/voicevox";
 import { AnimationController } from "./animation-controller";
-import type { AudioEvents, AudioProcessingState } from "@/lib/types/audio";
+import type { AudioEvents, AudioProcessingState } from "@/types/audio";
 
 export interface EngineStatus {
   webspeech: {
