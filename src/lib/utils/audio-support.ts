@@ -13,8 +13,10 @@ export function detectBrowserSupport(): BrowserSupport {
 
   // SpeechRecognition API サポート検出
   if (typeof window !== "undefined") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const win = window as any;
+    const win = window as Window & {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    };
     support.speechRecognition = !!(
       win.SpeechRecognition || win.webkitSpeechRecognition
     );
@@ -51,20 +53,20 @@ export function getAudioCapabilities(): AudioCapabilities {
     mediaRecorder: support.mediaRecorder && support.getUserMedia,
     audioContext:
       typeof window !== "undefined" &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      !!(window.AudioContext || (window as any).webkitAudioContext),
+      !!(window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext),
   };
 }
 
 /**
  * SpeechRecognition コンストラクタを取得
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getSpeechRecognition(): any {
+export function getSpeechRecognition(): (new () => SpeechRecognition) | null {
   if (typeof window === "undefined") return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const win = window as any;
+  const win = window as Window & {
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
+  };
   return win.SpeechRecognition || win.webkitSpeechRecognition || null;
 }
 
@@ -74,8 +76,7 @@ export function getSpeechRecognition(): any {
 export function getAudioContext(): typeof AudioContext | null {
   if (typeof window === "undefined") return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return window.AudioContext || (window as any).webkitAudioContext || null;
+  return window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || null;
 }
 
 /**

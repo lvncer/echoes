@@ -91,13 +91,18 @@ export class AudioChatIntegrationService {
   /**
    * アニメーションコントローラーのセットアップ
    */
-  private setupAnimationController(): void {
-    // グローバルアニメーションコントローラーを取得
-    if (typeof window !== "undefined" && window.__animationController) {
-      this.animationController = window.__animationController;
+  private async setupAnimationController(): Promise<void> {
+    // サービスコンテナからアニメーションコントローラーを取得
+    try {
+      const { serviceContainer } = await import("./service-container");
+      this.animationController = serviceContainer.animationController;
 
       // 音声合成サービスにアニメーションコントローラーを設定
-      this.speechSynthesis.setAnimationController(this.animationController);
+      if (this.animationController) {
+        this.speechSynthesis.setAnimationController(this.animationController);
+      }
+    } catch (error) {
+      console.warn("Failed to load animation controller from service container:", error);
     }
   }
 
@@ -394,21 +399,10 @@ export class AudioChatIntegrationService {
       await integratedLipSyncService.startAIResponseLipSync(text);
 
       // アニメーション制御サービスで感情解析とアニメーション実行
-      if (typeof window !== "undefined") {
-        const windowWithController = window as typeof window & {
-          __animationController?: {
-            analyzeAndPlayEmotionAnimation: (text: string) => void;
-          };
-        };
-        if (windowWithController.__animationController) {
-          windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
-            text
-          );
-        }
+      if (this.animationController) {
+        this.animationController.analyzeAndPlayEmotionAnimation(text);
       }
 
-      // 音声合成の完了を監視するためのPromiseを作成
-      await this.waitForSpeechCompletion(text);
     } catch (error) {
       console.error("[デバッグ] speakResponseでエラー発生", error);
       this.handleError({
@@ -419,45 +413,25 @@ export class AudioChatIntegrationService {
   }
 
   /**
-   * 音声合成の完了を待機
+   * idle になるまで待機（タイムアウト付き）
    */
-  private waitForSpeechCompletion(text: string): Promise<void> {
+  private waitUntilIdle(timeoutMs: number = 10000): Promise<void> {
     return new Promise((resolve) => {
-      // タイムアウト設定（テキストの長さに基づいて動的に設定）
-      const estimatedDuration = Math.max(5000, text.length * 150); // 最低5秒、文字数×150ms
-
-      const timeout = setTimeout(() => {
-        this.setStatus("idle"); // 強制的にアイドル状態に戻す
-        resolve();
-      }, estimatedDuration);
-
-      let checkCount = 0;
-      const maxChecks = Math.floor(estimatedDuration / 100); // 最大チェック回数
-
-      // 音声合成の完了を監視
-      const checkCompletion = () => {
-        checkCount++;
-        const lipSyncStatus = integratedLipSyncService.getStatus();
-        const isSpeaking = lipSyncStatus.isTTSSpeaking;
-
-        if (!isSpeaking) {
-          // 音声合成が完了した
-          clearTimeout(timeout);
-          this.setStatus("idle");
+      const start = Date.now();
+      const loop = () => {
+        const lip = integratedLipSyncService.getStatus();
+        if (this.status === "idle" && !lip.isTTSSpeaking) {
           resolve();
-        } else if (checkCount >= maxChecks) {
-          // 最大チェック回数に達した
-          clearTimeout(timeout);
-          this.setStatus("idle");
-          resolve();
-        } else {
-          // まだ話している場合は100ms後に再チェック
-          setTimeout(checkCompletion, 100);
+          return;
         }
+        if (Date.now() - start >= timeoutMs) {
+          this.setStatus("idle");
+          resolve();
+          return;
+        }
+        setTimeout(loop, 100);
       };
-
-      // 少し遅延してからチェック開始（音声合成の開始を待つ）
-      setTimeout(checkCompletion, 500);
+      setTimeout(loop, 100);
     });
   }
 
@@ -547,12 +521,11 @@ export class AudioChatIntegrationService {
    */
   public async processTemplateMessage(message: string): Promise<boolean> {
     try {
+      if (this.status === "error") {
+        this.setStatus("idle");
+      }
       if (this.status !== "idle") {
-        this.handleError({
-          type: "invalid-state",
-          message: "現在別の処理が実行中です",
-        });
-        return false;
+        await this.waitUntilIdle(10000);
       }
 
       const historyStore = useChatHistoryStore.getState();
@@ -599,7 +572,6 @@ export class AudioChatIntegrationService {
       this.setStatus("speaking");
       await this.speakResponse(aiResponse);
 
-      this.setStatus("idle");
       return true;
     } catch (error) {
       this.handleError({

@@ -2,6 +2,7 @@ import { blendShapeService } from "./blend-shape-service";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { AdvancedLipSyncService } from "./advanced-lipsync-service";
 import { LipSyncService } from "./lipsync-service";
+import type { AnimationController } from "./animation-controller";
 
 /**
  * 統合リップシンクサービス
@@ -33,22 +34,24 @@ export class IntegratedLipSyncService {
     this.basicLipSync = new LipSyncService();
 
     this.setupTTSIntegration();
-    this.setupAnimationController();
+    this.setupAnimationController().catch(console.warn);
   }
 
   /**
    * アニメーションコントローラーのセットアップ
    */
-  private setupAnimationController(): void {
+  private async setupAnimationController(): Promise<void> {
     // SSR中はスキップ
     if (typeof window === "undefined") {
       return;
     }
 
-    // グローバルアニメーションコントローラーを取得
-    if (window.__animationController) {
-      // 音声合成サービスにアニメーションコントローラーを設定
-      this.speechSynthesis.setAnimationController(window.__animationController);
+    // サービスコンテナからアニメーションコントローラーを取得
+    try {
+      const { serviceContainer } = await import("./service-container");
+      this.speechSynthesis.setAnimationController(serviceContainer.animationController);
+    } catch (error) {
+      console.warn("Failed to load animation controller from service container:", error);
     }
   }
 
@@ -587,8 +590,12 @@ export class IntegratedLipSyncService {
   /**
    * アニメーションコントローラーを動的に設定
    */
-  public setAnimationController(): void {
-    this.setupAnimationController();
+  public setAnimationController(controller?: AnimationController): void {
+    if (controller) {
+      this.speechSynthesis.setAnimationController(controller);
+    } else {
+      this.setupAnimationController();
+    }
   }
 
   // 状態取得メソッド

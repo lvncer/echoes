@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Save, RotateCcw } from "lucide-react";
-import Chat from "../chat";
+import { EmotionChat } from "../chat/emotion-chat";
 
 // カスタムプロンプト設定のデフォルト値を定義（コンポーネント外で定義）
 const defaultCustomPrompt = {
@@ -225,7 +225,7 @@ export function AISettings() {
         <p className="text-sm text-gray-400">
           Google Gemini APIの設定とチャット機能
         </p>
-        <Chat />
+        <EmotionChat />
       </Card>
     </div>
   );
