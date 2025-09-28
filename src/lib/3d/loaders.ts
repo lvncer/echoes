@@ -2,7 +2,7 @@ import { VRM, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Group, LoadingManager } from "three";
 import * as THREE from "three";
-import { Model3D, VRMModelInfo, GLTFModelInfo, ModelLoadResult, LoadOptions } from "@/lib/types/3d";
+import { Model3D, VRMModelInfo, GLTFModelInfo, ModelLoadResult, LoadOptions } from "@/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
 import { serviceContainer } from "@/lib/services/service-container";
 

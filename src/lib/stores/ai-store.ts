@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AISettings, AIProviderConfig, ChatMessage, CustomPromptSettings } from "../types/ai";
+import type { AISettings, AIProviderConfig, ChatMessage, CustomPromptSettings } from "@/types/ai";
 import { createAIConfigFromEnv } from "../config/env";
 import { ClientAIService } from "../services/client-ai";
 import { useChatHistoryStore } from "./chat-history-store";

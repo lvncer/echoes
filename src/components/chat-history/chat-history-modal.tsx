@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useChatHistoryStore } from "@/lib/stores/chat-history-store";
-import type { ChatMessage } from "@/lib/types/ai";
+import type { ChatMessage } from "@/types/ai";
 
 interface ChatHistoryModalProps {
   open: boolean;

@@ -1,4 +1,4 @@
-import type { AnimationSequence } from "@/lib/types/animation";
+import type { AnimationSequence } from "@/types/animation";
 
 /**
  * 頭のジェスチャーアニメーション

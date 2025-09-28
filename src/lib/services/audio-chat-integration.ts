@@ -8,10 +8,10 @@ import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { integratedLipSyncService } from "./integrated-lipsync-service";
 import { AnimationController } from "./animation-controller";
-import type { AudioConfig, AudioError, SpeechRecognitionResult } from "../types/audio";
-import { useAIStore } from "../stores/ai-store";
-import { useChatHistoryStore } from "../stores/chat-history-store";
-import type { ChatMessage } from "../types/ai";
+import type { AudioConfig, AudioError, SpeechRecognitionResult } from "@/types/audio";
+import { useAIStore } from "@/lib/stores/ai-store";
+import { useChatHistoryStore } from "@/lib/stores/chat-history-store";
+import type { ChatMessage } from "@/types/ai";
 
 export interface AudioChatConfig {
   // 音声入力設定

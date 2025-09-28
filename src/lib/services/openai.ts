@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { AIProviderConfig, ChatMessage, AIRequest, AIResponse, AIError } from "../types/ai";
+import type { AIProviderConfig, ChatMessage, AIRequest, AIResponse, AIError } from "@/types/ai";
 import { useAIStore } from "../stores/ai-store";
 
 /**

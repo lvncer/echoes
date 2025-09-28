@@ -9,7 +9,7 @@ import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { AnimationController } from "./animation-controller";
 import { errorHandler } from "./error-handler";
-import type { AudioConfig, SpeechRecognitionResult } from "../types/audio";
+import type { AudioConfig, SpeechRecognitionResult } from "@/types/audio";
 
 export interface AudioChatConfig {
   audioInput: Partial<AudioConfig>;

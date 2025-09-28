@@ -19,7 +19,7 @@ import {
   type AudioChatCallbacks,
 } from "@/lib/services/audio-chat-orchestrator";
 import { errorHandler } from "@/lib/services/error-handler";
-import type { AudioError } from "@/lib/types/audio";
+import type { AudioError } from "@/types/audio";
 import { useAIStore } from "@/lib/stores/ai-store";
 
 const initializeServices = (services: ReturnType<typeof useServices>) => {

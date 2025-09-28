@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, Eye, EyeOff, Save, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { AIProvider, AIProviderConfig } from "@/lib/types/ai";
+import type { AIProvider, AIProviderConfig } from "@/types/ai";
 
 export function EnvironmentSettings() {
   const { settings, updateProviderConfig, switchProvider } = useAIStore();

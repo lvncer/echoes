@@ -6,7 +6,7 @@ import { loadModel } from "@/lib/3d/loaders";
 import { Scene, Ground } from "./scene";
 import { ModelViewer, ModelPlaceholder, ModelInfo } from "./model-viewer";
 import { ModelSelector, ModelLoadingStatus } from "./model-selector";
-import { Model3DViewerProps } from "@/lib/types/3d";
+import { Model3DViewerProps } from "@/types/3d";
 
 /**
  * 統合3Dモデルビューアー

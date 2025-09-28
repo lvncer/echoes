@@ -28,7 +28,7 @@ import {
   integratedSpeechService,
   type EngineStatus,
 } from "@/lib/services/integrated-speech-service";
-import type { VoicevoxSpeaker } from "@/lib/types/voicevox";
+import type { VoicevoxSpeaker } from "@/types/voicevox";
 
 export function VoiceSettings() {
   const {

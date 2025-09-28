@@ -1,4 +1,4 @@
-import type { EmotionAnimation, AnimationSequence } from "@/lib/types/animation";
+import type { EmotionAnimation, AnimationSequence } from "@/types/animation";
 
 /**
  * 基本感情アニメーション定義

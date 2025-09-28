@@ -3,7 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Grid, Stats } from "@react-three/drei";
 import { Suspense } from "react";
-import { SceneConfig, CameraControlsConfig } from "@/lib/types/3d";
+import { SceneConfig, CameraControlsConfig } from "@/types/3d";
 
 interface SceneProps {
   children?: React.ReactNode;

@@ -4,7 +4,7 @@ export * from "./hand-gestures";
 export * from "./head-gestures";
 export * from "./body-gestures";
 
-import type { AnimationSequence } from "@/lib/types/animation";
+import type { AnimationSequence } from "@/types/animation";
 import {
   type NeutralGestureType,
   getNeutralGestureAnimation,

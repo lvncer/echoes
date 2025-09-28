@@ -1,7 +1,7 @@
 // すべての感情アニメーションをエクスポート
 export * from "./basic-emotions";
 
-import type { EmotionAnimation } from "@/lib/types/animation";
+import type { EmotionAnimation } from "@/types/animation";
 import {
   type BasicEmotionType,
   getBasicEmotionAnimation,

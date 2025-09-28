@@ -1,4 +1,4 @@
-import type { SpeechSynthesisConfig, AudioEvents, AudioProcessingState } from "@/lib/types/audio";
+import type { SpeechSynthesisConfig, AudioEvents, AudioProcessingState } from "@/types/audio";
 import {
   getLocalizedErrorMessage,
   detectBrowserSupport,
