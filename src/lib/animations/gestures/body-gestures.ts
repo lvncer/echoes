@@ -204,9 +204,7 @@ const bodyGestures = {
 /**
  * 体のジェスチャーアニメーションを取得
  */
-export function getBodyGestureAnimation(
-  gestureType: BodyGestureType
-): AnimationSequence | null {
+export function getBodyGestureAnimation(gestureType: BodyGestureType): AnimationSequence | null {
   return bodyGestures[gestureType] || null;
 }
 
@@ -227,4 +225,4 @@ export function getBodyGestureDescription(gestureType: BodyGestureType): string 
     shrug: "肩すくめ - 両肩を上げて困惑や無関心を示す",
   };
   return descriptions[gestureType] || "";
-} 
+}

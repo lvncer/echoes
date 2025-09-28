@@ -220,9 +220,7 @@ const handGestures = {
 /**
  * 手のジェスチャーアニメーションを取得
  */
-export function getHandGestureAnimation(
-  gestureType: HandGestureType
-): AnimationSequence | null {
+export function getHandGestureAnimation(gestureType: HandGestureType): AnimationSequence | null {
   return handGestures[gestureType] || null;
 }
 
@@ -243,4 +241,4 @@ export function getHandGestureDescription(gestureType: HandGestureType): string 
     clap: "拍手 - 両手を合わせて叩く喜びの表現",
   };
   return descriptions[gestureType] || "";
-} 
+}

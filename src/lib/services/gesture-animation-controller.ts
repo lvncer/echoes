@@ -199,7 +199,7 @@ export class GestureAnimationController {
     animate();
   }
 
-  private getCurrentKeyframe(keyframes: GestureConfig['keyframes'], progress: number) {
+  private getCurrentKeyframe(keyframes: GestureConfig["keyframes"], progress: number) {
     for (let i = 0; i < keyframes.length - 1; i++) {
       const current = keyframes[i];
       const next = keyframes[i + 1];
@@ -214,9 +214,9 @@ export class GestureAnimationController {
   }
 
   private interpolateKeyframes(
-    current: GestureConfig['keyframes'][0],
-    next: GestureConfig['keyframes'][0],
-    progress: number
+    current: GestureConfig["keyframes"][0],
+    next: GestureConfig["keyframes"][0],
+    progress: number,
   ) {
     const interpolated = {
       time: progress,
@@ -224,7 +224,7 @@ export class GestureAnimationController {
       positions: {} as Record<string, THREE.Vector3>,
     };
 
-    Object.keys(current.rotations).forEach(boneName => {
+    Object.keys(current.rotations).forEach((boneName) => {
       const currentRot = current.rotations[boneName];
       const nextRot = next.rotations[boneName];
 
@@ -232,7 +232,7 @@ export class GestureAnimationController {
         interpolated.rotations[boneName] = new THREE.Euler(
           THREE.MathUtils.lerp(currentRot.x, nextRot.x, progress),
           THREE.MathUtils.lerp(currentRot.y, nextRot.y, progress),
-          THREE.MathUtils.lerp(currentRot.z, nextRot.z, progress)
+          THREE.MathUtils.lerp(currentRot.z, nextRot.z, progress),
         );
       } else {
         interpolated.rotations[boneName] = currentRot.clone();
@@ -242,17 +242,16 @@ export class GestureAnimationController {
     return interpolated;
   }
 
-  private applyKeyframe(keyframe: { rotations: Record<string, THREE.Euler> }, intensity: number): void {
+  private applyKeyframe(
+    keyframe: { rotations: Record<string, THREE.Euler> },
+    intensity: number,
+  ): void {
     if (!this.vrm) return;
 
     Object.entries(keyframe.rotations).forEach(([boneName, rotation]: [string, THREE.Euler]) => {
       const bone = this.findBone(boneName);
       if (bone) {
-        bone.rotation.set(
-          rotation.x * intensity,
-          rotation.y * intensity,
-          rotation.z * intensity
-        );
+        bone.rotation.set(rotation.x * intensity, rotation.y * intensity, rotation.z * intensity);
       }
     });
   }
@@ -269,7 +268,11 @@ export class GestureAnimationController {
     };
 
     const actualBoneName = boneMap[boneName] || boneName;
-    return this.vrm.humanoid?.getNormalizedBoneNode(actualBoneName as keyof typeof this.vrm.humanoid.normalizedHumanBones) || null;
+    return (
+      this.vrm.humanoid?.getNormalizedBoneNode(
+        actualBoneName as keyof typeof this.vrm.humanoid.normalizedHumanBones,
+      ) || null
+    );
   }
 
   public isGesturePlaying(): boolean {

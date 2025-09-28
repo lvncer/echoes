@@ -211,18 +211,11 @@ export class EmotionAnalyzer {
     const topEmotion = this.selectTopEmotion(emotionScores);
 
     // 強度と信頼度を計算
-    const intensity = this.calculateIntensity(
-      topEmotion,
-      emotionScores,
-      normalizedText
-    );
+    const intensity = this.calculateIntensity(topEmotion, emotionScores, normalizedText);
     const confidence = this.calculateConfidence(topEmotion, emotionScores);
 
     // 使用されたキーワードを取得
-    const keywords = this.getMatchedKeywords(
-      normalizedText,
-      topEmotion.emotion
-    );
+    const keywords = this.getMatchedKeywords(normalizedText, topEmotion.emotion);
 
     const result: EmotionAnalysisResult = {
       emotion: topEmotion.emotion,
@@ -256,7 +249,7 @@ export class EmotionAnalyzer {
    * 各感情のスコアを計算
    */
   private calculateEmotionScores(
-    text: string
+    text: string,
   ): Record<string, { score: number; matches: string[] }> {
     const scores: Record<string, { score: number; matches: string[] }> = {};
 
@@ -289,14 +282,11 @@ export class EmotionAnalyzer {
   /**
    * 最も高いスコアの感情を選択
    */
-  private selectTopEmotion(
-    scores: Record<string, { score: number; matches: string[] }>
-  ): {
+  private selectTopEmotion(scores: Record<string, { score: number; matches: string[] }>): {
     emotion: "neutral" | "happy" | "sad" | "angry" | "surprised";
     score: number;
   } {
-    let topEmotion: "neutral" | "happy" | "sad" | "angry" | "surprised" =
-      "neutral";
+    let topEmotion: "neutral" | "happy" | "sad" | "angry" | "surprised" = "neutral";
     let topScore = 0;
 
     Object.entries(scores).forEach(([emotion, data]) => {
@@ -318,7 +308,7 @@ export class EmotionAnalyzer {
       score: number;
     },
     scores: Record<string, { score: number; matches: string[] }>,
-    text: string
+    text: string,
   ): number {
     if (topEmotion.emotion === "neutral" || topEmotion.score === 0) {
       return 0.3; // ニュートラルの基本強度
@@ -326,8 +316,7 @@ export class EmotionAnalyzer {
 
     // 基本強度
     const baseIntensity =
-      emotionKeywords[topEmotion.emotion as keyof typeof emotionKeywords]
-        ?.intensity || 0.5;
+      emotionKeywords[topEmotion.emotion as keyof typeof emotionKeywords]?.intensity || 0.5;
 
     // スコアに基づく調整
     const scoreMultiplier = Math.min(topEmotion.score / 3.0, 1.0);
@@ -338,8 +327,7 @@ export class EmotionAnalyzer {
     // 感嘆符や疑問符による強調
     const emphasisMultiplier = this.calculateEmphasisMultiplier(text);
 
-    const intensity =
-      baseIntensity * scoreMultiplier * lengthMultiplier * emphasisMultiplier;
+    const intensity = baseIntensity * scoreMultiplier * lengthMultiplier * emphasisMultiplier;
 
     return Math.max(0.1, Math.min(1.0, intensity));
   }
@@ -352,7 +340,7 @@ export class EmotionAnalyzer {
       emotion: "neutral" | "happy" | "sad" | "angry" | "surprised";
       score: number;
     },
-    scores: Record<string, { score: number; matches: string[] }>
+    scores: Record<string, { score: number; matches: string[] }>,
   ): number {
     if (topEmotion.score === 0) {
       return 0.8; // ニュートラルの信頼度
@@ -452,10 +440,7 @@ export class EmotionAnalyzer {
     }
 
     // 前回の感情との差を計算
-    const emotionChange = this.calculateEmotionChange(
-      this.lastAnalysis,
-      currentAnalysis
-    );
+    const emotionChange = this.calculateEmotionChange(this.lastAnalysis, currentAnalysis);
 
     // 急激な変化の場合は強度を調整
     if (emotionChange > 0.7) {
@@ -471,7 +456,7 @@ export class EmotionAnalyzer {
    */
   private calculateEmotionChange(
     previous: EmotionAnalysisResult,
-    current: EmotionAnalysisResult
+    current: EmotionAnalysisResult,
   ): number {
     if (previous.emotion === current.emotion) {
       return Math.abs(previous.intensity - current.intensity);

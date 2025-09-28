@@ -4,10 +4,7 @@ import type {
   AudioEvents,
   AudioProcessingState,
 } from "@/lib/types/audio";
-import {
-  getAudioContext,
-  getLocalizedErrorMessage,
-} from "@/lib/utils/audio-support";
+import { getAudioContext, getLocalizedErrorMessage } from "@/lib/utils/audio-support";
 
 export class AudioInputService {
   private mediaStream: MediaStream | null = null;
@@ -69,9 +66,7 @@ export class AudioInputService {
   /**
    * マイクアクセスを要求してストリームを取得
    */
-  public async requestMicrophoneAccess(
-    config: AudioInputConfig = {}
-  ): Promise<boolean> {
+  public async requestMicrophoneAccess(config: AudioInputConfig = {}): Promise<boolean> {
     try {
       const constraints: MediaStreamConstraints = {
         audio: {
@@ -113,16 +108,13 @@ export class AudioInputService {
     if (!this.audioContext || !this.mediaStream) return;
 
     try {
-      const source = this.audioContext.createMediaStreamSource(
-        this.mediaStream
-      );
+      const source = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 256;
       source.connect(this.analyser);
 
       this.startAudioLevelMonitoring();
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   /**
@@ -140,8 +132,7 @@ export class AudioInputService {
       this.analyser.getByteFrequencyData(dataArray);
 
       // 音声レベルを計算（0-100の範囲）
-      const average =
-        dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+      const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
       const level = Math.round((average / 255) * 100);
 
       this.state.audioLevel = level;

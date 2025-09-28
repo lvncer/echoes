@@ -158,11 +158,7 @@ function LoadingFallback() {
 /**
  * デバッグ用のシンプルなキューブ
  */
-export function DebugCube({
-  position = [0, 0, 0],
-}: {
-  position?: [number, number, number];
-}) {
+export function DebugCube({ position = [0, 0, 0] }: { position?: [number, number, number] }) {
   return (
     <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={[1, 1, 1]} />
@@ -176,19 +172,9 @@ export function DebugCube({
  */
 export function Ground() {
   return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, -0.01, 0]}
-      receiveShadow
-    >
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
       <planeGeometry args={[30, 30]} />
-      <meshStandardMaterial
-        color="#000000"
-        roughness={1}
-        metalness={1}
-        transparent
-        opacity={1}
-      />
+      <meshStandardMaterial color="#000000" roughness={1} metalness={1} transparent opacity={1} />
     </mesh>
   );
 }

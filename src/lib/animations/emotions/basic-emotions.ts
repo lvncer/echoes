@@ -1,7 +1,4 @@
-import type {
-  EmotionAnimation,
-  AnimationSequence,
-} from "@/lib/types/animation";
+import type { EmotionAnimation, AnimationSequence } from "@/lib/types/animation";
 
 /**
  * 基本感情アニメーション定義
@@ -426,7 +423,7 @@ export type BasicEmotionType = keyof typeof basicEmotions;
  */
 export function getBasicEmotionAnimation(
   emotion: BasicEmotionType,
-  intensity: number = 1.0
+  intensity: number = 1.0,
 ): EmotionAnimation | null {
   const animation = basicEmotions[emotion];
   if (!animation) return null;
@@ -460,7 +457,7 @@ export function getBasicEmotionDescription(emotion: BasicEmotionType): string {
  */
 function adjustAnimationIntensity(
   animation: EmotionAnimation,
-  intensity: number
+  intensity: number,
 ): EmotionAnimation {
   const adjustedAnimation: EmotionAnimation = {
     ...animation,
@@ -479,7 +476,7 @@ function adjustAnimationIntensity(
  */
 function adjustSequenceIntensity(
   sequence: AnimationSequence,
-  intensity: number
+  intensity: number,
 ): AnimationSequence {
   return {
     ...sequence,
@@ -487,10 +484,7 @@ function adjustSequenceIntensity(
       ...keyframe,
       blendShapes: keyframe.blendShapes
         ? Object.fromEntries(
-            Object.entries(keyframe.blendShapes).map(([key, value]) => [
-              key,
-              value * intensity,
-            ])
+            Object.entries(keyframe.blendShapes).map(([key, value]) => [key, value * intensity]),
           )
         : undefined,
       bones: keyframe.bones
@@ -503,9 +497,9 @@ function adjustSequenceIntensity(
                   ? (transform.rotation.map((r) => r * intensity) as [number, number, number])
                   : undefined,
               },
-            ])
+            ]),
           )
         : undefined,
     })),
   };
-} 
+}

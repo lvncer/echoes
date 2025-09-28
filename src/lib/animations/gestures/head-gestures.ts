@@ -160,9 +160,7 @@ const headGestures = {
 /**
  * 頭のジェスチャーアニメーションを取得
  */
-export function getHeadGestureAnimation(
-  gestureType: HeadGestureType
-): AnimationSequence | null {
+export function getHeadGestureAnimation(gestureType: HeadGestureType): AnimationSequence | null {
   return headGestures[gestureType] || null;
 }
 
@@ -183,4 +181,4 @@ export function getHeadGestureDescription(gestureType: HeadGestureType): string 
     tilt: "首かしげ - 頭を傾けて疑問や興味を示す",
   };
   return descriptions[gestureType] || "";
-} 
+}

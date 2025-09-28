@@ -102,14 +102,12 @@ export class EmotionBridgeService {
       { emotion: "neutral", intensity: 0.1, duration: 1500 },
     ];
 
-    const randomAnimation =
-      idleAnimations[Math.floor(Math.random() * idleAnimations.length)];
-
+    const randomAnimation = idleAnimations[Math.floor(Math.random() * idleAnimations.length)];
 
     // 短時間の微細なアニメーション
     this.animationController.playEmotionAnimation(
       randomAnimation.emotion,
-      randomAnimation.intensity
+      randomAnimation.intensity,
     );
 
     // 元の状態に戻す
@@ -117,7 +115,7 @@ export class EmotionBridgeService {
       if (this.animationController && this.currentEmotion) {
         this.animationController.playEmotionAnimation(
           this.currentEmotion,
-          this.currentIntensity * 0.3 // アイドル時は強度を下げる
+          this.currentIntensity * 0.3, // アイドル時は強度を下げる
         );
       }
     }, randomAnimation.duration);
@@ -172,20 +170,12 @@ export class EmotionBridgeService {
     this.updateActivityTime();
 
     // 同じ感情の場合はスキップ（パフォーマンス向上）
-    if (
-      this.currentEmotion === emotion &&
-      Math.abs(this.currentIntensity - intensity) < 0.1
-    ) {
+    if (this.currentEmotion === emotion && Math.abs(this.currentIntensity - intensity) < 0.1) {
       return;
     }
 
-
     // Phase 3: 感情遷移の自然化
-    if (
-      this.emotionTransitionEnabled &&
-      this.currentEmotion &&
-      this.currentEmotion !== emotion
-    ) {
+    if (this.emotionTransitionEnabled && this.currentEmotion && this.currentEmotion !== emotion) {
       this.performSmoothEmotionTransition(emotion, intensity);
     } else {
       // 通常の感情アニメーション
@@ -207,7 +197,7 @@ export class EmotionBridgeService {
    */
   private performSmoothEmotionTransition(
     targetEmotion: EmotionType,
-    targetIntensity: number
+    targetIntensity: number,
   ): void {
     if (this.isTransitioning) {
       // 既に遷移中の場合は前の遷移をキャンセル
@@ -233,19 +223,12 @@ export class EmotionBridgeService {
       if (currentStep < steps) {
         // 中間段階：現在の感情を徐々に弱める
         const currentIntensity = this.currentIntensity * (1 - progress);
-        this.animationController.playEmotionAnimation(
-          this.currentEmotion!,
-          currentIntensity
-        );
-
+        this.animationController.playEmotionAnimation(this.currentEmotion!, currentIntensity);
 
         this.transitionTimer = setTimeout(executeTransitionStep, stepDuration);
       } else {
         // 最終段階：目標感情を適用
-        this.animationController.playEmotionAnimation(
-          targetEmotion,
-          targetIntensity
-        );
+        this.animationController.playEmotionAnimation(targetEmotion, targetIntensity);
         this.isTransitioning = false;
       }
     };
@@ -259,7 +242,7 @@ export class EmotionBridgeService {
   public async handleAIResponseWithSpeech(
     text: string,
     emotion: EmotionType,
-    intensity: number
+    intensity: number,
   ): Promise<void> {
     if (!this.isSpeechIntegrationEnabled) {
       // 音声統合が無効の場合は通常の感情変化のみ

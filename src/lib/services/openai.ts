@@ -1,11 +1,5 @@
 import OpenAI from "openai";
-import type {
-  AIProviderConfig,
-  ChatMessage,
-  AIRequest,
-  AIResponse,
-  AIError,
-} from "../types/ai";
+import type { AIProviderConfig, ChatMessage, AIRequest, AIResponse, AIError } from "../types/ai";
 import { useAIStore } from "../stores/ai-store";
 
 /**
@@ -33,8 +27,7 @@ export class OpenAIService {
         apiKey: this.config.apiKey,
         baseURL: this.config.baseUrl,
       });
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   /**
@@ -50,10 +43,7 @@ export class OpenAIService {
    */
   public async generateResponse(request: AIRequest): Promise<AIResponse> {
     if (!this.client) {
-      throw this.createError(
-        "CLIENT_NOT_INITIALIZED",
-        "OpenAI クライアントが初期化されていません"
-      );
+      throw this.createError("CLIENT_NOT_INITIALIZED", "OpenAI クライアントが初期化されていません");
     }
 
     const startTime = Date.now();
@@ -67,8 +57,8 @@ export class OpenAIService {
 
       // カスタムプロンプトまたはデフォルトプロンプトを取得
       const customPromptSettings = this.getCustomPromptSettings();
-      const systemContent = customPromptSettings.enabled 
-        ? customPromptSettings.content 
+      const systemContent = customPromptSettings.enabled
+        ? customPromptSettings.content
         : `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください
 
 1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
@@ -120,25 +110,16 @@ export class OpenAIService {
         throw this.createError("API_ERROR", error.message, error);
       }
 
-      throw this.createError(
-        "UNKNOWN_ERROR",
-        "不明なエラーが発生しました",
-        error
-      );
+      throw this.createError("UNKNOWN_ERROR", "不明なエラーが発生しました", error);
     }
   }
 
   /**
    * ストリーミング応答を生成（将来実装用）
    */
-  public async *generateStreamResponse(
-    request: AIRequest
-  ): AsyncGenerator<string, void, unknown> {
+  public async *generateStreamResponse(request: AIRequest): AsyncGenerator<string, void, unknown> {
     if (!this.client) {
-      throw this.createError(
-        "CLIENT_NOT_INITIALIZED",
-        "OpenAI クライアントが初期化されていません"
-      );
+      throw this.createError("CLIENT_NOT_INITIALIZED", "OpenAI クライアントが初期化されていません");
     }
 
     try {
@@ -149,8 +130,8 @@ export class OpenAIService {
 
       // カスタムプロンプトまたはデフォルトプロンプトを取得
       const customPromptSettings = this.getCustomPromptSettings();
-      const systemContent = customPromptSettings.enabled 
-        ? customPromptSettings.content 
+      const systemContent = customPromptSettings.enabled
+        ? customPromptSettings.content
         : `あなたは親しみやすいAIアシスタントです。以下のルールに従って応答してください：
 
 1. マークダウン記法（**太字**、*斜体*、# 見出し、- リスト、\`コード\`など）は一切使用しない
@@ -184,11 +165,7 @@ export class OpenAIService {
         }
       }
     } catch (error) {
-      throw this.createError(
-        "STREAM_ERROR",
-        "ストリーミング応答でエラーが発生しました",
-        error
-      );
+      throw this.createError("STREAM_ERROR", "ストリーミング応答でエラーが発生しました", error);
     }
   }
 
@@ -222,11 +199,7 @@ export class OpenAIService {
   /**
    * エラーオブジェクトを作成
    */
-  private createError(
-    code: string,
-    message: string,
-    details?: unknown
-  ): AIError {
+  private createError(code: string, message: string, details?: unknown): AIError {
     return {
       code,
       message,
@@ -258,7 +231,7 @@ export class OpenAIService {
         };
       }
     }
-    
+
     // サーバーサイドではデフォルト設定を返す
     return {
       enabled: false,

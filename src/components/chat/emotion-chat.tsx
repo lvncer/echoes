@@ -13,8 +13,7 @@ import { getEmotionBridge } from "@/lib/services/emotion-bridge";
 export function EmotionChat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<string[]>([]);
-  const { setEmotion, setProcessing, isProcessing, currentEmotion, intensity } =
-    useEmotionStore();
+  const { setEmotion, setProcessing, isProcessing, currentEmotion, intensity } = useEmotionStore();
   const { settings } = useAIStore();
 
   // Phase 3: エラー状態とUX改善
@@ -71,11 +70,7 @@ export function EmotionChat() {
 
           // Phase 2: 音声合成統合機能を使用
           const emotionBridge = getEmotionBridge();
-          await emotionBridge.handleAIResponseWithSpeech(
-            text,
-            emotion.type,
-            emotion.intensity
-          );
+          await emotionBridge.handleAIResponseWithSpeech(text, emotion.type, emotion.intensity);
         }
         setMessages((prev) => [...prev, `AI: ${text}`]);
 
@@ -85,17 +80,14 @@ export function EmotionChat() {
         throw new Error(result.error || "応答の生成に失敗しました");
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "不明なエラーが発生しました";
+      const errorMessage = err instanceof Error ? err.message : "不明なエラーが発生しました";
       setError(errorMessage);
 
       // リトライ可能な場合の処理
       if (retryCount < maxRetries) {
         setMessages((prev) => [
           ...prev,
-          `AI: エラーが発生しました (${
-            retryCount + 1
-          }/${maxRetries}回目)。再試行中...`,
+          `AI: エラーが発生しました (${retryCount + 1}/${maxRetries}回目)。再試行中...`,
         ]);
 
         // 2秒後に自動リトライ
@@ -133,9 +125,7 @@ export function EmotionChat() {
         <div className="p-3 mx-4 mt-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-red-800 font-medium">
-                エラーが発生しました
-              </p>
+              <p className="text-sm text-red-800 font-medium">エラーが発生しました</p>
               <p className="text-xs text-red-600 mt-1">{error}</p>
             </div>
             <div className="flex gap-2">
@@ -147,10 +137,7 @@ export function EmotionChat() {
                   再試行
                 </button>
               )}
-              <button
-                onClick={clearError}
-                className="text-xs text-red-600 hover:text-red-800"
-              >
+              <button onClick={clearError} className="text-xs text-red-600 hover:text-red-800">
                 ✕
               </button>
             </div>
@@ -188,8 +175,8 @@ export function EmotionChat() {
                   isUser
                     ? "bg-blue-500 text-white"
                     : isError
-                    ? "bg-red-100 text-red-800 border border-red-200"
-                    : "bg-gray-100 text-gray-800"
+                      ? "bg-red-100 text-red-800 border border-red-200"
+                      : "bg-gray-100 text-gray-800"
                 }`}
               >
                 {isUser ? msg.slice(5) : msg.slice(4)}

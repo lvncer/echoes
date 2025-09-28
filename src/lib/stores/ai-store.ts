@@ -1,11 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type {
-  AISettings,
-  AIProviderConfig,
-  ChatMessage,
-  CustomPromptSettings,
-} from "../types/ai";
+import type { AISettings, AIProviderConfig, ChatMessage, CustomPromptSettings } from "../types/ai";
 import { createAIConfigFromEnv } from "../config/env";
 import { ClientAIService } from "../services/client-ai";
 import { useChatHistoryStore } from "./chat-history-store";
@@ -28,7 +23,7 @@ interface AIStore {
   // アクション
   updateProviderConfig: (
     provider: keyof AISettings["providers"],
-    config: Partial<AIProviderConfig>
+    config: Partial<AIProviderConfig>,
   ) => void;
   switchProvider: (provider: keyof AISettings["providers"]) => void;
   updateCustomPrompt: (prompt: Partial<CustomPromptSettings>) => void;
@@ -181,10 +176,7 @@ export const useAIStore = create<AIStore>()(
           const settings = createDefaultSettings();
 
           // 既存のカスタムプロンプトがある場合は保持
-          if (
-            state.settings.customPrompt &&
-            state.settings.customPrompt.content
-          ) {
+          if (state.settings.customPrompt && state.settings.customPrompt.content) {
             settings.customPrompt = state.settings.customPrompt;
           }
 
@@ -223,10 +215,7 @@ export const useAIStore = create<AIStore>()(
 
         try {
           // AI 応答を生成
-          const response = await aiService.generateResponse([
-            ...messages,
-            userMessage,
-          ]);
+          const response = await aiService.generateResponse([...messages, userMessage]);
 
           // AI メッセージを追加
           const aiMessage: ChatMessage = {
@@ -252,7 +241,7 @@ export const useAIStore = create<AIStore>()(
             };
             if (windowWithController.__animationController) {
               windowWithController.__animationController.analyzeAndPlayEmotionAnimation(
-                response.message.content
+                response.message.content,
               );
             }
           }
@@ -332,7 +321,7 @@ export const useAIStore = create<AIStore>()(
               // 文字列の場合はDateオブジェクトに変換
               if (typeof state.settings.customPrompt.lastUpdated === "string") {
                 state.settings.customPrompt.lastUpdated = new Date(
-                  state.settings.customPrompt.lastUpdated
+                  state.settings.customPrompt.lastUpdated,
                 );
               }
             } catch {
@@ -346,8 +335,8 @@ export const useAIStore = create<AIStore>()(
           }
         }
       },
-    }
-  )
+    },
+  ),
 );
 
 /**

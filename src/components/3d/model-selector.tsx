@@ -25,16 +25,14 @@ export function ModelSelector({
 
       const files = Array.from(e.dataTransfer.files);
       const modelFile = files.find((file) =>
-        ["vrm", "gltf", "glb"].includes(
-          file.name.split(".").pop()?.toLowerCase() || ""
-        )
+        ["vrm", "gltf", "glb"].includes(file.name.split(".").pop()?.toLowerCase() || ""),
       );
 
       if (modelFile) {
         onModelUpload(modelFile);
       }
     },
-    [onModelUpload]
+    [onModelUpload],
   );
 
   // ファイル選択ハンドラー
@@ -47,7 +45,7 @@ export function ModelSelector({
       // inputをリセット
       e.target.value = "";
     },
-    [onModelUpload]
+    [onModelUpload],
   );
 
   return (
@@ -56,11 +54,7 @@ export function ModelSelector({
       <div
         className={`
           border-2 border-dashed rounded-lg p-6 text-center transition-colors
-          ${
-            dragOver
-              ? "border-blue-400 bg-blue-900/30"
-              : "border-gray-600 hover:border-gray-500"
-          }
+          ${dragOver ? "border-blue-400 bg-blue-900/30" : "border-gray-600 hover:border-gray-500"}
           ${isLoading ? "opacity-50 pointer-events-none" : ""}
         `}
         onDrop={handleDrop}
@@ -71,9 +65,7 @@ export function ModelSelector({
         onDragLeave={() => setDragOver(false)}
       >
         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <p className="text-gray-300 mb-2">
-          VRM、glTF、GLBファイルをドラッグ&ドロップ
-        </p>
+        <p className="text-gray-300 mb-2">VRM、glTF、GLBファイルをドラッグ&ドロップ</p>
         <p className="text-sm text-gray-500 mb-4">または</p>
 
         <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
@@ -223,12 +215,8 @@ function ModelItem({
 
             {model.format === "vrm" && "meta" in model && model.meta && (
               <>
-                {model.meta.title && (
-                  <div className="col-span-2">タイトル: {model.meta.title}</div>
-                )}
-                {model.meta.author && (
-                  <div className="col-span-2">作者: {model.meta.author}</div>
-                )}
+                {model.meta.title && <div className="col-span-2">タイトル: {model.meta.title}</div>}
+                {model.meta.author && <div className="col-span-2">作者: {model.meta.author}</div>}
               </>
             )}
           </div>
@@ -268,9 +256,7 @@ export function ModelLoadingStatus({
         <div className="flex items-center gap-2 text-blue-300">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
           <span className="font-medium">
-            {progress === undefined
-              ? "デフォルトモデル読み込み中..."
-              : "モデル読み込み中..."}
+            {progress === undefined ? "デフォルトモデル読み込み中..." : "モデル読み込み中..."}
           </span>
         </div>
         {progress !== undefined && (
@@ -281,15 +267,11 @@ export function ModelLoadingStatus({
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
-            <p className="text-blue-200 text-sm mt-1">
-              {Math.round(progress * 100)}%
-            </p>
+            <p className="text-blue-200 text-sm mt-1">{Math.round(progress * 100)}%</p>
           </div>
         )}
         {progress === undefined && (
-          <p className="text-blue-200 text-sm mt-1">
-            ニコニ立体ちゃんを読み込んでいます...
-          </p>
+          <p className="text-blue-200 text-sm mt-1">ニコニ立体ちゃんを読み込んでいます...</p>
         )}
       </div>
     );

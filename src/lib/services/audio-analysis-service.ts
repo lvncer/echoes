@@ -24,9 +24,10 @@ export class AudioAnalysisService {
   async startAnalysis(stream: MediaStream): Promise<void> {
     try {
       // AudioContextを作成
-      this.audioContext = new (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext)();
+      this.audioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
 
       // AnalyserNodeを作成
       this.analyser = this.audioContext.createAnalyser();
@@ -44,7 +45,6 @@ export class AudioAnalysisService {
       // 解析開始
       this.isAnalyzing = true;
       this.analyze();
-
     } catch (error) {
       throw error;
     }
@@ -74,7 +74,6 @@ export class AudioAnalysisService {
     this.analyser = null;
     this.dataArray = null;
     this.currentVolume = 0;
-
   }
 
   /**
@@ -137,14 +136,11 @@ export class AudioAnalysisService {
 
     // スムージング適用
     this.currentVolume =
-      this.currentVolume * this.smoothingFactor +
-      rms * (1 - this.smoothingFactor);
-
+      this.currentVolume * this.smoothingFactor + rms * (1 - this.smoothingFactor);
 
     // 閾値以上の場合のみコールバック実行
     if (this.currentVolume > this.volumeThreshold && this.volumeCallback) {
       this.volumeCallback(this.currentVolume);
-
     }
 
     // 次のフレームをスケジュール

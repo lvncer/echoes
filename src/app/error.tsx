@@ -3,13 +3,7 @@
 import React from "react";
 import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -41,10 +35,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       return "アプリケーションの更新が検出されました。ページを再読み込みしてください。";
     }
 
-    if (
-      error.message.includes("NetworkError") ||
-      error.message.includes("fetch")
-    ) {
+    if (error.message.includes("NetworkError") || error.message.includes("fetch")) {
       return "ネットワーク接続に問題があります。インターネット接続を確認してください。";
     }
 
@@ -61,10 +52,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
     if (error.message.includes("ChunkLoadError")) {
       solutions.push("ページを再読み込みしてください");
       solutions.push("ブラウザのキャッシュをクリアしてください");
-    } else if (
-      error.message.includes("NetworkError") ||
-      error.message.includes("fetch")
-    ) {
+    } else if (error.message.includes("NetworkError") || error.message.includes("fetch")) {
       solutions.push("インターネット接続を確認してください");
       solutions.push("VPNを使用している場合は一時的に無効にしてください");
       solutions.push("ファイアウォールの設定を確認してください");
@@ -88,9 +76,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
             <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
           <CardTitle className="text-2xl">{getErrorMessage(error)}</CardTitle>
-          <CardDescription>
-            申し訳ございません。以下の解決方法をお試しください。
-          </CardDescription>
+          <CardDescription>申し訳ございません。以下の解決方法をお試しください。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 解決方法 */}
@@ -110,11 +96,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
           {/* アクションボタン */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={reset}
-              variant="default"
-              className="flex items-center gap-2"
-            >
+            <Button onClick={reset} variant="default" className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4" />
               再試行
             </Button>

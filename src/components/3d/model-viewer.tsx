@@ -25,12 +25,7 @@ interface ModelViewerProps {
 export function ModelViewer({ model, animationSpeed = 1 }: ModelViewerProps) {
   // VRMモデルの場合
   if (model.format === "vrm") {
-    return (
-      <VRMViewer
-        model={model as VRMModelInfo}
-        animationSpeed={animationSpeed}
-      />
-    );
+    return <VRMViewer model={model as VRMModelInfo} animationSpeed={animationSpeed} />;
   }
 
   // glTF/GLBモデルの場合
@@ -40,13 +35,7 @@ export function ModelViewer({ model, animationSpeed = 1 }: ModelViewerProps) {
 /**
  * VRMモデル表示
  */
-function VRMViewer({
-  model,
-  animationSpeed,
-}: {
-  model: VRMModelInfo;
-  animationSpeed: number;
-}) {
+function VRMViewer({ model, animationSpeed }: { model: VRMModelInfo; animationSpeed: number }) {
   const vrmRef = useRef<VRM | null>(null);
 
   useEffect(() => {
@@ -176,9 +165,7 @@ export function ModelInfo({ model }: { model: Model3D }) {
         {model.format === "vrm" && (model as VRMModelInfo).meta?.title && (
           <div className="flex gap-2">
             <span className="text-gray-300">Title:</span>
-            <span className="truncate">
-              {(model as VRMModelInfo).meta?.title}
-            </span>
+            <span className="truncate">{(model as VRMModelInfo).meta?.title}</span>
           </div>
         )}
       </div>

@@ -1,8 +1,4 @@
-import type {
-  SpeechSynthesisConfig,
-  AudioEvents,
-  AudioProcessingState,
-} from "@/lib/types/audio";
+import type { SpeechSynthesisConfig, AudioEvents, AudioProcessingState } from "@/lib/types/audio";
 import {
   getLocalizedErrorMessage,
   detectBrowserSupport,
@@ -67,14 +63,12 @@ export class SpeechSynthesisService {
     if (!this.config.voice && this.availableVoices.length > 0) {
       // 1. 日本語のネイティブ音声を最優先
       let japaneseVoice = this.availableVoices.find(
-        (voice) => voice.lang.startsWith("ja") && voice.localService
+        (voice) => voice.lang.startsWith("ja") && voice.localService,
       );
 
       // 2. 日本語音声（ネイティブでなくても可）
       if (!japaneseVoice) {
-        japaneseVoice = this.availableVoices.find((voice) =>
-          voice.lang.startsWith("ja")
-        );
+        japaneseVoice = this.availableVoices.find((voice) => voice.lang.startsWith("ja"));
       }
 
       // 3. デフォルト音声
@@ -88,7 +82,6 @@ export class SpeechSynthesisService {
       }
 
       this.config.voice = japaneseVoice;
-
     }
   }
 
@@ -166,10 +159,10 @@ export class SpeechSynthesisService {
         // 元のイベントハンドラーを復元
         this.events.onSpeechEnd = originalOnSpeechEnd;
         this.events.onError = originalOnError;
-        
+
         // 元のイベントハンドラーを呼び出し
         originalOnSpeechEnd?.();
-        
+
         resolve(true);
       };
 
@@ -177,10 +170,10 @@ export class SpeechSynthesisService {
         // 元のイベントハンドラーを復元
         this.events.onSpeechEnd = originalOnSpeechEnd;
         this.events.onError = originalOnError;
-        
+
         // 元のイベントハンドラーを呼び出し
         originalOnError?.(error);
-        
+
         reject(new Error(error || "音声合成エラー"));
       };
 
@@ -212,7 +205,6 @@ export class SpeechSynthesisService {
       return false;
     }
 
-
     // 最初のチャンクを再生
     this.speakChunks(chunks, 0);
     return true;
@@ -238,10 +230,10 @@ export class SpeechSynthesisService {
         (text.includes(trimmedSentence + "。")
           ? "。"
           : text.includes(trimmedSentence + "！")
-          ? "！"
-          : text.includes(trimmedSentence + "？")
-          ? "？"
-          : "。");
+            ? "！"
+            : text.includes(trimmedSentence + "？")
+              ? "？"
+              : "。");
 
       if (currentChunk.length + fullSentence.length <= maxLength) {
         currentChunk += fullSentence;
@@ -265,7 +257,7 @@ export class SpeechSynthesisService {
    */
   private speakChunks(chunks: string[], index: number): void {
     if (index >= chunks.length) {
-        return;
+      return;
     }
 
     const chunk = chunks[index];
@@ -332,11 +324,7 @@ export class SpeechSynthesisService {
 
         // 状態監視を開始
         statusCheckInterval = setInterval(() => {
-          if (
-            this.synthesis &&
-            !this.synthesis.speaking &&
-            !this.synthesis.pending
-          ) {
+          if (this.synthesis && !this.synthesis.speaking && !this.synthesis.pending) {
             if (!isCompleted) {
               this.handleUnexpectedStop();
             }
@@ -363,7 +351,6 @@ export class SpeechSynthesisService {
       };
 
       utterance.onerror = (event) => {
-
         // interruptedエラーは正常な停止として扱う
         if (event.error === "interrupted") {
           isCompleted = true;
@@ -389,22 +376,18 @@ export class SpeechSynthesisService {
         }
       };
 
-      utterance.onpause = () => {
-      };
+      utterance.onpause = () => {};
 
-      utterance.onresume = () => {
-      };
+      utterance.onresume = () => {};
 
       this.currentUtterance = utterance;
 
       // ブラウザ制限の確認
       const limitations = getBrowserLimitations();
       if (limitations.requiresUserGesture) {
-
         // ユーザージェスチャーが必要な場合のフォールバック処理
         return this.handleUserGestureRequired(utterance, text);
       }
-
 
       if (!this.synthesis) {
         this.handleError("not-supported", "音声合成サービスが利用できません");
@@ -440,11 +423,7 @@ export class SpeechSynthesisService {
   /**
    * ユーザージェスチャーが必要な場合の処理
    */
-  private handleUserGestureRequired(
-    utterance: SpeechSynthesisUtterance,
-    _text: string
-  ): boolean {
-
+  private handleUserGestureRequired(utterance: SpeechSynthesisUtterance, _text: string): boolean {
     if (!this.synthesis) {
       this.handleError("not-supported", "音声合成サービスが利用できません");
       return false;
@@ -462,10 +441,7 @@ export class SpeechSynthesisService {
 
       return true;
     } catch (error) {
-      this.handleError(
-        "audio-capture",
-        `ユーザージェスチャーモード音声開始エラー: ${error}`
-      );
+      this.handleError("audio-capture", `ユーザージェスチャーモード音声開始エラー: ${error}`);
       return false;
     }
   }
@@ -490,7 +466,6 @@ export class SpeechSynthesisService {
   public stop(): void {
     try {
       if (this.synthesis && this.state.isSpeaking) {
-
         // 現在の発話を取得
         const currentUtterance = this.currentUtterance;
 
@@ -572,7 +547,6 @@ export class SpeechSynthesisService {
    * 音声合成エラーを処理
    */
   private handleSynthesisError(event: SpeechSynthesisErrorEvent): void {
-
     let errorType = "unknown";
     let detailedMessage = "";
 
@@ -646,9 +620,7 @@ export class SpeechSynthesisService {
    */
   private handleError(errorType: string, detailedMessage?: string): void {
     const baseMessage = getLocalizedErrorMessage(errorType);
-    const message = detailedMessage
-      ? `${baseMessage}: ${detailedMessage}`
-      : baseMessage;
+    const message = detailedMessage ? `${baseMessage}: ${detailedMessage}` : baseMessage;
 
     this.state.error = message;
     this.events.onError?.(message);

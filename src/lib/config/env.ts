@@ -13,9 +13,7 @@ const envSchema = z.object({
   GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
   GEMINI_MAX_TOKENS: z.string().default("1000").transform(Number),
   GEMINI_TEMPERATURE: z.string().default("0.7").transform(Number),
-  AI_PROVIDER: z
-    .enum(["openai", "anthropic", "gemini", "local"])
-    .default("gemini"),
+  AI_PROVIDER: z.enum(["openai", "anthropic", "gemini", "local"]).default("gemini"),
   AI_BASE_URL: z.string().default("https://api.openai.com/v1"),
 });
 
@@ -28,16 +26,12 @@ function getSessionEnvConfig() {
   return {
     OPENAI_API_KEY: sessionStorage.getItem("ENV_OPENAI_API_KEY") || undefined,
     OPENAI_MODEL: sessionStorage.getItem("ENV_OPENAI_MODEL") || undefined,
-    OPENAI_MAX_TOKENS:
-      sessionStorage.getItem("ENV_OPENAI_MAX_TOKENS") || undefined,
-    OPENAI_TEMPERATURE:
-      sessionStorage.getItem("ENV_OPENAI_TEMPERATURE") || undefined,
+    OPENAI_MAX_TOKENS: sessionStorage.getItem("ENV_OPENAI_MAX_TOKENS") || undefined,
+    OPENAI_TEMPERATURE: sessionStorage.getItem("ENV_OPENAI_TEMPERATURE") || undefined,
     GEMINI_API_KEY: sessionStorage.getItem("ENV_GEMINI_API_KEY") || undefined,
     GEMINI_MODEL: sessionStorage.getItem("ENV_GEMINI_MODEL") || undefined,
-    GEMINI_MAX_TOKENS:
-      sessionStorage.getItem("ENV_GEMINI_MAX_TOKENS") || undefined,
-    GEMINI_TEMPERATURE:
-      sessionStorage.getItem("ENV_GEMINI_TEMPERATURE") || undefined,
+    GEMINI_MAX_TOKENS: sessionStorage.getItem("ENV_GEMINI_MAX_TOKENS") || undefined,
+    GEMINI_TEMPERATURE: sessionStorage.getItem("ENV_GEMINI_TEMPERATURE") || undefined,
     AI_PROVIDER: sessionStorage.getItem("ENV_AI_PROVIDER") || undefined,
     AI_BASE_URL: sessionStorage.getItem("ENV_AI_BASE_URL") || undefined,
   };
@@ -51,16 +45,12 @@ function getEnvConfig() {
   const env = {
     OPENAI_API_KEY: sessionEnv.OPENAI_API_KEY || process.env.OPENAI_API_KEY,
     OPENAI_MODEL: sessionEnv.OPENAI_MODEL || process.env.OPENAI_MODEL,
-    OPENAI_MAX_TOKENS:
-      sessionEnv.OPENAI_MAX_TOKENS || process.env.OPENAI_MAX_TOKENS,
-    OPENAI_TEMPERATURE:
-      sessionEnv.OPENAI_TEMPERATURE || process.env.OPENAI_TEMPERATURE,
+    OPENAI_MAX_TOKENS: sessionEnv.OPENAI_MAX_TOKENS || process.env.OPENAI_MAX_TOKENS,
+    OPENAI_TEMPERATURE: sessionEnv.OPENAI_TEMPERATURE || process.env.OPENAI_TEMPERATURE,
     GEMINI_API_KEY: sessionEnv.GEMINI_API_KEY || process.env.GEMINI_API_KEY,
     GEMINI_MODEL: sessionEnv.GEMINI_MODEL || process.env.GEMINI_MODEL,
-    GEMINI_MAX_TOKENS:
-      sessionEnv.GEMINI_MAX_TOKENS || process.env.GEMINI_MAX_TOKENS,
-    GEMINI_TEMPERATURE:
-      sessionEnv.GEMINI_TEMPERATURE || process.env.GEMINI_TEMPERATURE,
+    GEMINI_MAX_TOKENS: sessionEnv.GEMINI_MAX_TOKENS || process.env.GEMINI_MAX_TOKENS,
+    GEMINI_TEMPERATURE: sessionEnv.GEMINI_TEMPERATURE || process.env.GEMINI_TEMPERATURE,
     AI_PROVIDER: sessionEnv.AI_PROVIDER || process.env.AI_PROVIDER,
     AI_BASE_URL: sessionEnv.AI_BASE_URL || process.env.AI_BASE_URL,
   };

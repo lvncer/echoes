@@ -41,8 +41,7 @@ export function TextChatInput({
     }
   }, [lastAIMessage, isVoiceChatActive]);
 
-  const canUseTextChat =
-    !isVoiceChatActive || (isVoiceChatActive && voiceChatStatus === "idle");
+  const canUseTextChat = !isVoiceChatActive || (isVoiceChatActive && voiceChatStatus === "idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,10 +60,7 @@ export function TextChatInput({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={`flex items-center gap-2 ${className}`}
-    >
+    <form onSubmit={handleSubmit} className={`flex items-center gap-2 ${className}`}>
       <input
         ref={inputRef}
         value={input}

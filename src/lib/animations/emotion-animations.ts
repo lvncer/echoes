@@ -1,7 +1,4 @@
-import type {
-  EmotionAnimation,
-  AnimationSequence,
-} from "@/lib/types/animation";
+import type { EmotionAnimation, AnimationSequence } from "@/lib/types/animation";
 
 /**
  * 感情アニメーション定義
@@ -576,7 +573,7 @@ export const emotionAnimations: Record<string, EmotionAnimation> = {
  */
 export function getEmotionAnimation(
   emotion: string,
-  intensity: number = 1.0
+  intensity: number = 1.0,
 ): EmotionAnimation | null {
   const baseAnimation = emotionAnimations[emotion];
   if (!baseAnimation) return null;
@@ -586,14 +583,8 @@ export function getEmotionAnimation(
     ...baseAnimation,
     intensity,
     animations: {
-      facial: adjustAnimationIntensity(
-        baseAnimation.animations.facial,
-        intensity
-      ),
-      gesture: adjustAnimationIntensity(
-        baseAnimation.animations.gesture,
-        intensity
-      ),
+      facial: adjustAnimationIntensity(baseAnimation.animations.facial, intensity),
+      gesture: adjustAnimationIntensity(baseAnimation.animations.gesture, intensity),
       idle: baseAnimation.animations.idle
         ? adjustAnimationIntensity(baseAnimation.animations.idle, intensity)
         : undefined,
@@ -606,7 +597,7 @@ export function getEmotionAnimation(
  */
 function adjustAnimationIntensity(
   animation: AnimationSequence,
-  intensity: number
+  intensity: number,
 ): AnimationSequence {
   return {
     ...animation,
@@ -614,10 +605,7 @@ function adjustAnimationIntensity(
       ...keyframe,
       blendShapes: keyframe.blendShapes
         ? Object.fromEntries(
-            Object.entries(keyframe.blendShapes).map(([key, value]) => [
-              key,
-              value * intensity,
-            ])
+            Object.entries(keyframe.blendShapes).map(([key, value]) => [key, value * intensity]),
           )
         : undefined,
       bones: keyframe.bones
@@ -625,23 +613,15 @@ function adjustAnimationIntensity(
             Object.entries(keyframe.bones).map(([boneName, transform]) => [
               boneName,
               {
-                position: transform.position?.map((v) => v * intensity) as [
-                  number,
-                  number,
-                  number
-                ],
-                rotation: transform.rotation?.map((v) => v * intensity) as [
-                  number,
-                  number,
-                  number
-                ],
+                position: transform.position?.map((v) => v * intensity) as [number, number, number],
+                rotation: transform.rotation?.map((v) => v * intensity) as [number, number, number],
                 scale: transform.scale?.map((v) => 1 + (v - 1) * intensity) as [
                   number,
                   number,
-                  number
+                  number,
                 ],
               },
-            ])
+            ]),
           )
         : undefined,
     })),

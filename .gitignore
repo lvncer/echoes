@@ -52,3 +52,6 @@ next-env.d.ts
 .claude/
 CLAUDE.md
 .mcp.json
+
+# npm lockfile (using bun instead)
+package-lock.json

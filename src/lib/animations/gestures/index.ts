@@ -33,11 +33,7 @@ import {
 /**
  * 統合されたジェスチャー型
  */
-export type GestureType =
-  | NeutralGestureType
-  | HandGestureType
-  | HeadGestureType
-  | BodyGestureType;
+export type GestureType = NeutralGestureType | HandGestureType | HeadGestureType | BodyGestureType;
 
 /**
  * ジェスチャーカテゴリ
@@ -157,7 +153,7 @@ export function getGestureCategoryStats(): Record<GestureCategory, number> {
 export function getRandomGesture(category?: GestureCategory): GestureType | null {
   const gestures = category ? getGesturesByCategory(category) : getAllGestures();
   if (gestures.length === 0) return null;
-  
+
   const randomIndex = Math.floor(Math.random() * gestures.length);
   return gestures[randomIndex];
-} 
+}

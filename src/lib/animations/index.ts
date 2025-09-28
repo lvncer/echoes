@@ -55,7 +55,7 @@ import {
 
 /**
  * 🎭 統合アニメーションシステム
- * 
+ *
  * このシステムは新しい構造化されたアニメーションと
  * 既存の実装の両方をサポートし、段階的な移行を可能にします。
  */
@@ -87,7 +87,7 @@ export function getGestureAnimation(gestureType: GestureType): AnimationSequence
  */
 export function getEmotionAnimation(
   emotion: string,
-  intensity: number = 1.0
+  intensity: number = 1.0,
 ): EmotionAnimation | null {
   // 新しい構造から取得を試行
   const newAnimation = getNewEmotionAnimation(emotion as NewEmotionType, intensity);
@@ -103,7 +103,7 @@ export function getEmotionAnimation(
 export function getAllGestures(): GestureType[] {
   const newGestures = getAllNewGestures();
   const legacyGestures = getAllGesturesLegacy();
-  
+
   // 重複を除去して統合
   const allGestures = [...new Set([...newGestures, ...legacyGestures])];
   return allGestures as GestureType[];
@@ -115,7 +115,7 @@ export function getAllGestures(): GestureType[] {
 export function getAllEmotions(): string[] {
   const newEmotions = getAllNewEmotions();
   const legacyEmotions = getAvailableEmotions();
-  
+
   // 重複を除去して統合
   const allEmotions = [...new Set([...newEmotions, ...legacyEmotions])];
   return allEmotions;
@@ -168,7 +168,7 @@ export const AnimationMigration = {
       leanBack: "leanBack",
       shrug: "shrug",
     };
-    
+
     return mapping[legacyGesture] || null;
   },
 
@@ -189,7 +189,7 @@ export const AnimationMigration = {
       totalGestures: getAllNewGestures().length,
       totalEmotions: getAllNewEmotions().length,
     };
-  }
+  },
 };
 
 /**
@@ -215,4 +215,4 @@ export function getAnimationSystemStats() {
       backwardCompatibility: true,
     },
   };
-} 
+}

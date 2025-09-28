@@ -484,9 +484,7 @@ export type GestureCategory = "hand" | "head" | "body";
 /**
  * 指定されたジェスチャーアニメーションを取得
  */
-export function getGestureAnimation(
-  gestureType: GestureType
-): AnimationSequence | null {
+export function getGestureAnimation(gestureType: GestureType): AnimationSequence | null {
   // 手のジェスチャー
   if (gestureType in handGestures) {
     return handGestures[gestureType as keyof typeof handGestures];
@@ -508,9 +506,7 @@ export function getGestureAnimation(
 /**
  * カテゴリ別のジェスチャー一覧を取得
  */
-export function getGesturesByCategory(
-  category: GestureCategory
-): GestureType[] {
+export function getGesturesByCategory(category: GestureCategory): GestureType[] {
   switch (category) {
     case "hand":
       return ["pointRight", "wave", "clap"];

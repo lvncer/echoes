@@ -111,9 +111,7 @@ export class IntegratedSpeechService {
       }
 
       // エラーイベントを発火
-      this.events.onError?.(
-        error instanceof Error ? error.message : "音声合成エラー"
-      );
+      this.events.onError?.(error instanceof Error ? error.message : "音声合成エラー");
 
       return false;
     }
@@ -131,8 +129,7 @@ export class IntegratedSpeechService {
       // Web API使用時はサーバー状態チェックをスキップ
       if (!config.useWebApi) {
         // ローカルAPI使用時のみサーバー状態確認
-        const isServerAvailable =
-          await this.voicevoxService.checkServerStatus();
+        const isServerAvailable = await this.voicevoxService.checkServerStatus();
         if (!isServerAvailable) {
           throw new Error("VOICEVOXサーバーが利用できません");
         }
@@ -146,10 +143,7 @@ export class IntegratedSpeechService {
       }
 
       // 音声合成実行（最新の話者設定を使用）
-      const audioBlob = await this.voicevoxService.synthesizeVoice(
-        text,
-        config.speaker
-      );
+      const audioBlob = await this.voicevoxService.synthesizeVoice(text, config.speaker);
 
       // 音声再生
       const success = await this.playAudioBlob(audioBlob);
@@ -345,8 +339,7 @@ export class IntegratedSpeechService {
     try {
       status.webspeech.available = this.webSpeechService.isSynthesisSupported();
     } catch (error) {
-      status.webspeech.error =
-        error instanceof Error ? error.message : "不明なエラー";
+      status.webspeech.error = error instanceof Error ? error.message : "不明なエラー";
     }
 
     // VOICEVOXテスト
@@ -377,8 +370,7 @@ export class IntegratedSpeechService {
         }
       }
     } catch (error) {
-      status.voicevox.error =
-        error instanceof Error ? error.message : "不明なエラー";
+      status.voicevox.error = error instanceof Error ? error.message : "不明なエラー";
     }
 
     return status;
@@ -416,9 +408,7 @@ export class IntegratedSpeechService {
       }
 
       // その他のエラーは一般的なメッセージに変換
-      throw new Error(
-        "VOICEVOX話者一覧の取得に失敗しました。設定を確認してください。"
-      );
+      throw new Error("VOICEVOX話者一覧の取得に失敗しました。設定を確認してください。");
     }
   }
 

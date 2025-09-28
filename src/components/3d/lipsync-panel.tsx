@@ -89,9 +89,7 @@ export function LipSyncPanel({ className }: LipSyncPanelProps) {
     <div className={className}>
       <Card className="bg-background/95">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">
-            基本リップシンク
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">基本リップシンク</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -103,12 +101,7 @@ export function LipSyncPanel({ className }: LipSyncPanelProps) {
                 開始
               </Button>
             ) : (
-              <Button
-                onClick={stopLipSync}
-                variant="destructive"
-                className="flex-1"
-                size="sm"
-              >
+              <Button onClick={stopLipSync} variant="destructive" className="flex-1" size="sm">
                 <MicOff className="w-4 h-4 mr-2" />
                 停止
               </Button>
@@ -148,9 +141,7 @@ export function LipSyncPanel({ className }: LipSyncPanelProps) {
               <div className="space-y-1 text-xs">
                 <div className="flex justify-between">
                   <span>音量レベル:</span>
-                  <span>
-                    {debugInfo.audioAnalysis.currentVolume.toFixed(3)}
-                  </span>
+                  <span>{debugInfo.audioAnalysis.currentVolume.toFixed(3)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>口の開き:</span>
@@ -231,9 +222,7 @@ export function LipSyncPanel({ className }: LipSyncPanelProps) {
             <div className="text-xs text-muted-foreground">
               <div className="flex justify-between">
                 <span>ブレンドシェイプ:</span>
-                <span>
-                  {debugInfo.blendShape.hasBlendShapeProxy ? "対応" : "未対応"}
-                </span>
+                <span>{debugInfo.blendShape.hasBlendShapeProxy ? "対応" : "未対応"}</span>
               </div>
               <div className="flex justify-between">
                 <span>利用可能数:</span>

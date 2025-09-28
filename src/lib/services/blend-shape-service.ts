@@ -15,7 +15,6 @@ export class VRMBlendShapeService {
   setVRM(vrm: VRM): void {
     this.vrm = vrm;
     this.resetAllBlendShapes();
-
   }
 
   /**
@@ -51,7 +50,6 @@ export class VRMBlendShapeService {
 
       // 設定後の値を確認
       const _actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
-
     } catch (_error) {
       // Ignore blend shape setting errors
     }
@@ -297,12 +295,36 @@ export class VRMBlendShapeService {
     try {
       // 口元関連のブレンドシェイプ名
       const mouthShapes = [
-        "A", "I", "U", "E", "O", // 標準VRM
-        "aa", "ih", "ou", "ee", "oh", // VRM 1.0
-        "あ", "い", "う", "え", "お", // 日本語
-        "mouth_a", "mouth_i", "mouth_u", "mouth_e", "mouth_o", // 一般的
-        "Mouth_A", "Mouth_I", "Mouth_U", "Mouth_E", "Mouth_O", // 大文字
-        "vrc.v_aa", "vrc.v_ih", "vrc.v_ou", "vrc.v_ee", "vrc.v_oh" // VRChat
+        "A",
+        "I",
+        "U",
+        "E",
+        "O", // 標準VRM
+        "aa",
+        "ih",
+        "ou",
+        "ee",
+        "oh", // VRM 1.0
+        "あ",
+        "い",
+        "う",
+        "え",
+        "お", // 日本語
+        "mouth_a",
+        "mouth_i",
+        "mouth_u",
+        "mouth_e",
+        "mouth_o", // 一般的
+        "Mouth_A",
+        "Mouth_I",
+        "Mouth_U",
+        "Mouth_E",
+        "Mouth_O", // 大文字
+        "vrc.v_aa",
+        "vrc.v_ih",
+        "vrc.v_ou",
+        "vrc.v_ee",
+        "vrc.v_oh", // VRChat
       ];
 
       // 口元のブレンドシェイプのみをリセット
@@ -316,7 +338,6 @@ export class VRMBlendShapeService {
 
       // 更新を適用
       this.vrm.expressionManager.update();
-
     } catch (_error) {
       // Ignore reset errors
     }
@@ -330,7 +351,6 @@ export class VRMBlendShapeService {
       return;
     }
 
-
     try {
       let _actuallySet = 0;
       Object.entries(weights).forEach(([name, weight]) => {
@@ -340,14 +360,12 @@ export class VRMBlendShapeService {
           this.vrm!.expressionManager!.setValue(name, clampedWeight);
           this.currentWeights[name] = clampedWeight;
           _actuallySet++;
-
         } catch (_error) {
           // Ignore individual blend shape errors
         }
       });
 
       this.vrm.expressionManager.update();
-
     } catch (_error) {
       // Ignore multiple blend shape errors
     }
@@ -384,9 +402,7 @@ export class VRMBlendShapeService {
     const hasVRM = !!this.vrm;
     const hasBlendShapeProxy = !!this.vrm?.expressionManager;
     const availableBlendShapes = this.getAvailableBlendShapes();
-    const activeShapes = Object.values(this.currentWeights).filter(
-      (weight) => weight > 0
-    );
+    const activeShapes = Object.values(this.currentWeights).filter((weight) => weight > 0);
 
     return {
       hasVRM,
@@ -440,8 +456,7 @@ export class VRMBlendShapeService {
         const actualName = this.mapBlendShapeName(shapeName);
 
         // 現在の値を保存
-        const originalValue =
-          this.vrm.expressionManager.getValue(actualName) || 0;
+        const originalValue = this.vrm.expressionManager.getValue(actualName) || 0;
 
         // テスト値を設定
         const testValue = 0.5;
@@ -452,14 +467,11 @@ export class VRMBlendShapeService {
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         // 設定された値を確認
-        const actualValue =
-          this.vrm.expressionManager.getValue(actualName) || 0;
+        const actualValue = this.vrm.expressionManager.getValue(actualName) || 0;
         const isAvailable = Math.abs(actualValue - testValue) < 0.1;
 
         results.push({
-          name: `${shapeName}${
-            actualName !== shapeName ? ` → ${actualName}` : ""
-          }`,
+          name: `${shapeName}${actualName !== shapeName ? ` → ${actualName}` : ""}`,
           available: isAvailable,
           testValue: actualValue,
         });
@@ -482,7 +494,6 @@ export class VRMBlendShapeService {
 
     const successCount = results.filter((r) => r.available).length;
     const success = successCount > 0;
-
 
     return {
       success,
@@ -524,7 +535,6 @@ export class VRMBlendShapeService {
         await new Promise((resolve) => setTimeout(resolve, duration / 4));
       }
     }
-
   }
 }
 
