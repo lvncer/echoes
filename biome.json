@@ -9,7 +9,7 @@
     "includes": [
       "src/**",
       "docs/**",
-      "*.{ts,tsx,js,jsx,json,css,md,mdx,mjs,cjs,yml,yaml}",
+      "**/*.{ts,tsx,js,jsx,json,css,md,mdx,mjs,cjs,yml,yaml}",
       "eslint.config.mjs",
       "postcss.config.mjs",
       "next.config.ts",

@@ -18,18 +18,6 @@
 
 - **Zustand**
 
-## Authentication & Backend (feature...)
-
-- **Clerk** (auth)
-- **Prisma** (ORM) + **Supabase** (BaaS)
-
-## Testing
-
-- **Vitest** (unit/integration)
-- **React Testing Library** (components)
-- **Playwright** (E2E)
-- **MSW** (API mocking)
-
 ## Others
 
 - **Server Actions** + **Zod** (forms/validation)
