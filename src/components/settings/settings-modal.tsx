@@ -31,13 +31,7 @@ interface SettingsModalProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type SettingsCategory =
-  | "help"
-  | "models"
-  | "voice"
-  | "camera"
-  | "ai"
-  | "environment";
+type SettingsCategory = "help" | "models" | "voice" | "camera" | "ai" | "environment";
 
 interface CategoryItem {
   id: SettingsCategory;
@@ -86,8 +80,7 @@ const categories: CategoryItem[] = [
 ];
 
 export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
-  const [activeCategory, setActiveCategory] =
-    useState<SettingsCategory>("help");
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("help");
 
   const {
     availableModels,
@@ -106,29 +99,17 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                操作方法
-              </h3>
-              <p className="text-gray-400 mb-6">
-                アプリの使い方とヒントを確認できます
-              </p>
+              <h3 className="text-xl font-semibold text-white mb-2">操作方法</h3>
+              <p className="text-gray-400 mb-6">アプリの使い方とヒントを確認できます</p>
               <div className="p-6 space-y-6">
                 <ErrorBoundary>
                   <div className="space-y-8">
                     <div className="border-l-4 border-blue-500 pl-4">
-                      <h4 className="text-lg font-medium text-white mb-2">
-                        🎤 音声チャット機能
-                      </h4>
+                      <h4 className="text-lg font-medium text-white mb-2">🎤 音声チャット機能</h4>
                       <ul className="text-gray-300 space-y-3 text-sm">
+                        <li>• 下部の丸いマイクボタンをクリックして音声チャットを有効化</li>
                         <li>
-                          •
-                          下部の丸いマイクボタンをクリックして音声チャットを有効化
-                        </li>
-                        <li>
-                          •
-                          <kbd className="bg-gray-700 px-2 py-1 rounded mx-1">
-                            Space
-                          </kbd>
+                          •<kbd className="bg-gray-700 px-2 py-1 rounded mx-1">Space</kbd>
                           キーを押している間、音声を録音
                         </li>
                         <li>
@@ -160,23 +141,16 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                     </div>
 
                     <div className="border-l-4 border-green-500 pl-4">
-                      <h4 className="text-lg font-medium text-white mb-3">
-                        🎨 3Dモデル設定
-                      </h4>
+                      <h4 className="text-lg font-medium text-white mb-3">🎨 3Dモデル設定</h4>
                       <ul className="text-gray-300 space-y-3 text-sm">
-                        <li>
-                          •
-                          「3Dモデル」タブでVRM、glTF、GLBファイルをアップロード
-                        </li>
+                        <li>• 「3Dモデル」タブでVRM、glTF、GLBファイルをアップロード</li>
                         <li>• アップロード後、モデルを選択して切り替え可能</li>
                         <li>• 不要なモデルは削除ボタンで削除できます</li>
                       </ul>
                     </div>
 
                     <div className="border-l-4 border-purple-500 pl-4">
-                      <h4 className="text-lg font-medium text-white mb-3">
-                        🔧 その他の設定
-                      </h4>
+                      <h4 className="text-lg font-medium text-white mb-3">🔧 その他の設定</h4>
                       <ul className="text-gray-300 space-y-3 text-sm">
                         <li>
                           • <strong>音声設定</strong>
@@ -196,15 +170,10 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                     </div>
 
                     <div className="border-l-4 border-orange-500 pl-4">
-                      <h4 className="text-lg font-medium text-white mb-3">
-                        💡 ヒント
-                      </h4>
+                      <h4 className="text-lg font-medium text-white mb-3">💡 ヒント</h4>
                       <ul className="text-gray-300 space-y-3 text-sm">
                         <li>• 右上の履歴ボタンで過去の会話を確認できます</li>
-                        <li>
-                          •
-                          3Dモデルが表示されない場合は、まずモデルをアップロード
-                        </li>
+                        <li>• 3Dモデルが表示されない場合は、まずモデルをアップロード</li>
                         <li>• AI応答が遅い場合は、環境変数でAPIキーを確認</li>
                       </ul>
                     </div>
@@ -219,9 +188,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                3Dモデル管理
-              </h3>
+              <h3 className="text-xl font-semibold text-white mb-2">3Dモデル管理</h3>
               <p className="text-gray-400 mb-6">
                 VRM、glTF、GLBファイルをアップロードして使用できます
               </p>
@@ -239,15 +206,11 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                         if (result.success && result.model) {
                           addModel(result.model);
                         } else {
-                          throw new Error(
-                            result.error || "モデルの読み込みに失敗"
-                          );
+                          throw new Error(result.error || "モデルの読み込みに失敗");
                         }
                       } catch (error) {
                         const errorMessage =
-                          error instanceof Error
-                            ? error.message
-                            : "不明なエラーが発生";
+                          error instanceof Error ? error.message : "不明なエラーが発生";
                         setError(errorMessage);
                       } finally {
                         setLoading(false);
@@ -266,12 +229,8 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white">
-                音声合成設定
-              </h3>
-              <p className="text-gray-400 mb-6">
-                Web Speech APIとVOICEVOXの音声合成設定を行います
-              </p>
+              <h3 className="text-xl font-semibold text-white">音声合成設定</h3>
+              <p className="text-gray-400 mb-6">Web Speech APIとVOICEVOXの音声合成設定を行います</p>
               <div className="p-4">
                 <ErrorBoundary>
                   <VoiceSettings />
@@ -285,12 +244,8 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                カメラ・システム設定
-              </h3>
-              <p className="text-gray-400 mb-3">
-                3Dシーンのカメラ設定とシステム管理を行います
-              </p>
+              <h3 className="text-xl font-semibold text-white mb-2">カメラ・システム設定</h3>
+              <p className="text-gray-400 mb-3">3Dシーンのカメラ設定とシステム管理を行います</p>
               <div className="p-4">
                 <ErrorBoundary>
                   <CameraSettings />
@@ -319,9 +274,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                環境変数設定
-              </h3>
+              <h3 className="text-xl font-semibold text-white mb-2">環境変数設定</h3>
               <p className="text-gray-400 mb-3">
                 API設定と環境変数の管理を行います（セッション中のみ保持）
               </p>
@@ -344,9 +297,7 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
         showCloseButton={true}
       >
         <DialogHeader className="border-b border-gray-700/50 pb-4 flex-shrink-0 backdrop-blur-sm">
-          <DialogTitle className="text-2xl font-bold text-white">
-            設定
-          </DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-white">設定</DialogTitle>
           <DialogDescription className="text-gray-400">
             3Dモデルの管理とAI設定を行います
           </DialogDescription>
@@ -376,26 +327,20 @@ export function SettingsModal({ isOpen, onOpenChange }: SettingsModalProps) {
                     >
                       <Icon
                         className={`w-5 h-5 ${
-                          isActive
-                            ? "text-white"
-                            : "text-gray-400 group-hover:text-white"
+                          isActive ? "text-white" : "text-gray-400 group-hover:text-white"
                         }`}
                       />
                       <div className="flex-1 min-w-0">
                         <div
                           className={`font-medium ${
-                            isActive
-                              ? "text-white"
-                              : "text-gray-300 group-hover:text-white"
+                            isActive ? "text-white" : "text-gray-300 group-hover:text-white"
                           }`}
                         >
                           {category.label}
                         </div>
                         <div
                           className={`text-xs mt-1 ${
-                            isActive
-                              ? "text-blue-100"
-                              : "text-gray-500 group-hover:text-gray-400"
+                            isActive ? "text-blue-100" : "text-gray-500 group-hover:text-gray-400"
                           }`}
                         >
                           {category.description}

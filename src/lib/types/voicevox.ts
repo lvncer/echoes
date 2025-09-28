@@ -107,7 +107,7 @@ export const VOICEVOX_WEB_API_CONFIG: VoicevoxConfig = {
 // 話者ID マッピング（クレジット表記用）
 export const SPEAKER_CREDITS: Record<number, string> = {
   0: "VOICEVOX:四国めたん",
-  1: "VOICEVOX:ずんだもん", 
+  1: "VOICEVOX:ずんだもん",
   2: "VOICEVOX:四国めたん",
   3: "VOICEVOX:ずんだもん",
   4: "VOICEVOX:四国めたん",
@@ -132,4 +132,4 @@ export const SPEAKER_CREDITS: Record<number, string> = {
 
 export function getRequiredCredit(speakerId: number): string {
   return SPEAKER_CREDITS[speakerId] || "VOICEVOX";
-} 
+}

@@ -183,7 +183,7 @@ const neutralGestures = {
  * ニュートラルジェスチャーアニメーションを取得
  */
 export function getNeutralGestureAnimation(
-  gestureType: NeutralGestureType
+  gestureType: NeutralGestureType,
 ): AnimationSequence | null {
   return neutralGestures[gestureType] || null;
 }
@@ -198,9 +198,7 @@ export function getAllNeutralGestures(): NeutralGestureType[] {
 /**
  * ニュートラルジェスチャーの説明を取得
  */
-export function getNeutralGestureDescription(
-  gestureType: NeutralGestureType
-): string {
+export function getNeutralGestureDescription(gestureType: NeutralGestureType): string {
   const descriptions = {
     headShake: "首横振り - 左右にゆっくりと首を振る自然な動作",
     lightHeadShake: "軽い首振り - 左右にゆっくりと首を振る",

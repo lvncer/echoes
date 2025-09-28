@@ -4,7 +4,7 @@
  */
 
 export interface AppError {
-  type: 'audio' | 'ai' | 'animation' | 'network' | 'validation' | 'unknown';
+  type: "audio" | "ai" | "animation" | "network" | "validation" | "unknown";
   code: string;
   message: string;
   details?: unknown;
@@ -27,11 +27,11 @@ class ErrorHandlerService {
   }
 
   public handleError(
-    type: AppError['type'],
+    type: AppError["type"],
     code: string,
     message: string,
     details?: unknown,
-    recoverable: boolean = true
+    recoverable: boolean = true,
   ): AppError {
     const error: AppError = {
       type,
@@ -51,27 +51,27 @@ class ErrorHandlerService {
   }
 
   public handleAudioError(code: string, message: string, details?: unknown): AppError {
-    return this.handleError('audio', code, message, details);
+    return this.handleError("audio", code, message, details);
   }
 
   public handleAIError(code: string, message: string, details?: unknown): AppError {
-    return this.handleError('ai', code, message, details);
+    return this.handleError("ai", code, message, details);
   }
 
   public handleAnimationError(code: string, message: string, details?: unknown): AppError {
-    return this.handleError('animation', code, message, details);
+    return this.handleError("animation", code, message, details);
   }
 
   public handleNetworkError(code: string, message: string, details?: unknown): AppError {
-    return this.handleError('network', code, message, details);
+    return this.handleError("network", code, message, details);
   }
 
   public handleValidationError(code: string, message: string, details?: unknown): AppError {
-    return this.handleError('validation', code, message, details, false);
+    return this.handleError("validation", code, message, details, false);
   }
 
   public handleUnknownError(message: string, details?: unknown): AppError {
-    return this.handleError('unknown', 'UNKNOWN_ERROR', message, details);
+    return this.handleError("unknown", "UNKNOWN_ERROR", message, details);
   }
 
   public tryRecover(error: AppError): boolean {
@@ -84,11 +84,11 @@ class ErrorHandlerService {
       return true;
     } catch (recoveryError) {
       this.handleError(
-        'unknown',
-        'RECOVERY_FAILED',
+        "unknown",
+        "RECOVERY_FAILED",
         `Failed to recover from error: ${error.code}`,
         recoveryError,
-        false
+        false,
       );
       return false;
     }

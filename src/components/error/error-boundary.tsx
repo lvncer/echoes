@@ -3,13 +3,7 @@
 import React from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -32,11 +26,7 @@ interface ErrorFallbackProps {
 /**
  * デフォルトのエラーフォールバックコンポーネント
  */
-const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({
-  error,
-  resetError,
-  errorInfo,
-}) => {
+const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError, errorInfo }) => {
   const isDevelopment = process.env.NODE_ENV === "development";
 
   return (
@@ -46,9 +36,7 @@ const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({
           <div className="mx-auto mb-4 w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
             <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
-          <CardTitle className="text-2xl">
-            予期しないエラーが発生しました
-          </CardTitle>
+          <CardTitle className="text-2xl">予期しないエラーが発生しました</CardTitle>
           <CardDescription>
             申し訳ございません。アプリケーションでエラーが発生しました。
             ページを再読み込みするか、ホームページに戻ってお試しください。
@@ -56,11 +44,7 @@ const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={resetError}
-              variant="default"
-              className="flex items-center gap-2"
-            >
+            <Button onClick={resetError} variant="default" className="flex items-center gap-2">
               <RefreshCw className="w-4 h-4" />
               再試行
             </Button>
@@ -116,10 +100,7 @@ const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({
  * アプリケーション内のJavaScriptエラーをキャッチし、
  * ユーザーフレンドリーなエラー画面を表示します。
  */
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -205,7 +186,7 @@ export function useErrorBoundary() {
  */
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorFallback?: React.ComponentType<ErrorFallbackProps>
+  errorFallback?: React.ComponentType<ErrorFallbackProps>,
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary fallback={errorFallback}>
@@ -213,9 +194,7 @@ export function withErrorBoundary<P extends object>(
     </ErrorBoundary>
   );
 
-  WrappedComponent.displayName = `withErrorBoundary(${
-    Component.displayName || Component.name
-  })`;
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
 
   return WrappedComponent;
 }

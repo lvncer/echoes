@@ -1,8 +1,5 @@
 import { blendShapeService } from "./blend-shape-service";
-import {
-  phonemeAnalysisService,
-  PhonemeAnalysisResult,
-} from "./phoneme-analysis-service";
+import { phonemeAnalysisService, PhonemeAnalysisResult } from "./phoneme-analysis-service";
 
 /**
  * 高精度リップシンクサービス
@@ -45,15 +42,11 @@ export class AdvancedLipSyncService {
       this.updateAvailableBlendShapes();
 
       // 音素解析を開始
-      await phonemeAnalysisService.startAnalysis(
-        stream,
-        this.processPhonemeResult.bind(this)
-      );
+      await phonemeAnalysisService.startAnalysis(stream, this.processPhonemeResult.bind(this));
 
       // アニメーションループを開始
       this.isActive = true;
       this.startAnimationLoop();
-
     } catch (error) {
       throw error;
     }
@@ -83,7 +76,6 @@ export class AdvancedLipSyncService {
 
     // 口をリセット
     this.resetMouth();
-
   }
 
   /**
@@ -129,7 +121,7 @@ export class AdvancedLipSyncService {
 
     // 古い履歴を削除
     this.phonemeHistory = this.phonemeHistory.filter(
-      (entry) => now - entry.timestamp < 500 // 500ms以内の履歴のみ保持
+      (entry) => now - entry.timestamp < 500, // 500ms以内の履歴のみ保持
     );
 
     // 最大長を超えた場合は古いものから削除
@@ -174,7 +166,7 @@ export class AdvancedLipSyncService {
   private updatePhoneme(
     phoneme: string,
     confidence: number,
-    formants: { f1: number; f2: number; f3: number }
+    formants: { f1: number; f2: number; f3: number },
   ): void {
     this.currentPhoneme = phoneme;
     this.confidence = confidence;
@@ -191,9 +183,7 @@ export class AdvancedLipSyncService {
    */
   private calculateTargetBlendShapes(): void {
     // 音素設定を取得
-    const phonemeConfig = phonemeAnalysisService.getPhonemeConfig(
-      this.currentPhoneme
-    );
+    const phonemeConfig = phonemeAnalysisService.getPhonemeConfig(this.currentPhoneme);
 
     if (!phonemeConfig) {
       // 設定がない場合は無音
@@ -488,9 +478,7 @@ export class AdvancedLipSyncService {
    */
   getDebugInfo(): {
     advancedLipSync: ReturnType<AdvancedLipSyncService["getStatus"]>;
-    phonemeAnalysis: ReturnType<
-      typeof phonemeAnalysisService.getAnalysisStatus
-    >;
+    phonemeAnalysis: ReturnType<typeof phonemeAnalysisService.getAnalysisStatus>;
     blendShape: ReturnType<typeof blendShapeService.getVRMInfo>;
     phonemeHistory: Array<{ phoneme: string; timestamp: number }>;
     currentBlendShapes: Record<string, number>;

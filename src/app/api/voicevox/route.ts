@@ -7,23 +7,15 @@ export async function GET(request: NextRequest) {
     const apiKey = request.headers.get("x-api-key");
 
     if (!endpoint) {
-      return NextResponse.json(
-        { error: "エンドポイントが指定されていません" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "エンドポイントが指定されていません" }, { status: 400 });
     }
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: "APIキーが指定されていません" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "APIキーが指定されていません" }, { status: 400 });
     }
 
     // VOICEVOX Web APIにリクエスト（公式仕様に合わせてkeyパラメータ使用）
-    const voicevoxUrl = new URL(
-      `https://deprecatedapis.tts.quest/v2/voicevox${endpoint}`
-    );
+    const voicevoxUrl = new URL(`https://deprecatedapis.tts.quest/v2/voicevox${endpoint}`);
     voicevoxUrl.searchParams.set("key", apiKey);
 
     const response = await fetch(voicevoxUrl.toString(), {
@@ -37,7 +29,7 @@ export async function GET(request: NextRequest) {
       const errorData = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: errorData.errorMessage || "VOICEVOX APIエラー" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
@@ -61,23 +53,15 @@ export async function POST(request: NextRequest) {
     const intonationScale = searchParams.get("intonationScale") || "1";
 
     if (!apiKey) {
-      return NextResponse.json(
-        { error: "APIキーが指定されていません" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "APIキーが指定されていません" }, { status: 400 });
     }
 
     if (!text) {
-      return NextResponse.json(
-        { error: "テキストが指定されていません" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "テキストが指定されていません" }, { status: 400 });
     }
 
     // VOICEVOX Web API音声合成エンドポイント（公式仕様）
-    const voicevoxUrl = new URL(
-      "https://deprecatedapis.tts.quest/v2/voicevox/audio/"
-    );
+    const voicevoxUrl = new URL("https://deprecatedapis.tts.quest/v2/voicevox/audio/");
     voicevoxUrl.searchParams.set("key", apiKey);
     voicevoxUrl.searchParams.set("text", text);
     voicevoxUrl.searchParams.set("speaker", speaker);
@@ -96,7 +80,7 @@ export async function POST(request: NextRequest) {
       const errorData = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: errorData.errorMessage || "VOICEVOX APIエラー" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 

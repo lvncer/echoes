@@ -9,10 +9,7 @@ export async function POST(request: NextRequest) {
     const { messages, customPrompt, aiConfig } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: "メッセージが無効です" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "メッセージが無効です" }, { status: 400 });
     }
 
     // サーバーサイドで環境変数から設定を取得（フォールバック用）
@@ -35,7 +32,7 @@ export async function POST(request: NextRequest) {
       const providerName = config.provider === "gemini" ? "Gemini" : "OpenAI";
       return NextResponse.json(
         { error: `${providerName} API キーが設定されていません` },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -71,9 +68,7 @@ export async function POST(request: NextRequest) {
     let processedMessages = messages as ChatMessage[];
     if (customPrompt?.enabled && customPrompt.content) {
       // 既存のシステムメッセージを削除
-      processedMessages = processedMessages.filter(
-        (msg) => msg.role !== "system"
-      );
+      processedMessages = processedMessages.filter((msg) => msg.role !== "system");
 
       // カスタムプロンプトをシステムメッセージとして先頭に追加
       processedMessages = [
@@ -103,12 +98,10 @@ export async function POST(request: NextRequest) {
       if (error.code === "insufficient_quota") {
         return NextResponse.json(
           {
-            error:
-              "OpenAI APIのクォータ制限に達しました。プランと請求情報を確認してください。",
-            details:
-              "https://platform.openai.com/usage でクォータ状況を確認できます。",
+            error: "OpenAI APIのクォータ制限に達しました。プランと請求情報を確認してください。",
+            details: "https://platform.openai.com/usage でクォータ状況を確認できます。",
           },
-          { status: 429 }
+          { status: 429 },
         );
       }
     }

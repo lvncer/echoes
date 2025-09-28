@@ -27,7 +27,10 @@ const initializeServices = (services: ReturnType<typeof useServices>) => {
     integratedLipSyncService.setAnimationController(services.animationController);
     errorHandler.setCallbacks({
       onError: (error) => {
-        console.error(`[${error.type.toUpperCase()}] ${error.code}: ${error.message}`, error.details);
+        console.error(
+          `[${error.type.toUpperCase()}] ${error.code}: ${error.message}`,
+          error.details,
+        );
       },
     });
   } catch (error) {
@@ -44,20 +47,17 @@ export default function Home() {
   const services = useServices();
 
   // 音声チャット関連の状態
-  const [audioChatOrchestrator, setAudioChatOrchestrator] =
-    useState<AudioChatOrchestrator | null>(null);
+  const [audioChatOrchestrator, setAudioChatOrchestrator] = useState<AudioChatOrchestrator | null>(
+    null,
+  );
   const [status, setStatus] = useState<AudioChatStatus>("idle");
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
 
   // モデルストアからデフォルトモデル初期化関数を取得
-  const {
-    initializeDefaultModel,
-    currentModel,
-    getStorageStatus,
-    forceInitialize,
-  } = useModelStore();
+  const { initializeDefaultModel, currentModel, getStorageStatus, forceInitialize } =
+    useModelStore();
 
   // AIストアの初期化を必ず実行
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function Home() {
         temperature: 0.7,
       },
     }),
-    []
+    [],
   );
 
   // 音声チャットコールバック設定
@@ -132,7 +132,7 @@ export default function Home() {
         setStatus(newStatus);
       },
     }),
-    []
+    [],
   );
 
   // 音声チャットサービス初期化
@@ -154,9 +154,9 @@ export default function Home() {
         services.speechService,
         services.animationController,
         defaultConfig,
-        callbacks
+        callbacks,
       );
-      
+
       const success = await orchestrator.startAudioChat();
 
       if (success) {
@@ -214,51 +214,54 @@ export default function Home() {
   }, [isVoiceChatActive, isInitialized, stopAudioChat, initializeAudioChat]);
 
   // テンプレートメッセージ処理
-  const handleTemplateMessage = useCallback(async (message: string) => {
-    if (!audioChatOrchestrator) {
-      // 音声チャットが初期化されていない場合は初期化してから実行
-      try {
-        const orchestrator = new AudioChatOrchestrator(
-          services.audioInputService,
-          services.speechRecognitionService,
-          services.speechService,
-          services.animationController,
-          defaultConfig,
-          callbacks
-        );
-        const success = await orchestrator.startAudioChat();
-        
-        if (success) {
-          setAudioChatOrchestrator(orchestrator);
-          setIsInitialized(true);
-          setIsVoiceChatActive(true);
-          setError(null);
-          
-          // テンプレートメッセージを処理（AI応答を直接送信）
+  const handleTemplateMessage = useCallback(
+    async (message: string) => {
+      if (!audioChatOrchestrator) {
+        // 音声チャットが初期化されていない場合は初期化してから実行
+        try {
+          const orchestrator = new AudioChatOrchestrator(
+            services.audioInputService,
+            services.speechRecognitionService,
+            services.speechService,
+            services.animationController,
+            defaultConfig,
+            callbacks,
+          );
+          const success = await orchestrator.startAudioChat();
+
+          if (success) {
+            setAudioChatOrchestrator(orchestrator);
+            setIsInitialized(true);
+            setIsVoiceChatActive(true);
+            setError(null);
+
+            // テンプレートメッセージを処理（AI応答を直接送信）
+            const { useAIStore } = await import("@/lib/stores/ai-store");
+            useAIStore.getState().sendMessage(message, true);
+          } else {
+            const error = "音声チャットの初期化に失敗しました";
+            errorHandler.handleAudioError("TEMPLATE_INIT_FAILED", error);
+            setError(error);
+          }
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : "初期化エラー";
+          errorHandler.handleAudioError("TEMPLATE_PROCESSING_FAILED", errorMessage, err);
+          setError(errorMessage);
+        }
+      } else if (isInitialized) {
+        // 既に初期化されている場合は直接処理
+        try {
           const { useAIStore } = await import("@/lib/stores/ai-store");
           useAIStore.getState().sendMessage(message, true);
-        } else {
-          const error = "音声チャットの初期化に失敗しました";
-          errorHandler.handleAudioError("TEMPLATE_INIT_FAILED", error);
+        } catch (err) {
+          const error = "テンプレートメッセージの処理に失敗しました";
+          errorHandler.handleAudioError("TEMPLATE_SEND_FAILED", error, err);
           setError(error);
         }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "初期化エラー";
-        errorHandler.handleAudioError("TEMPLATE_PROCESSING_FAILED", errorMessage, err);
-        setError(errorMessage);
       }
-    } else if (isInitialized) {
-      // 既に初期化されている場合は直接処理
-      try {
-        const { useAIStore } = await import("@/lib/stores/ai-store");
-        useAIStore.getState().sendMessage(message, true);
-      } catch (err) {
-        const error = "テンプレートメッセージの処理に失敗しました";
-        errorHandler.handleAudioError("TEMPLATE_SEND_FAILED", error, err);
-        setError(error);
-      }
-    }
-  }, [audioChatOrchestrator, isInitialized, defaultConfig, callbacks, services]);
+    },
+    [audioChatOrchestrator, isInitialized, defaultConfig, callbacks, services],
+  );
 
   // Spaceキーでの音声入力制御
   useEffect(() => {
@@ -296,10 +299,7 @@ export default function Home() {
 
   // デバッグ用のグローバル関数を追加（開発環境のみ）
   useEffect(() => {
-    if (
-      process.env.NODE_ENV === "development" &&
-      typeof window !== "undefined"
-    ) {
+    if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
       (
         window as typeof window & {
           __debugEchoes?: {
@@ -335,11 +335,7 @@ export default function Home() {
       {/* 全画面3Dビューアー */}
       <div className="absolute inset-0 w-full h-full">
         <ErrorBoundary>
-          <Simple3DViewer
-            model={currentModel}
-            className="w-full h-full"
-            showInfo={false}
-          />
+          <Simple3DViewer model={currentModel} className="w-full h-full" showInfo={false} />
         </ErrorBoundary>
       </div>
 
@@ -398,9 +394,7 @@ export default function Home() {
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-lg z-10">
           <div className="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl text-center max-w-sm mx-4 border border-white/20">
             <Box className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-3">
-              3Dモデルが必要です
-            </h2>
+            <h2 className="text-xl font-semibold text-white mb-3">3Dモデルが必要です</h2>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
               3Dモデルを読み込んで
               <br />
@@ -424,10 +418,7 @@ export default function Home() {
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30">
         <div className="flex items-center gap-4">
           {/* テキストチャット入力 */}
-          <TextChatInput
-            isVoiceChatActive={isVoiceChatActive}
-            voiceChatStatus={status}
-          />
+          <TextChatInput isVoiceChatActive={isVoiceChatActive} voiceChatStatus={status} />
 
           {/* 統合されたマイクボタン */}
           <Button
@@ -441,10 +432,10 @@ export default function Home() {
                   ? status === "listening"
                     ? "bg-red-500/90 hover:bg-red-600/90 border-red-400/50 shadow-red-500/50"
                     : status === "processing"
-                    ? "bg-yellow-500/90 hover:bg-yellow-600/90 border-yellow-400/50 shadow-yellow-500/50 animate-pulse"
-                    : status === "speaking"
-                    ? "bg-green-500/90 hover:bg-green-600/90 border-green-400/50 shadow-green-500/50 animate-pulse"
-                    : "bg-blue-500/90 hover:bg-blue-600/90 border-blue-400/50 shadow-blue-500/50"
+                      ? "bg-yellow-500/90 hover:bg-yellow-600/90 border-yellow-400/50 shadow-yellow-500/50 animate-pulse"
+                      : status === "speaking"
+                        ? "bg-green-500/90 hover:bg-green-600/90 border-green-400/50 shadow-green-500/50 animate-pulse"
+                        : "bg-blue-500/90 hover:bg-blue-600/90 border-blue-400/50 shadow-blue-500/50"
                   : "bg-gray-800/90 hover:bg-gray-700/90 border-gray-600/50 shadow-gray-800/50"
               }
             `}
@@ -460,10 +451,7 @@ export default function Home() {
       </div>
 
       <SettingsModal isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-      <ChatHistoryModal
-        open={isChatHistoryOpen}
-        onOpenChange={setIsChatHistoryOpen}
-      />
+      <ChatHistoryModal open={isChatHistoryOpen} onOpenChange={setIsChatHistoryOpen} />
       <MessageTemplatePanel
         isOpen={isTemplateOpen}
         onClose={() => setIsTemplateOpen(false)}

@@ -62,8 +62,13 @@ export class PerformanceMonitor {
       this.metrics.fps = 1000 / avgFrameTime;
     }
 
-    if (typeof window !== "undefined" && (window as unknown as { performance?: { memory?: { usedJSHeapSize: number } } }).performance?.memory) {
-      const memory = (window as unknown as { performance: { memory: { usedJSHeapSize: number } } }).performance.memory;
+    if (
+      typeof window !== "undefined" &&
+      (window as unknown as { performance?: { memory?: { usedJSHeapSize: number } } }).performance
+        ?.memory
+    ) {
+      const memory = (window as unknown as { performance: { memory: { usedJSHeapSize: number } } })
+        .performance.memory;
       this.metrics.memoryUsage = memory.usedJSHeapSize / 1024 / 1024;
     }
   }

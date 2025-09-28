@@ -80,10 +80,7 @@ export class IntegratedLipSyncService {
   /**
    * AI応答時の自動リップシンク開始
    */
-  async startAIResponseLipSync(
-    responseText: string,
-    emotion?: EmotionType
-  ): Promise<void> {
+  async startAIResponseLipSync(responseText: string, emotion?: EmotionType): Promise<void> {
     if (!this.isAutoMode) {
       return;
     }
@@ -187,9 +184,7 @@ export class IntegratedLipSyncService {
   /**
    * VOICEVOX音声要素準備完了時の処理
    */
-  private async handleVoicevoxAudioReady(
-    audioElement: HTMLAudioElement
-  ): Promise<void> {
+  private async handleVoicevoxAudioReady(audioElement: HTMLAudioElement): Promise<void> {
     try {
       // VOICEVOX音声のリップシンク準備
       await this.startVoicevoxLipSync(audioElement);
@@ -235,9 +230,10 @@ export class IntegratedLipSyncService {
     try {
       // Web Audio APIの初期化
       if (!this.ttsAudioContext) {
-        this.ttsAudioContext = new (window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext })
-            .webkitAudioContext)();
+        this.ttsAudioContext = new (
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        )();
       }
 
       if (this.ttsAudioContext.state === "suspended") {
@@ -249,9 +245,7 @@ export class IntegratedLipSyncService {
   /**
    * VOICEVOX音声のリップシンク開始
    */
-  private async startVoicevoxLipSync(
-    audioElement: HTMLAudioElement
-  ): Promise<void> {
+  private async startVoicevoxLipSync(audioElement: HTMLAudioElement): Promise<void> {
     try {
       // Web Audio APIでVOICEVOX音声を解析
       if (!this.ttsAudioContext) {
@@ -329,8 +323,7 @@ export class IntegratedLipSyncService {
       this.ttsAnalyser.getByteFrequencyData(dataArray);
 
       // 音量レベルを計算
-      const average =
-        dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
+      const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
       const normalizedVolume = average / 255;
 
       // 周波数帯域別の解析
@@ -353,11 +346,10 @@ export class IntegratedLipSyncService {
   private getFrequencyBandAverage(
     dataArray: Uint8Array,
     startIndex: number,
-    endIndex: number
+    endIndex: number,
   ): number {
     const bandData = dataArray.slice(startIndex, endIndex);
-    const average =
-      bandData.reduce((sum, value) => sum + value, 0) / bandData.length;
+    const average = bandData.reduce((sum, value) => sum + value, 0) / bandData.length;
     return average / 255;
   }
 
@@ -368,7 +360,7 @@ export class IntegratedLipSyncService {
     volume: number,
     lowFreq: number,
     midFreq: number,
-    highFreq: number
+    highFreq: number,
   ): void {
     // 音量に基づく基本的な口の開閉
     const mouthOpening = Math.min(volume * 1.5, 1.0);
@@ -445,8 +437,7 @@ export class IntegratedLipSyncService {
 
       // VRM 1.0形式の音素を使用（ニコニ立体ちゃん対応）
       const phonemes = ["aa", "ih", "ou", "ee", "oh"]; // VRM 1.0形式を優先
-      const randomPhoneme =
-        phonemes[Math.floor(Math.random() * phonemes.length)];
+      const randomPhoneme = phonemes[Math.floor(Math.random() * phonemes.length)];
 
       // ブレンドシェイプを適用（マッピング機能により自動変換される）
       blendShapeService.setBlendShapeWeight(randomPhoneme, mouthOpening);
@@ -473,37 +464,10 @@ export class IntegratedLipSyncService {
   private analyzeTextEmotion(text: string): EmotionType {
     // 簡易的な感情解析（キーワードベース）
     const emotionKeywords = {
-      happy: [
-        "嬉しい",
-        "楽しい",
-        "良い",
-        "素晴らしい",
-        "最高",
-        "ありがとう",
-        "😊",
-        "😄",
-        "🎉",
-      ],
-      sad: [
-        "悲しい",
-        "残念",
-        "困った",
-        "申し訳",
-        "すみません",
-        "😢",
-        "😞",
-        "💧",
-      ],
+      happy: ["嬉しい", "楽しい", "良い", "素晴らしい", "最高", "ありがとう", "😊", "😄", "🎉"],
+      sad: ["悲しい", "残念", "困った", "申し訳", "すみません", "😢", "😞", "💧"],
       angry: ["怒り", "腹立つ", "ムカつく", "許せない", "😠", "😡", "💢"],
-      surprised: [
-        "驚き",
-        "びっくり",
-        "まさか",
-        "信じられない",
-        "😲",
-        "😮",
-        "‼️",
-      ],
+      surprised: ["驚き", "びっくり", "まさか", "信じられない", "😲", "😮", "‼️"],
       neutral: [],
     };
 
@@ -521,7 +485,7 @@ export class IntegratedLipSyncService {
    */
   private async applyEmotion(
     emotion: EmotionType,
-    intensity: number = this.emotionIntensity
+    intensity: number = this.emotionIntensity,
   ): Promise<void> {
     this.currentEmotion = emotion;
 
@@ -538,10 +502,7 @@ export class IntegratedLipSyncService {
   /**
    * 感情に対応するブレンドシェイプを取得
    */
-  private getEmotionBlendShapes(
-    emotion: EmotionType,
-    intensity: number
-  ): Record<string, number> {
+  private getEmotionBlendShapes(emotion: EmotionType, intensity: number): Record<string, number> {
     const emotionMappings: Record<EmotionType, Record<string, number>> = {
       neutral: {},
       happy: {

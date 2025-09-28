@@ -87,8 +87,7 @@ export function AISettings() {
     setPromptText(defaultPrompt);
   };
 
-  const hasChanges =
-    promptText !== customPrompt.content || isEnabled !== customPrompt.enabled;
+  const hasChanges = promptText !== customPrompt.content || isEnabled !== customPrompt.enabled;
 
   return (
     <div className="space-y-4">
@@ -97,12 +96,8 @@ export function AISettings() {
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="space-y-2">
-              <h4 className="text-lg font-semibold text-white mb-1">
-                カスタムプロンプト設定
-              </h4>
-              <p className="text-sm text-gray-400">
-                AIの応答スタイルや性格をカスタマイズできます
-              </p>
+              <h4 className="text-lg font-semibold text-white mb-1">カスタムプロンプト設定</h4>
+              <p className="text-sm text-gray-400">AIの応答スタイルや性格をカスタマイズできます</p>
             </div>
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-2 text-sm text-gray-300">
@@ -119,9 +114,7 @@ export function AISettings() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                プロンプト内容
-              </label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">プロンプト内容</label>
               <textarea
                 value={promptText}
                 onChange={(e) => setPromptText(e.target.value)}
@@ -205,11 +198,7 @@ export function AISettings() {
                 </div>
               )} */}
 
-              {hasChanges && (
-                <p className="text-sm text-yellow-400">
-                  未保存の変更があります
-                </p>
-              )}
+              {hasChanges && <p className="text-sm text-yellow-400">未保存の変更があります</p>}
             </div>
           </div>
         </div>
@@ -219,12 +208,8 @@ export function AISettings() {
 
       {/* AI チャット設定 */}
       <Card className="bg-gray-900/50 border-gray-900/50">
-        <h4 className="text-lg font-semibold text-white">
-          AI チャット・API設定
-        </h4>
-        <p className="text-sm text-gray-400">
-          Google Gemini APIの設定とチャット機能
-        </p>
+        <h4 className="text-lg font-semibold text-white">AI チャット・API設定</h4>
+        <p className="text-sm text-gray-400">Google Gemini APIの設定とチャット機能</p>
         <EmotionChat />
       </Card>
     </div>

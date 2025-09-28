@@ -27,7 +27,7 @@ const generateSessionTitle = (firstMessage?: string, _messageCount: number = 0):
     }
     return trimmed;
   }
-  
+
   const now = new Date();
   const dateStr = now.toLocaleDateString("ja-JP", {
     month: "short",
@@ -35,7 +35,7 @@ const generateSessionTitle = (firstMessage?: string, _messageCount: number = 0):
     hour: "2-digit",
     minute: "2-digit",
   });
-  
+
   return `会話 ${dateStr}`;
 };
 
@@ -50,7 +50,7 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
       createSession: (firstMessage?: string) => {
         const sessionId = `session_${Date.now()}`;
         const now = new Date();
-        
+
         const newSession: ChatSession = {
           id: sessionId,
           title: generateSessionTitle(firstMessage, 0),
@@ -70,14 +70,14 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
 
       getCurrentSession: () => {
         const { sessions, currentSessionId } = get();
-        return sessions.find(s => s.id === currentSessionId) || null;
+        return sessions.find((s) => s.id === currentSessionId) || null;
       },
 
       addMessage: (message) => {
         const { currentSessionId } = get();
-        
+
         let sessionId = currentSessionId;
-        
+
         if (!sessionId) {
           sessionId = get().createSession(message.content);
         }
@@ -88,15 +88,16 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
         };
 
         set((state) => {
-          const updatedSessions = state.sessions.map(session => {
+          const updatedSessions = state.sessions.map((session) => {
             if (session.id === sessionId) {
               return {
                 ...session,
                 lastUpdatedAt: new Date(),
                 messageCount: session.messageCount + 1,
-                title: session.messageCount === 0 && message.role === "user"
-                  ? generateSessionTitle(message.content, 1)
-                  : session.title,
+                title:
+                  session.messageCount === 0 && message.role === "user"
+                    ? generateSessionTitle(message.content, 1)
+                    : session.title,
               };
             }
             return session;
@@ -112,7 +113,7 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
       getSessionMessages: (sessionId: string) => {
         const { messages } = get();
         return messages
-          .filter(msg => msg.sessionId === sessionId)
+          .filter((msg) => msg.sessionId === sessionId)
           .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
       },
 
@@ -121,24 +122,22 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
         let filtered = [...messages];
 
         if (filter.sessionId) {
-          filtered = filtered.filter(msg => msg.sessionId === filter.sessionId);
+          filtered = filtered.filter((msg) => msg.sessionId === filter.sessionId);
         }
 
         if (filter.searchQuery) {
           const query = filter.searchQuery.toLowerCase();
-          filtered = filtered.filter(msg => 
-            msg.content.toLowerCase().includes(query)
-          );
+          filtered = filtered.filter((msg) => msg.content.toLowerCase().includes(query));
         }
 
         if (filter.voiceOnly) {
-          filtered = filtered.filter(msg => msg.isVoice);
+          filtered = filtered.filter((msg) => msg.isVoice);
         }
 
         if (filter.dateRange) {
-          filtered = filtered.filter(msg => 
-            msg.timestamp >= filter.dateRange!.start && 
-            msg.timestamp <= filter.dateRange!.end
+          filtered = filtered.filter(
+            (msg) =>
+              msg.timestamp >= filter.dateRange!.start && msg.timestamp <= filter.dateRange!.end,
           );
         }
 
@@ -147,8 +146,8 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
 
       deleteSession: (sessionId: string) => {
         set((state) => ({
-          sessions: state.sessions.filter(s => s.id !== sessionId),
-          messages: state.messages.filter(msg => msg.sessionId !== sessionId),
+          sessions: state.sessions.filter((s) => s.id !== sessionId),
+          messages: state.messages.filter((msg) => msg.sessionId !== sessionId),
           currentSessionId: state.currentSessionId === sessionId ? null : state.currentSessionId,
         }));
       },
@@ -169,13 +168,13 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
 
       generateSessionTitle: (sessionId: string) => {
         const { messages } = get();
-        const sessionMessages = messages.filter(msg => msg.sessionId === sessionId);
-        
+        const sessionMessages = messages.filter((msg) => msg.sessionId === sessionId);
+
         if (sessionMessages.length > 0) {
-          const firstUserMessage = sessionMessages.find(msg => msg.role === "user");
+          const firstUserMessage = sessionMessages.find((msg) => msg.role === "user");
           return generateSessionTitle(firstUserMessage?.content, sessionMessages.length);
         }
-        
+
         return generateSessionTitle(undefined, 0);
       },
     }),
@@ -187,18 +186,18 @@ export const useChatHistoryStore = create<ChatHistoryStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.sessions = state.sessions.map(session => ({
+          state.sessions = state.sessions.map((session) => ({
             ...session,
             startedAt: new Date(session.startedAt),
             lastUpdatedAt: new Date(session.lastUpdatedAt),
           }));
-          
-          state.messages = state.messages.map(message => ({
+
+          state.messages = state.messages.map((message) => ({
             ...message,
             timestamp: new Date(message.timestamp),
           }));
         }
       },
-    }
-  )
+    },
+  ),
 );

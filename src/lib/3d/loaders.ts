@@ -2,13 +2,7 @@ import { VRM, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Group, LoadingManager } from "three";
 import * as THREE from "three";
-import {
-  Model3D,
-  VRMModelInfo,
-  GLTFModelInfo,
-  ModelLoadResult,
-  LoadOptions,
-} from "@/lib/types/3d";
+import { Model3D, VRMModelInfo, GLTFModelInfo, ModelLoadResult, LoadOptions } from "@/lib/types/3d";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
 import { serviceContainer } from "@/lib/services/service-container";
 
@@ -24,7 +18,7 @@ gltfLoader.register((parser) => new VRMLoaderPlugin(parser));
  */
 export async function loadVRMModel(
   file: File,
-  options: LoadOptions = {}
+  options: LoadOptions = {},
 ): Promise<ModelLoadResult> {
   try {
     // ファイルをArrayBufferに変換
@@ -36,7 +30,7 @@ export async function loadVRMModel(
         arrayBuffer,
         "",
         (gltf) => resolve(gltf),
-        (error) => reject(error)
+        (error) => reject(error),
       );
     });
 
@@ -44,9 +38,7 @@ export async function loadVRMModel(
     const vrm: VRM = gltf.userData.vrm;
 
     if (!vrm) {
-      throw new Error(
-        "VRMデータが見つかりません。有効なVRMファイルを選択してください。"
-      );
+      throw new Error("VRMデータが見つかりません。有効なVRMファイルを選択してください。");
     }
 
     // VRMモデルが後ろ向きになる問題を修正（Y軸で180度回転）
@@ -77,19 +69,9 @@ export async function loadVRMModel(
       const _availableShapes = blendShapeService.getAvailableBlendShapes();
 
       // 基本的なブレンドシェイプの対応状況をテスト
-      const basicShapes = [
-        "A",
-        "I",
-        "U",
-        "E",
-        "O",
-        "Joy",
-        "Angry",
-        "Sorrow",
-        "Fun",
-      ];
+      const basicShapes = ["A", "I", "U", "E", "O", "Joy", "Angry", "Sorrow", "Fun"];
       const _supportedShapes = basicShapes.filter((shape) =>
-        blendShapeService.isBlendShapeAvailable(shape)
+        blendShapeService.isBlendShapeAvailable(shape),
       );
     }
 
@@ -114,7 +96,6 @@ export async function loadVRMModel(
 
     return { success: true, model: modelInfo };
   } catch (error) {
-
     let errorMessage = "VRMファイルの読み込みに失敗しました";
 
     if (error instanceof Error) {
@@ -124,10 +105,7 @@ export async function loadVRMModel(
       } else if (error.message.includes("parse")) {
         errorMessage =
           "❌ VRMファイルの解析に失敗しました。\n\n解決方法:\n• ファイル形式が正しいか確認してください\n• 別のVRMファイルをお試しください";
-      } else if (
-        error.message.includes("memory") ||
-        error.message.includes("size")
-      ) {
+      } else if (error.message.includes("memory") || error.message.includes("size")) {
         errorMessage =
           "❌ ファイルサイズが大きすぎます。\n\n解決方法:\n• より小さなVRMファイルをお試しください\n• ブラウザを再起動してメモリを解放してください";
       } else {
@@ -144,7 +122,7 @@ export async function loadVRMModel(
  */
 export async function loadGLTFModel(
   file: File,
-  options: LoadOptions = {}
+  options: LoadOptions = {},
 ): Promise<ModelLoadResult> {
   try {
     // ファイルをArrayBufferに変換
@@ -156,16 +134,14 @@ export async function loadGLTFModel(
         arrayBuffer,
         "",
         (gltf) => resolve(gltf),
-        (error) => reject(error)
+        (error) => reject(error),
       );
     });
 
     const scene: Group = gltf.scene;
 
     if (!scene) {
-      throw new Error(
-        "3Dシーンが見つかりません。有効なglTF/GLBファイルを選択してください。"
-      );
+      throw new Error("3Dシーンが見つかりません。有効なglTF/GLBファイルを選択してください。");
     }
 
     // スケール・位置・回転の適用
@@ -183,9 +159,7 @@ export async function loadGLTFModel(
     const _animations = gltf.animations || [];
 
     // ファイル拡張子を判定
-    const extension = file.name.split(".").pop()?.toLowerCase() as
-      | "gltf"
-      | "glb";
+    const extension = file.name.split(".").pop()?.toLowerCase() as "gltf" | "glb";
 
     // glTFモデル情報を作成
     const modelInfo: GLTFModelInfo = {
@@ -200,7 +174,6 @@ export async function loadGLTFModel(
 
     return { success: true, model: modelInfo };
   } catch (error) {
-
     let errorMessage = "glTF/GLBファイルの読み込みに失敗しました";
 
     if (error instanceof Error) {
@@ -210,10 +183,7 @@ export async function loadGLTFModel(
       } else if (error.message.includes("parse")) {
         errorMessage =
           "❌ glTF/GLBファイルの解析に失敗しました。\n\n解決方法:\n• ファイル形式が正しいか確認してください\n• 別のglTF/GLBファイルをお試しください";
-      } else if (
-        error.message.includes("memory") ||
-        error.message.includes("size")
-      ) {
+      } else if (error.message.includes("memory") || error.message.includes("size")) {
         errorMessage =
           "❌ ファイルサイズが大きすぎます。\n\n解決方法:\n• より小さなglTF/GLBファイルをお試しください\n• ブラウザを再起動してメモリを解放してください";
       } else {
@@ -228,10 +198,7 @@ export async function loadGLTFModel(
 /**
  * ファイル形式に応じて適切なローダーを選択
  */
-export async function loadModel(
-  file: File,
-  options: LoadOptions = {}
-): Promise<ModelLoadResult> {
+export async function loadModel(file: File, options: LoadOptions = {}): Promise<ModelLoadResult> {
   const extension = file.name.split(".").pop()?.toLowerCase();
 
   switch (extension) {
@@ -251,9 +218,7 @@ export async function loadModel(
 /**
  * モデルのサムネイルを生成（将来実装）
  */
-export async function generateModelThumbnail(
-  _model: Model3D
-): Promise<string | undefined> {
+export async function generateModelThumbnail(_model: Model3D): Promise<string | undefined> {
   // TODO: Three.jsでレンダリングしてサムネイル画像を生成
   return undefined;
 }
@@ -274,9 +239,7 @@ export function getModelInfo(model: Model3D): {
 
   try {
     const scene =
-      model.format === "vrm"
-        ? (model as VRMModelInfo).vrm?.scene
-        : (model as GLTFModelInfo).scene;
+      model.format === "vrm" ? (model as VRMModelInfo).vrm?.scene : (model as GLTFModelInfo).scene;
 
     if (scene) {
       scene.traverse((child) => {
@@ -295,8 +258,7 @@ export function getModelInfo(model: Model3D): {
         }
       });
     }
-  } catch (_error) {
-  }
+  } catch (_error) {}
 
   return { vertices, faces, materials, textures };
 }
@@ -306,7 +268,7 @@ export function getModelInfo(model: Model3D): {
  */
 export function setupLoadingProgress(
   onProgress?: (progress: number) => void,
-  onComplete?: () => void
+  onComplete?: () => void,
 ) {
   loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
     const progress = itemsLoaded / itemsTotal;
@@ -317,6 +279,5 @@ export function setupLoadingProgress(
     onComplete?.();
   };
 
-  loadingManager.onError = (_url) => {
-  };
+  loadingManager.onError = (_url) => {};
 }

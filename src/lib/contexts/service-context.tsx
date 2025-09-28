@@ -20,11 +20,7 @@ export function ServiceProvider({ children }: ServiceProviderProps) {
     };
   }, []);
 
-  return (
-    <ServiceContext.Provider value={serviceContainer}>
-      {children}
-    </ServiceContext.Provider>
-  );
+  return <ServiceContext.Provider value={serviceContainer}>{children}</ServiceContext.Provider>;
 }
 
 export function useServices(): ServiceContainer {

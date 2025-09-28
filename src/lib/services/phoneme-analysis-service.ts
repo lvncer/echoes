@@ -152,8 +152,7 @@ export class PhonemeAnalysisService {
   private analyser: AnalyserNode | null = null;
   private dataArray: Float32Array | null = null;
   private isAnalyzing = false;
-  private analysisCallback: ((result: PhonemeAnalysisResult) => void) | null =
-    null;
+  private analysisCallback: ((result: PhonemeAnalysisResult) => void) | null = null;
 
   // 分析パラメータ
   private fftSize = 2048;
@@ -170,13 +169,14 @@ export class PhonemeAnalysisService {
    */
   async startAnalysis(
     stream: MediaStream,
-    callback: (result: PhonemeAnalysisResult) => void
+    callback: (result: PhonemeAnalysisResult) => void,
   ): Promise<void> {
     try {
       // AudioContextを作成
-      this.audioContext = new (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext)();
+      this.audioContext = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
 
       // AnalyserNodeを作成
       this.analyser = this.audioContext.createAnalyser();
@@ -198,7 +198,6 @@ export class PhonemeAnalysisService {
 
       // 分析ループを開始
       this.startAnalysisLoop();
-
     } catch (error) {
       throw error;
     }
@@ -240,7 +239,6 @@ export class PhonemeAnalysisService {
 
       // 音素検出
       const phoneme = this.detectPhoneme(formants, volume);
-
 
       // 結果をコールバック
       if (this.analysisCallback) {
@@ -328,7 +326,7 @@ export class PhonemeAnalysisService {
    */
   private detectPhoneme(
     formants: { f1: number; f2: number; f3: number },
-    volume: number
+    volume: number,
   ): { name: string; confidence: number } {
     let bestMatch = { name: "sil", confidence: 0 };
 
@@ -362,10 +360,7 @@ export class PhonemeAnalysisService {
   /**
    * フォルマント一致度計算
    */
-  private calculateFormantMatch(
-    frequency: number,
-    range: [number, number]
-  ): number {
+  private calculateFormantMatch(frequency: number, range: [number, number]): number {
     const [min, max] = range;
     const center = (min + max) / 2;
     const tolerance = (max - min) / 2;
@@ -376,10 +371,7 @@ export class PhonemeAnalysisService {
       return 1.0 - distance / tolerance;
     } else {
       // 範囲外の場合、距離に応じてスコア減少
-      const distance = Math.min(
-        Math.abs(frequency - min),
-        Math.abs(frequency - max)
-      );
+      const distance = Math.min(Math.abs(frequency - min), Math.abs(frequency - max));
       return Math.max(0, 1.0 - distance / tolerance);
     }
   }

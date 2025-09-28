@@ -8,11 +8,7 @@ import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { integratedLipSyncService } from "./integrated-lipsync-service";
 import { AnimationController } from "./animation-controller";
-import type {
-  AudioConfig,
-  AudioError,
-  SpeechRecognitionResult,
-} from "../types/audio";
+import type { AudioConfig, AudioError, SpeechRecognitionResult } from "../types/audio";
 import { useAIStore } from "../stores/ai-store";
 import { useChatHistoryStore } from "../stores/chat-history-store";
 import type { ChatMessage } from "../types/ai";
@@ -53,12 +49,7 @@ export interface AudioChatCallbacks {
   onStatusChange?: (status: AudioChatStatus) => void;
 }
 
-export type AudioChatStatus =
-  | "idle"
-  | "listening"
-  | "processing"
-  | "speaking"
-  | "error";
+export type AudioChatStatus = "idle" | "listening" | "processing" | "speaking" | "error";
 
 export class AudioChatIntegrationService {
   private audioInput: AudioInputService;
@@ -142,10 +133,7 @@ export class AudioChatIntegrationService {
     // 音声認識イベント
     this.speechRecognition.setEventListeners({
       onResult: (result: SpeechRecognitionResult) => {
-        this.callbacks.onTranscriptReceived?.(
-          result.transcript,
-          result.isFinal
-        );
+        this.callbacks.onTranscriptReceived?.(result.transcript, result.isFinal);
 
         if (result.isFinal && result.transcript.trim()) {
           this.handleFinalTranscript(result.transcript);
@@ -196,9 +184,7 @@ export class AudioChatIntegrationService {
       if (this.isActive) {
         return true;
       }
-      const hasPermission = await this.audioInput.requestMicrophoneAccess(
-        this.config.audioInput
-      );
+      const hasPermission = await this.audioInput.requestMicrophoneAccess(this.config.audioInput);
       if (!hasPermission) {
         this.handleError({
           type: "permission-denied",
@@ -281,7 +267,7 @@ export class AudioChatIntegrationService {
             if (messages.length > prevLength && lastMessage) {
               const isError =
                 /申し訳ありません|エラー|失敗|error|not available|unavailable|could not|できません|ありません/i.test(
-                  lastMessage.content
+                  lastMessage.content,
                 );
               if (
                 lastMessage.role === "assistant" &&
@@ -357,11 +343,7 @@ export class AudioChatIntegrationService {
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        `AI API エラー: ${response.status} - ${
-          errorData.error || "Unknown error"
-        }`
-      );
+      throw new Error(`AI API エラー: ${response.status} - ${errorData.error || "Unknown error"}`);
     }
     const data = await response.json();
 
@@ -389,10 +371,7 @@ export class AudioChatIntegrationService {
           // IntegratedSpeechServiceの設定を強制的に同期
           await this.speechSynthesis.syncSettings();
         } catch (e) {
-          console.warn(
-            "[デバッグ] useVoiceSettingsStoreの取得または設定同期に失敗",
-            e
-          );
+          console.warn("[デバッグ] useVoiceSettingsStoreの取得または設定同期に失敗", e);
         }
       }
 
@@ -402,7 +381,6 @@ export class AudioChatIntegrationService {
       if (this.animationController) {
         this.animationController.analyzeAndPlayEmotionAnimation(text);
       }
-
     } catch (error) {
       console.error("[デバッグ] speakResponseでエラー発生", error);
       this.handleError({

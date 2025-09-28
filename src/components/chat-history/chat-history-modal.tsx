@@ -25,7 +25,7 @@ interface ChatHistoryModalProps {
 export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
-  
+
   const {
     sessions,
     messages,
@@ -49,7 +49,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
     }
   };
 
-  const filteredSessions = sessions.filter(session => {
+  const filteredSessions = sessions.filter((session) => {
     if (!searchQuery) return true;
     return (
       session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,11 +77,11 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
   };
 
   const MessageItem = ({ message }: { message: ChatMessage }) => (
-    <div className={`flex gap-3 p-3 rounded-xl backdrop-blur-sm border-0 ${
-      message.role === "user" 
-        ? "bg-blue-600/20 ring-1 ring-blue-600/30" 
-        : "bg-gray-800/40"
-    }`}>
+    <div
+      className={`flex gap-3 p-3 rounded-xl backdrop-blur-sm border-0 ${
+        message.role === "user" ? "bg-blue-600/20 ring-1 ring-blue-600/30" : "bg-gray-800/40"
+      }`}
+    >
       <div className="flex-shrink-0">
         {message.role === "user" ? (
           <div className="w-6 h-6 rounded-full bg-blue-500/90 backdrop-blur-sm flex items-center justify-center">
@@ -98,19 +98,18 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
           <span className="font-medium text-sm text-white">
             {message.role === "user" ? "あなた" : "AI"}
           </span>
-          <span className="text-xs text-gray-400">
-            {formatTimestamp(message.timestamp)}
-          </span>
+          <span className="text-xs text-gray-400">{formatTimestamp(message.timestamp)}</span>
           {message.isVoice && (
-            <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-300 bg-blue-500/10 backdrop-blur-sm">
+            <Badge
+              variant="outline"
+              className="text-xs border-blue-500/50 text-blue-300 bg-blue-500/10 backdrop-blur-sm"
+            >
               <Mic className="w-3 h-3 mr-1" />
               音声
             </Badge>
           )}
         </div>
-        <p className="text-sm text-gray-300 whitespace-pre-wrap">
-          {message.content}
-        </p>
+        <p className="text-sm text-gray-300 whitespace-pre-wrap">{message.content}</p>
       </div>
     </div>
   );
@@ -131,8 +130,18 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
         <div className="flex flex-1 min-h-0">
           <Tabs defaultValue="sessions" className="w-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2 mx-6 mb-4 bg-gray-800/80 backdrop-blur-lg border-0">
-              <TabsTrigger value="sessions" className="text-gray-300 data-[state=active]:bg-blue-600/90 data-[state=active]:text-white backdrop-blur-sm">セッション別</TabsTrigger>
-              <TabsTrigger value="search" className="text-gray-300 data-[state=active]:bg-blue-600/90 data-[state=active]:text-white backdrop-blur-sm">検索・フィルター</TabsTrigger>
+              <TabsTrigger
+                value="sessions"
+                className="text-gray-300 data-[state=active]:bg-blue-600/90 data-[state=active]:text-white backdrop-blur-sm"
+              >
+                セッション別
+              </TabsTrigger>
+              <TabsTrigger
+                value="search"
+                className="text-gray-300 data-[state=active]:bg-blue-600/90 data-[state=active]:text-white backdrop-blur-sm"
+              >
+                検索・フィルター
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="sessions" className="flex-1 m-0 flex">
@@ -148,7 +157,7 @@ export function ChatHistoryModal({ open, onOpenChange }: ChatHistoryModalProps) 
                         className="pl-10 bg-gray-700/80 backdrop-blur-sm border-gray-600/30 text-white placeholder-gray-400 focus:border-blue-500 rounded-xl"
                       />
                     </div>
-                    
+
                     <div className="space-y-2 max-h-[50vh] overflow-y-auto">
                       {filteredSessions.map((session) => (
                         <Card

@@ -106,7 +106,7 @@ class ConfigurationManagerService {
 
   private mergeConfigurations(
     defaultConfig: AppConfiguration,
-    storedConfig: Partial<AppConfiguration>
+    storedConfig: Partial<AppConfiguration>,
   ): AppConfiguration {
     return {
       ai: { ...defaultConfig.ai, ...storedConfig.ai },

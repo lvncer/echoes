@@ -12,13 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { AlertTriangle, Eye, EyeOff, Save, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +23,7 @@ export function EnvironmentSettings() {
 
   const [localConfig, setLocalConfig] = useState(settings.providers);
   const [currentProvider, setCurrentProvider] = useState<AIProvider>(
-    settings.currentProvider.provider
+    settings.currentProvider.provider,
   );
   const [showApiKeys, setShowApiKeys] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
@@ -48,7 +42,7 @@ export function EnvironmentSettings() {
   const handleConfigChange = (
     provider: AIProvider,
     key: keyof AIProviderConfig,
-    value: string | number | boolean
+    value: string | number | boolean,
   ) => {
     setLocalConfig((prev) => ({
       ...prev,
@@ -67,20 +61,14 @@ export function EnvironmentSettings() {
     }
 
     const activeProviderConfig = localConfig[currentProvider];
-    if (
-      !activeProviderConfig.apiKey &&
-      currentProvider !== "local"
-    ) {
+    if (!activeProviderConfig.apiKey && currentProvider !== "local") {
       alert(`${currentProvider.toUpperCase()} APIキーが必要です`);
       return;
     }
 
     // すべてのプロバイダー設定を更新
     Object.keys(localConfig).forEach((provider) => {
-      updateProviderConfig(
-        provider as AIProvider,
-        localConfig[provider as AIProvider]
-      );
+      updateProviderConfig(provider as AIProvider, localConfig[provider as AIProvider]);
     });
 
     // 現在のプロバイダーを切り替え
@@ -118,19 +106,12 @@ export function EnvironmentSettings() {
       <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
           <CardTitle className="text-white">AI プロバイダー設定</CardTitle>
-          <CardDescription>
-            使用するAIプロバイダーを選択してください
-          </CardDescription>
+          <CardDescription>使用するAIプロバイダーを選択してください</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">
-              プロバイダー
-            </label>
-            <Select
-              value={currentProvider}
-              onValueChange={handleProviderChange}
-            >
+            <label className="text-sm font-medium text-gray-300 mb-2 block">プロバイダー</label>
+            <Select value={currentProvider} onValueChange={handleProviderChange}>
               <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                 <SelectValue />
               </SelectTrigger>
@@ -150,9 +131,7 @@ export function EnvironmentSettings() {
               </label>
               <Input
                 value={activeConfig.baseUrl || ""}
-                onChange={(e) =>
-                  handleConfigChange(currentProvider, "baseUrl", e.target.value)
-                }
+                onChange={(e) => handleConfigChange(currentProvider, "baseUrl", e.target.value)}
                 placeholder={
                   currentProvider === "local"
                     ? "http://localhost:11434/v1"
@@ -168,22 +147,16 @@ export function EnvironmentSettings() {
       {/* プロバイダー別設定 */}
       <Card className="bg-gray-900/50 border-gray-900/50">
         <CardHeader>
-          <CardTitle className="text-white">
-            {currentProvider.toUpperCase()} 設定
-          </CardTitle>
+          <CardTitle className="text-white">{currentProvider.toUpperCase()} 設定</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">
-              API キー
-            </label>
+            <label className="text-sm font-medium text-gray-300 mb-2 block">API キー</label>
             <div className="flex gap-2">
               <Input
                 type={showApiKeys ? "text" : "password"}
                 value={activeConfig.apiKey || ""}
-                onChange={(e) =>
-                  handleConfigChange(currentProvider, "apiKey", e.target.value)
-                }
+                onChange={(e) => handleConfigChange(currentProvider, "apiKey", e.target.value)}
                 placeholder="APIキーを入力"
                 className="bg-gray-700 border-gray-600 text-white"
               />
@@ -193,36 +166,24 @@ export function EnvironmentSettings() {
                 onClick={() => setShowApiKeys(!showApiKeys)}
                 className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
               >
-                {showApiKeys ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
+                {showApiKeys ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </Button>
             </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">
-              モデル
-            </label>
+            <label className="text-sm font-medium text-gray-300 mb-2 block">モデル</label>
             {currentProvider === "gemini" ? (
               <Select
                 value={activeConfig.model}
-                onValueChange={(value) =>
-                  handleConfigChange(currentProvider, "model", value)
-                }
+                onValueChange={(value) => handleConfigChange(currentProvider, "model", value)}
               >
                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gemini-2.0-flash">
-                    Gemini 2.0 Flash
-                  </SelectItem>
-                  <SelectItem value="gemini-1.5-flash">
-                    Gemini 1.5 Flash
-                  </SelectItem>
+                  <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash</SelectItem>
+                  <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
                   <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
                   <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
                 </SelectContent>
@@ -230,9 +191,7 @@ export function EnvironmentSettings() {
             ) : currentProvider === "openai" ? (
               <Select
                 value={activeConfig.model}
-                onValueChange={(value) =>
-                  handleConfigChange(currentProvider, "model", value)
-                }
+                onValueChange={(value) => handleConfigChange(currentProvider, "model", value)}
               >
                 <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
                   <SelectValue />
@@ -247,9 +206,7 @@ export function EnvironmentSettings() {
             ) : (
               <Input
                 value={activeConfig.model}
-                onChange={(e) =>
-                  handleConfigChange(currentProvider, "model", e.target.value)
-                }
+                onChange={(e) => handleConfigChange(currentProvider, "model", e.target.value)}
                 className="bg-gray-700 border-gray-600 text-white"
               />
             )}
@@ -261,9 +218,7 @@ export function EnvironmentSettings() {
             </label>
             <Slider
               value={[activeConfig.maxTokens || 1000]}
-              onValueChange={(value) =>
-                handleConfigChange(currentProvider, "maxTokens", value[0])
-              }
+              onValueChange={(value) => handleConfigChange(currentProvider, "maxTokens", value[0])}
               max={8000}
               min={100}
               step={100}
@@ -292,9 +247,7 @@ export function EnvironmentSettings() {
       {/* 利用規約 */}
       <Card className="bg-red-900/20 border-red-600">
         <CardHeader>
-          <CardTitle className="text-red-400">
-            利用規約・セキュリティに関する重要事項
-          </CardTitle>
+          <CardTitle className="text-red-400">利用規約・セキュリティに関する重要事項</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="text-sm text-red-300 space-y-2">

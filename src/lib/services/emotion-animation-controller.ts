@@ -47,7 +47,7 @@ export class EmotionAnimationController {
     };
 
     for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
-      if (keywords.some(keyword => text.includes(keyword))) {
+      if (keywords.some((keyword) => text.includes(keyword))) {
         return emotion as EmotionType;
       }
     }
@@ -115,7 +115,7 @@ export class EmotionAnimationController {
     if (!this.vrm) return;
 
     const neutralConfig = this.getEmotionConfig("neutral");
-    Object.keys(neutralConfig.blendShapes).forEach(shapeName => {
+    Object.keys(neutralConfig.blendShapes).forEach((shapeName) => {
       blendShapeService.setBlendShapeWeight(shapeName, 0);
     });
 

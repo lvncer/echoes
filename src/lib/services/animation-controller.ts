@@ -19,10 +19,7 @@ import {
   getGestureDescription as getGestureDescriptionFromAnimations,
 } from "@/lib/animations/gesture-animations";
 import { getNeutralGestureAnimation } from "@/lib/animations/gestures/neutral-gestures";
-import {
-  emotionAnalyzer,
-  type EmotionAnalysisResult,
-} from "@/lib/services/emotion-analyzer";
+import { emotionAnalyzer, type EmotionAnalysisResult } from "@/lib/services/emotion-analyzer";
 import { blendShapeService } from "@/lib/services/blend-shape-service";
 
 /**
@@ -119,9 +116,7 @@ export class AnimationController {
     if (typeof window === "undefined") return;
 
     try {
-      const storedState = sessionStorage.getItem(
-        "animation-controller-speaking-state"
-      );
+      const storedState = sessionStorage.getItem("animation-controller-speaking-state");
       if (storedState) {
         const state = JSON.parse(storedState);
         if (state.isSpeaking && Date.now() - state.timestamp < 30000) {
@@ -154,10 +149,7 @@ export class AnimationController {
           isSpeaking: true,
           timestamp: Date.now(),
         };
-        sessionStorage.setItem(
-          "animation-controller-speaking-state",
-          JSON.stringify(state)
-        );
+        sessionStorage.setItem("animation-controller-speaking-state", JSON.stringify(state));
       } else {
         sessionStorage.removeItem("animation-controller-speaking-state");
       }
@@ -171,9 +163,7 @@ export class AnimationController {
     if (typeof window === "undefined") return false;
 
     try {
-      const storedState = sessionStorage.getItem(
-        "animation-controller-speaking-state"
-      );
+      const storedState = sessionStorage.getItem("animation-controller-speaking-state");
       if (storedState) {
         const state = JSON.parse(storedState);
         // 30秒以内の状態なら有効
@@ -220,9 +210,7 @@ export class AnimationController {
 
       // 瞬き関連のブレンドシェイプを特に確認
       const _blinkExpressions = expressionNames.filter(
-        (name) =>
-          name.toLowerCase().includes("blink") ||
-          name.toLowerCase().includes("eye")
+        (name) => name.toLowerCase().includes("blink") || name.toLowerCase().includes("eye"),
       );
 
       // 標準的なVRMブレンドシェイプ名をテスト
@@ -355,9 +343,7 @@ export class AnimationController {
     const unavailableBones: string[] = [];
 
     humanoidBoneNames.forEach((boneName) => {
-      const bone = humanoid.getNormalizedBoneNode(
-        boneName as keyof typeof humanoid.humanBones
-      );
+      const bone = humanoid.getNormalizedBoneNode(boneName as keyof typeof humanoid.humanBones);
       if (bone) {
         availableBones.push(boneName);
       } else {
@@ -402,7 +388,7 @@ export class AnimationController {
    */
   public playAnimation(
     animation: AnimationSequence,
-    priority: number = AnimationPriority.NORMAL
+    priority: number = AnimationPriority.NORMAL,
   ): string {
     if (!this.isEnabled || !this.vrmModel) {
       return "";
@@ -414,9 +400,7 @@ export class AnimationController {
       this.stopLowestPriorityAnimation();
     }
 
-    const animationId = `anim_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+    const animationId = `anim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const instance: AnimationInstance = {
       id: animationId,
       sequence: animation,
@@ -478,8 +462,7 @@ export class AnimationController {
 
     const scheduleNextBlink = () => {
       const [minInterval, maxInterval] = this.settings.autoBlinking.interval;
-      const interval =
-        minInterval + Math.random() * (maxInterval - minInterval);
+      const interval = minInterval + Math.random() * (maxInterval - minInterval);
 
       this.autoBlinkTimer = setTimeout(() => {
         this.playBlinkAnimation();
@@ -537,10 +520,7 @@ export class AnimationController {
 
         // 感情状態をチェック
         if (this.settings.autoHeadShake.neutralOnly) {
-          if (
-            this.lastEmotionAnalysis &&
-            this.lastEmotionAnalysis.emotion !== "neutral"
-          ) {
+          if (this.lastEmotionAnalysis && this.lastEmotionAnalysis.emotion !== "neutral") {
             scheduleNextHeadShake();
             return;
           }
@@ -685,10 +665,7 @@ export class AnimationController {
       easing: "ease-in-out",
     };
 
-    this.breathingAnimationId = this.playAnimation(
-      breathingAnimation,
-      AnimationPriority.LOW
-    );
+    this.breathingAnimationId = this.playAnimation(breathingAnimation, AnimationPriority.LOW);
   }
 
   /**
@@ -727,7 +704,7 @@ export class AnimationController {
     // 感情アニメーションを取得
     const emotionAnimation = getEmotionAnimation(
       analysis.emotion,
-      analysis.intensity * this.settings.emotionAnimations.intensity
+      analysis.intensity * this.settings.emotionAnimations.intensity,
     );
 
     if (!emotionAnimation) {
@@ -743,14 +720,11 @@ export class AnimationController {
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
-      AnimationPriority.HIGH
+      AnimationPriority.HIGH,
     );
 
     // ジェスチャーアニメーションを実行
-    this.playAnimation(
-      emotionAnimation.animations.gesture,
-      AnimationPriority.NORMAL
-    );
+    this.playAnimation(emotionAnimation.animations.gesture, AnimationPriority.NORMAL);
 
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
@@ -779,7 +753,7 @@ export class AnimationController {
    */
   public playEmotionAnimation(
     emotion: "neutral" | "happy" | "sad" | "angry" | "surprised",
-    intensity: number = 1.0
+    intensity: number = 1.0,
   ): void {
     if (!this.isEnabled) {
       return;
@@ -808,14 +782,11 @@ export class AnimationController {
     // 表情アニメーションを実行
     const facialAnimationId = this.playAnimation(
       emotionAnimation.animations.facial,
-      AnimationPriority.HIGH
+      AnimationPriority.HIGH,
     );
 
     // ジェスチャーアニメーションを実行
-    this.playAnimation(
-      emotionAnimation.animations.gesture,
-      AnimationPriority.NORMAL
-    );
+    this.playAnimation(emotionAnimation.animations.gesture, AnimationPriority.NORMAL);
 
     // 現在の感情アニメーションIDを記録
     this.currentEmotionAnimationId = facialAnimationId;
@@ -831,10 +802,7 @@ export class AnimationController {
   /**
    * ジェスチャーアニメーションを再生
    */
-  public playGestureAnimation(
-    gestureType: GestureType,
-    intensity: number = 1.0
-  ): void {
+  public playGestureAnimation(gestureType: GestureType, intensity: number = 1.0): void {
     if (!this.vrmModel) {
       return;
     }
@@ -855,16 +823,10 @@ export class AnimationController {
     }
 
     // 強度を適用したアニメーションを作成
-    const adjustedAnimation = this.adjustGestureIntensity(
-      gestureAnimation,
-      intensity
-    );
+    const adjustedAnimation = this.adjustGestureIntensity(gestureAnimation, intensity);
 
     // ジェスチャーアニメーションを実行
-    const gestureAnimationId = this.playAnimation(
-      adjustedAnimation,
-      AnimationPriority.HIGH
-    );
+    const gestureAnimationId = this.playAnimation(adjustedAnimation, AnimationPriority.HIGH);
     this.currentGestureAnimationId = gestureAnimationId;
 
     // イベント通知
@@ -907,7 +869,7 @@ export class AnimationController {
    */
   private adjustGestureIntensity(
     animation: AnimationSequence,
-    intensity: number
+    intensity: number,
   ): AnimationSequence {
     return {
       ...animation,
@@ -921,18 +883,20 @@ export class AnimationController {
                   position: transform.position?.map((v) => v * intensity) as [
                     number,
                     number,
-                    number
+                    number,
                   ],
                   rotation: transform.rotation?.map((v) => v * intensity) as [
                     number,
                     number,
-                    number
+                    number,
                   ],
-                  scale: transform.scale?.map(
-                    (v) => 1 + (v - 1) * intensity
-                  ) as [number, number, number],
+                  scale: transform.scale?.map((v) => 1 + (v - 1) * intensity) as [
+                    number,
+                    number,
+                    number,
+                  ],
                 },
-              ])
+              ]),
             )
           : undefined,
       })),
@@ -1033,24 +997,17 @@ export class AnimationController {
       keyframes: [
         {
           time: 0,
-          blendShapes: Object.fromEntries(
-            blinkShapes.map((shape) => [shape, 0])
-          ),
+          blendShapes: Object.fromEntries(blinkShapes.map((shape) => [shape, 0])),
         },
         {
           time: 125, // 中間点
           blendShapes: Object.fromEntries(
-            blinkShapes.map((shape) => [
-              shape,
-              this.settings.autoBlinking.intensity,
-            ])
+            blinkShapes.map((shape) => [shape, this.settings.autoBlinking.intensity]),
           ),
         },
         {
           time: 250,
-          blendShapes: Object.fromEntries(
-            blinkShapes.map((shape) => [shape, 0])
-          ),
+          blendShapes: Object.fromEntries(blinkShapes.map((shape) => [shape, 0])),
         },
       ],
       easing: "ease-in-out",
@@ -1071,9 +1028,7 @@ export class AnimationController {
     const manager = this.vrmModel.expressionManager as unknown as {
       expressionMap?: Record<string, unknown>;
     };
-    const availableExpressions = manager.expressionMap
-      ? Object.keys(manager.expressionMap)
-      : [];
+    const availableExpressions = manager.expressionMap ? Object.keys(manager.expressionMap) : [];
 
     // 一般的な瞬きブレンドシェイプ名のパターン
     const blinkPatterns = [
@@ -1168,8 +1123,7 @@ export class AnimationController {
 
       // メモリ使用量監視（概算）
       if (typeof window !== "undefined" && "memory" in performance) {
-        const memory = (performance as { memory?: { usedJSHeapSize: number } })
-          .memory;
+        const memory = (performance as { memory?: { usedJSHeapSize: number } }).memory;
         if (memory) {
           this.memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // MB
         }
@@ -1212,9 +1166,7 @@ export class AnimationController {
 
         // メモリ使用量監視（概算）
         if (typeof window !== "undefined" && "memory" in performance) {
-          const memory = (
-            performance as { memory?: { usedJSHeapSize: number } }
-          ).memory;
+          const memory = (performance as { memory?: { usedJSHeapSize: number } }).memory;
           if (memory) {
             this.memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // MB
           }
@@ -1263,10 +1215,7 @@ export class AnimationController {
       instance.currentTime = currentTime - instance.startTime;
 
       // アニメーション完了チェック
-      if (
-        !instance.sequence.loop &&
-        instance.currentTime >= instance.sequence.duration
-      ) {
+      if (!instance.sequence.loop && instance.currentTime >= instance.sequence.duration) {
         completedAnimations.push(id);
         return;
       }
@@ -1301,10 +1250,7 @@ export class AnimationController {
         }
 
         // 呼吸アニメーションが完了した場合は再開
-        if (
-          id === this.breathingAnimationId &&
-          this.settings.breathing.enabled
-        ) {
+        if (id === this.breathingAnimationId && this.settings.breathing.enabled) {
           this.breathingAnimationId = null;
           this.startBreathingAnimation();
         }
@@ -1315,10 +1261,7 @@ export class AnimationController {
   /**
    * キーフレーム補間を適用
    */
-  private applyKeyFrameInterpolation(
-    sequence: AnimationSequence,
-    time: number
-  ): void {
+  private applyKeyFrameInterpolation(sequence: AnimationSequence, time: number): void {
     if (!this.vrmModel || sequence.keyframes.length === 0) {
       return;
     }
@@ -1387,7 +1330,7 @@ export class AnimationController {
             bone.position.set(
               originalPos.x + transform.position[0],
               originalPos.y + transform.position[1],
-              originalPos.z + transform.position[2]
+              originalPos.z + transform.position[2],
             );
           }
 
@@ -1397,7 +1340,7 @@ export class AnimationController {
             bone.rotation.set(
               originalRot.x + transform.rotation[0],
               originalRot.y + transform.rotation[1],
-              originalRot.z + transform.rotation[2]
+              originalRot.z + transform.rotation[2],
             );
           }
 
@@ -1414,11 +1357,7 @@ export class AnimationController {
   /**
    * キーフレーム間を補間して適用
    */
-  private interpolateAndApplyKeyFrames(
-    prevFrame: KeyFrame,
-    nextFrame: KeyFrame,
-    t: number
-  ): void {
+  private interpolateAndApplyKeyFrames(prevFrame: KeyFrame, nextFrame: KeyFrame, t: number): void {
     if (!this.vrmModel) return;
 
     // ブレンドシェイプ補間
@@ -1468,9 +1407,11 @@ export class AnimationController {
             bones[boneName].position![2] * (1 - t) + transform.position[2] * t,
           ];
         } else if (transform.position) {
-          bones[boneName].position = transform.position.map(
-            (v: number) => v * t
-          ) as [number, number, number];
+          bones[boneName].position = transform.position.map((v: number) => v * t) as [
+            number,
+            number,
+            number,
+          ];
         }
 
         if (transform.rotation && bones[boneName].rotation) {
@@ -1480,9 +1421,11 @@ export class AnimationController {
             bones[boneName].rotation![2] * (1 - t) + transform.rotation[2] * t,
           ];
         } else if (transform.rotation) {
-          bones[boneName].rotation = transform.rotation.map(
-            (v: number) => v * t
-          ) as [number, number, number];
+          bones[boneName].rotation = transform.rotation.map((v: number) => v * t) as [
+            number,
+            number,
+            number,
+          ];
         }
       });
     }
@@ -1504,7 +1447,7 @@ export class AnimationController {
           bone.position.set(
             originalPos.x + transform.position[0],
             originalPos.y + transform.position[1],
-            originalPos.z + transform.position[2]
+            originalPos.z + transform.position[2],
           );
         }
 
@@ -1514,7 +1457,7 @@ export class AnimationController {
           bone.rotation.set(
             originalRot.x + transform.rotation[0],
             originalRot.y + transform.rotation[1],
-            originalRot.z + transform.rotation[2]
+            originalRot.z + transform.rotation[2],
           );
         }
 
@@ -1594,7 +1537,7 @@ export class AnimationController {
       const mappedBoneName = boneMapping[boneName] || boneName.toLowerCase();
 
       const bone = humanoid.getNormalizedBoneNode(
-        mappedBoneName as keyof typeof humanoid.humanBones
+        mappedBoneName as keyof typeof humanoid.humanBones,
       );
       if (bone) {
         return bone;
@@ -1618,7 +1561,7 @@ export class AnimationController {
 
     // 優先度の低いアニメーションを停止
     const animations = Array.from(this.activeAnimations.entries()).sort(
-      ([, a], [, b]) => a.priority - b.priority
+      ([, a], [, b]) => a.priority - b.priority,
     );
 
     const toRemove = animations.slice(0, this.activeAnimations.size - 3);
@@ -1684,17 +1627,14 @@ export class AnimationController {
 
     const history = this.performanceHistory;
     return {
-      averageFrameRate:
-        history.reduce((sum, h) => sum + h.frameRate, 0) / history.length,
+      averageFrameRate: history.reduce((sum, h) => sum + h.frameRate, 0) / history.length,
       averageCalculationTime:
         history.reduce((sum, h) => sum + h.calculationTime, 0) / history.length,
       maxCalculationTime: Math.max(...history.map((h) => h.calculationTime)),
-      averageMemoryUsage:
-        history.reduce((sum, h) => sum + h.memoryUsage, 0) / history.length,
+      averageMemoryUsage: history.reduce((sum, h) => sum + h.memoryUsage, 0) / history.length,
       maxMemoryUsage: Math.max(...history.map((h) => h.memoryUsage)),
       averageActiveAnimations:
-        history.reduce((sum, h) => sum + h.activeAnimations, 0) /
-        history.length,
+        history.reduce((sum, h) => sum + h.activeAnimations, 0) / history.length,
     };
   }
 
@@ -1713,11 +1653,7 @@ export class AnimationController {
       const name = instance.sequence.name;
       if (name.includes("blink") || name.includes("breathing")) {
         runningAnimations.idle = name;
-      } else if (
-        name.includes("emotion") ||
-        name.includes("happy") ||
-        name.includes("sad")
-      ) {
+      } else if (name.includes("emotion") || name.includes("happy") || name.includes("sad")) {
         runningAnimations.emotion = name;
       } else {
         runningAnimations.gesture = name;
@@ -1804,9 +1740,7 @@ export function getAvailableGestures(): GestureType[] {
   return getAllGestures();
 }
 
-export function getGesturesByCategory(
-  category: GestureCategory
-): GestureType[] {
+export function getGesturesByCategory(category: GestureCategory): GestureType[] {
   return getGesturesByCategoryFromAnimations(category);
 }
 
@@ -1816,7 +1750,7 @@ export function getGestureDescription(gestureType: GestureType): string {
 
 export async function playGestureAnimation(
   gestureType: GestureType,
-  intensity: number = 1.0
+  intensity: number = 1.0,
 ): Promise<void> {
   try {
     const { serviceContainer } = await import("./service-container");

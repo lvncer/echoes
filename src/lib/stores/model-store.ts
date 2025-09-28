@@ -76,15 +76,13 @@ export const useModelStore = create<ModelStore>()(
               m.id === model.id ||
               (m.isDefault && model.isDefault) ||
               // 同じファイル名かつサイズが同じ場合も重複とみなす
-              (m.name === model.name &&
-                m.size === model.size &&
-                m.format === model.format)
+              (m.name === model.name && m.size === model.size && m.format === model.format),
           );
 
           if (existingModel) {
             // 既存モデルの最終使用日時を更新
             const updatedModels = state.availableModels.map((m) =>
-              m.id === existingModel.id ? { ...m, lastUsed: new Date() } : m
+              m.id === existingModel.id ? { ...m, lastUsed: new Date() } : m,
             );
             return { ...state, availableModels: updatedModels };
           }
@@ -96,17 +94,14 @@ export const useModelStore = create<ModelStore>()(
 
       removeModel: (modelId) =>
         set((state) => ({
-          availableModels: state.availableModels.filter(
-            (m) => m.id !== modelId
-          ),
-          currentModel:
-            state.currentModel?.id === modelId ? undefined : state.currentModel,
+          availableModels: state.availableModels.filter((m) => m.id !== modelId),
+          currentModel: state.currentModel?.id === modelId ? undefined : state.currentModel,
         })),
 
       updateModel: (modelId, updates) =>
         set((state) => ({
           availableModels: state.availableModels.map((m) =>
-            m.id === modelId ? { ...m, ...updates } : m
+            m.id === modelId ? { ...m, ...updates } : m,
           ),
           currentModel:
             state.currentModel?.id === modelId
@@ -148,15 +143,13 @@ export const useModelStore = create<ModelStore>()(
           const extension = file.name.split(".").pop()?.toLowerCase();
           if (!extension || !["vrm", "gltf", "glb"].includes(extension)) {
             throw new Error(
-              "サポートされていないファイル形式です。VRM、glTF、GLBファイルを選択してください。"
+              "サポートされていないファイル形式です。VRM、glTF、GLBファイルを選択してください。",
             );
           }
 
           // 基本的なモデル情報を作成
           const modelInfo: Partial<Model3D> = {
-            id: `model_${Date.now()}_${Math.random()
-              .toString(36)
-              .substr(2, 9)}`,
+            id: `model_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             name: file.name.replace(/\.[^/.]+$/, ""),
             format: extension as "vrm" | "gltf" | "glb",
             size: file.size,
@@ -175,9 +168,7 @@ export const useModelStore = create<ModelStore>()(
           return { success: true, model };
         } catch (error) {
           const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "不明なエラーが発生しました";
+            error instanceof Error ? error.message : "不明なエラーが発生しました";
           set({ isLoading: false, error: errorMessage });
           return { success: false, error: errorMessage };
         }
@@ -206,9 +197,7 @@ export const useModelStore = create<ModelStore>()(
           const state = get();
 
           // デフォルトモデルが既に存在するかチェック
-          const existingDefaultModel = state.availableModels.find(
-            (model) => model.isDefault
-          );
+          const existingDefaultModel = state.availableModels.find((model) => model.isDefault);
 
           if (existingDefaultModel) {
             // 既存のデフォルトモデルを現在のモデルとして設定
@@ -224,9 +213,7 @@ export const useModelStore = create<ModelStore>()(
           // ファイルをfetchで取得
           const response = await fetch(defaultModelPath);
           if (!response.ok) {
-            throw new Error(
-              `デフォルトモデルの読み込みに失敗しました: ${response.status}`
-            );
+            throw new Error(`デフォルトモデルの読み込みに失敗しました: ${response.status}`);
           }
 
           // Blobからファイルオブジェクトを作成
@@ -250,15 +237,11 @@ export const useModelStore = create<ModelStore>()(
             get().addModel(defaultModel);
             get().setCurrentModel(defaultModel);
           } else {
-            throw new Error(
-              result.error || "デフォルトモデルの読み込みに失敗しました"
-            );
+            throw new Error(result.error || "デフォルトモデルの読み込みに失敗しました");
           }
         } catch (error) {
           const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "デフォルトモデルの読み込みエラー";
+            error instanceof Error ? error.message : "デフォルトモデルの読み込みエラー";
           set({ error: errorMessage });
         } finally {
           set({ isLoading: false });
@@ -269,17 +252,14 @@ export const useModelStore = create<ModelStore>()(
         const state = get();
 
         // デフォルトモデルが既に存在するかチェック
-        const existingDefaultModel = state.availableModels.find(
-          (model) => model.isDefault
-        );
+        const existingDefaultModel = state.availableModels.find((model) => model.isDefault);
 
         if (existingDefaultModel) {
           // VRMオブジェクトが存在するかチェック
           const hasValidVrmObject =
             existingDefaultModel.format === "vrm" && existingDefaultModel.vrm;
           const hasValidGltfObject =
-            (existingDefaultModel.format === "gltf" ||
-              existingDefaultModel.format === "glb") &&
+            (existingDefaultModel.format === "gltf" || existingDefaultModel.format === "glb") &&
             existingDefaultModel.scene;
 
           if (hasValidVrmObject || hasValidGltfObject) {
@@ -327,8 +307,7 @@ export const useModelStore = create<ModelStore>()(
           animationState: {
             ...state.animationState,
             isPlaying: true,
-            currentAnimation:
-              animationName || state.animationState.currentAnimation,
+            currentAnimation: animationName || state.animationState.currentAnimation,
           },
         })),
 
@@ -401,9 +380,7 @@ export const useModelStore = create<ModelStore>()(
           state.availableModels = state.availableModels.map((model) => ({
             ...model,
             createdAt:
-              typeof model.createdAt === "string"
-                ? new Date(model.createdAt)
-                : model.createdAt,
+              typeof model.createdAt === "string" ? new Date(model.createdAt) : model.createdAt,
             lastUsed:
               model.lastUsed && typeof model.lastUsed === "string"
                 ? new Date(model.lastUsed)
@@ -417,21 +394,19 @@ export const useModelStore = create<ModelStore>()(
           if (storedState.currentModelId) {
             // 保存されたcurrentModelIdから復元
             const restoredModel = state.availableModels.find(
-              (model) => model.id === storedState.currentModelId
+              (model) => model.id === storedState.currentModelId,
             );
             if (restoredModel) {
               // VRMオブジェクトが失われている場合はcurrentModelを設定しない
-              const isVrmWithoutObject =
-                restoredModel.format === "vrm" && !restoredModel.vrm;
+              const isVrmWithoutObject = restoredModel.format === "vrm" && !restoredModel.vrm;
               const isGltfWithoutObject =
-                (restoredModel.format === "gltf" ||
-                  restoredModel.format === "glb") &&
+                (restoredModel.format === "gltf" || restoredModel.format === "glb") &&
                 !restoredModel.scene;
 
               if (isVrmWithoutObject || isGltfWithoutObject) {
                 // 3Dオブジェクトが失われたモデルは削除
                 state.availableModels = state.availableModels.filter(
-                  (m) => m.id !== restoredModel.id
+                  (m) => m.id !== restoredModel.id,
                 );
                 state.currentModel = undefined;
               } else {
@@ -444,15 +419,11 @@ export const useModelStore = create<ModelStore>()(
 
           // currentModelが設定されていない場合は、デフォルトモデルを探す
           if (!state.currentModel) {
-            const defaultModel = state.availableModels.find(
-              (model) => model.isDefault
-            );
+            const defaultModel = state.availableModels.find((model) => model.isDefault);
             if (defaultModel) {
-              const isVrmWithoutObject =
-                defaultModel.format === "vrm" && !defaultModel.vrm;
+              const isVrmWithoutObject = defaultModel.format === "vrm" && !defaultModel.vrm;
               const isGltfWithoutObject =
-                (defaultModel.format === "gltf" ||
-                  defaultModel.format === "glb") &&
+                (defaultModel.format === "gltf" || defaultModel.format === "glb") &&
                 !defaultModel.scene;
 
               if (!isVrmWithoutObject && !isGltfWithoutObject) {
@@ -460,13 +431,13 @@ export const useModelStore = create<ModelStore>()(
               } else {
                 // 3Dオブジェクトが失われたデフォルトモデルは削除
                 state.availableModels = state.availableModels.filter(
-                  (m) => m.id !== defaultModel.id
+                  (m) => m.id !== defaultModel.id,
                 );
               }
             }
           }
         }
       },
-    }
-  )
+    },
+  ),
 );

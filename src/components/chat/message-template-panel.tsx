@@ -47,8 +47,7 @@ const messageTemplates: MessageTemplate[] = [
   {
     id: "help-1",
     title: "悩み相談",
-    message:
-      "何か悩んでいることがあれば、お聞かせください。一緒に考えましょう。",
+    message: "何か悩んでいることがあれば、お聞かせください。一緒に考えましょう。",
     category: "サポート",
   },
   {
@@ -66,8 +65,7 @@ const messageTemplates: MessageTemplate[] = [
   {
     id: "creative-2",
     title: "学習",
-    message:
-      "新しく学んでいることはありますか？興味のある分野を教えてください。",
+    message: "新しく学んでいることはありますか？興味のある分野を教えてください。",
     category: "創作",
   },
 ];
@@ -80,10 +78,7 @@ export function MessageTemplatePanel({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // カテゴリーの一覧を取得
-  const categories = [
-    "all",
-    ...Array.from(new Set(messageTemplates.map((t) => t.category))),
-  ];
+  const categories = ["all", ...Array.from(new Set(messageTemplates.map((t) => t.category)))];
 
   // フィルタリングされたテンプレート
   const filteredTemplates =
@@ -121,9 +116,7 @@ export function MessageTemplatePanel({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Lightbulb className="w-6 h-6 text-yellow-400" />
-              <h2 className="text-xl font-semibold text-white">
-                メッセージテンプレート
-              </h2>
+              <h2 className="text-xl font-semibold text-white">メッセージテンプレート</h2>
             </div>
             <Button
               variant="ghost"
@@ -175,9 +168,7 @@ export function MessageTemplatePanel({
                     {template.category}
                   </span>
                 </div>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  {template.message}
-                </p>
+                <p className="text-sm text-gray-300 leading-relaxed">{template.message}</p>
               </div>
             </Card>
           ))}

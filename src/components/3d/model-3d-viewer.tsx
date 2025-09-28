@@ -42,18 +42,15 @@ export const Model3DViewer = memo(function Model3DViewer({
   // 使用する設定（propsが優先、なければストアの設定）
   const finalSceneConfig = useMemo(
     () => ({ ...storeSceneConfig, ...sceneConfig }),
-    [storeSceneConfig, sceneConfig]
+    [storeSceneConfig, sceneConfig],
   );
   const finalCameraConfig = useMemo(
     () => ({ ...storeCameraConfig, ...cameraConfig }),
-    [storeCameraConfig, cameraConfig]
+    [storeCameraConfig, cameraConfig],
   );
 
   // 表示するモデル（propsが優先、なければストアの現在のモデル）
-  const displayModel = useMemo(
-    () => model || currentModel,
-    [model, currentModel]
-  );
+  const displayModel = useMemo(() => model || currentModel, [model, currentModel]);
 
   // モデルアップロードハンドラー
   const handleModelUpload = useCallback(
@@ -95,8 +92,7 @@ export const Model3DViewer = memo(function Model3DViewer({
           throw new Error(result.error || "モデルの読み込みに失敗しました");
         }
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "不明なエラーが発生しました";
+        const errorMessage = error instanceof Error ? error.message : "不明なエラーが発生しました";
         setError(errorMessage);
         onError?.(errorMessage);
         setLoadingProgress(undefined);
@@ -104,7 +100,7 @@ export const Model3DViewer = memo(function Model3DViewer({
         setLoading(false);
       }
     },
-    [addModel, setCurrentModel, setLoading, setError, onModelLoad, onError]
+    [addModel, setCurrentModel, setLoading, setError, onModelLoad, onError],
   );
 
   // モデル選択ハンドラー
@@ -112,7 +108,7 @@ export const Model3DViewer = memo(function Model3DViewer({
     (selectedModel: (typeof availableModels)[0]) => {
       switchToModel(selectedModel.id);
     },
-    [switchToModel]
+    [switchToModel],
   );
 
   // モデル削除ハンドラー
@@ -120,7 +116,7 @@ export const Model3DViewer = memo(function Model3DViewer({
     (modelId: string) => {
       removeModel(modelId);
     },
-    [removeModel]
+    [removeModel],
   );
 
   return (
@@ -140,11 +136,7 @@ export const Model3DViewer = memo(function Model3DViewer({
 
             {/* モデル表示 */}
             {displayModel ? (
-              <ModelViewer
-                model={displayModel}
-                animationSpeed={1}
-                enableAnimation={true}
-              />
+              <ModelViewer model={displayModel} animationSpeed={1} enableAnimation={true} />
             ) : isLoading ? null : ( // ローディング中は何も表示しない（ローディング状況は下部に表示）
               <ModelPlaceholder />
             )}
@@ -155,11 +147,7 @@ export const Model3DViewer = memo(function Model3DViewer({
 
           {/* 読み込み状況オーバーレイ */}
           <div className="absolute bottom-4 left-4 right-4">
-            <ModelLoadingStatus
-              isLoading={isLoading}
-              progress={loadingProgress}
-              error={error}
-            />
+            <ModelLoadingStatus isLoading={isLoading} progress={loadingProgress} error={error} />
           </div>
         </div>
 
@@ -191,8 +179,7 @@ export function Simple3DViewer({
 }: Omit<Model3DViewerProps, "onModelLoad" | "onError"> & {
   showInfo?: boolean;
 }) {
-  const { sceneConfig: storeSceneConfig, cameraConfig: storeCameraConfig } =
-    useModelStore();
+  const { sceneConfig: storeSceneConfig, cameraConfig: storeCameraConfig } = useModelStore();
 
   const finalSceneConfig = { ...storeSceneConfig, ...sceneConfig };
   const finalCameraConfig = { ...storeCameraConfig, ...cameraConfig };
@@ -209,11 +196,7 @@ export function Simple3DViewer({
         <Ground />
 
         {model ? (
-          <ModelViewer
-            model={model}
-            animationSpeed={1}
-            enableAnimation={true}
-          />
+          <ModelViewer model={model} animationSpeed={1} enableAnimation={true} />
         ) : (
           <ModelPlaceholder />
         )}

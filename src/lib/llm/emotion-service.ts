@@ -30,18 +30,17 @@ export class EmotionService {
 
   async generateResponse(
     userInput: string,
-    customPrompt?: { enabled: boolean; content: string }
+    customPrompt?: { enabled: boolean; content: string },
   ): Promise<{
     text: string;
     emotions: EmotionTag[];
   }> {
     // 環境変数からAPIキーを取得
-    const apiKey =
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       throw new Error(
-        "Gemini API key is not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY environment variable."
+        "Gemini API key is not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY or GEMINI_API_KEY environment variable.",
       );
     }
 
@@ -49,8 +48,7 @@ export class EmotionService {
       const google = createGoogleGenerativeAI({ apiKey });
 
       // カスタムプロンプト設定を取得
-      const customPromptSettings =
-        customPrompt || this.getCustomPromptSettings();
+      const customPromptSettings = customPrompt || this.getCustomPromptSettings();
 
       // システムプロンプトを構築
       let systemPrompt = `
@@ -93,13 +91,7 @@ export class EmotionService {
     const emotions: EmotionTag[] = [];
     let cleanText = text;
 
-    const validEmotions: EmotionType[] = [
-      "neutral",
-      "happy",
-      "sad",
-      "angry",
-      "surprised",
-    ];
+    const validEmotions: EmotionType[] = ["neutral", "happy", "sad", "angry", "surprised"];
 
     let match;
     while ((match = emotionRegex.exec(text)) !== null) {

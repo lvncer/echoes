@@ -24,7 +24,7 @@ export type EmotionCategory = "basic";
  */
 export function getEmotionAnimation(
   emotion: EmotionType,
-  intensity: number = 1.0
+  intensity: number = 1.0,
 ): EmotionAnimation | null {
   // 基本感情をチェック
   return getBasicEmotionAnimation(emotion as BasicEmotionType, intensity);
@@ -81,7 +81,7 @@ export function getEmotionCategoryStats(): Record<EmotionCategory, number> {
 export function getRandomEmotion(category?: EmotionCategory): EmotionType | null {
   const emotions = category ? getEmotionsByCategory(category) : getAllEmotions();
   if (emotions.length === 0) return null;
-  
+
   const randomIndex = Math.floor(Math.random() * emotions.length);
   return emotions[randomIndex];
-} 
+}

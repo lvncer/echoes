@@ -29,8 +29,7 @@ export class ClientAIService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage =
-          errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
         throw new Error(errorMessage);
       }
 
@@ -50,20 +49,13 @@ export class ClientAIService {
 
       if (error instanceof Error) {
         if (error.message.includes("クォータ制限")) {
-          userMessage =
-            "⚠️ APIのクォータ制限に達しました。しばらく時間をおいてからお試しください。";
+          userMessage = "⚠️ APIのクォータ制限に達しました。しばらく時間をおいてからお試しください。";
         } else if (error.message.includes("API キー")) {
-          userMessage =
-            "⚠️ APIキーが設定されていません。設定を確認してください。";
+          userMessage = "⚠️ APIキーが設定されていません。設定を確認してください。";
         } else if (error.message.includes("HTTP 5")) {
-          userMessage =
-            "⚠️ サーバーエラーが発生しました。しばらく時間をおいてからお試しください。";
-        } else if (
-          error.message.includes("NetworkError") ||
-          error.message.includes("fetch")
-        ) {
-          userMessage =
-            "⚠️ ネットワークエラーが発生しました。接続を確認してください。";
+          userMessage = "⚠️ サーバーエラーが発生しました。しばらく時間をおいてからお試しください。";
+        } else if (error.message.includes("NetworkError") || error.message.includes("fetch")) {
+          userMessage = "⚠️ ネットワークエラーが発生しました。接続を確認してください。";
         }
       }
 

@@ -9,13 +9,13 @@ export type VoiceEngine = "webspeech" | "voicevox";
 export interface VoiceSettings {
   // 音声エンジン選択
   engine: VoiceEngine;
-  
+
   // VOICEVOX設定
   voicevox: VoicevoxConfig;
-  
+
   // Web Speech API設定
   webspeech: SpeechSynthesisConfig;
-  
+
   // 共通設定
   autoFallback: boolean;
   showVoiceCredits: boolean;
@@ -25,7 +25,7 @@ export interface VoiceSettingsState {
   settings: VoiceSettings;
   isLoading: boolean;
   error: string | null;
-  
+
   // アクション
   updateEngine: (engine: VoiceEngine) => void;
   updateVoicevoxConfig: (config: Partial<VoicevoxConfig>) => void;
@@ -129,18 +129,14 @@ export const useVoiceSettingsStore = create<VoiceSettingsState>()(
       }),
       // 古いデータのマイグレーション
       migrate: (persistedState: unknown, version: number) => {
-        if (version < 2 && persistedState && typeof persistedState === 'object') {
+        if (version < 2 && persistedState && typeof persistedState === "object") {
           const state = persistedState as Record<string, unknown>;
           // v1からv2への移行: apiKeyが未定義の場合は空文字列に設定
-          if (
-            state.settings && 
-            typeof state.settings === 'object' && 
-            state.settings !== null
-          ) {
+          if (state.settings && typeof state.settings === "object" && state.settings !== null) {
             const settings = state.settings as Record<string, unknown>;
             if (
-              settings.voicevox && 
-              typeof settings.voicevox === 'object' && 
+              settings.voicevox &&
+              typeof settings.voicevox === "object" &&
               settings.voicevox !== null
             ) {
               const voicevox = settings.voicevox as Record<string, unknown>;
@@ -152,15 +148,15 @@ export const useVoiceSettingsStore = create<VoiceSettingsState>()(
               settings.voicevox = {
                 ...VOICEVOX_WEB_API_CONFIG,
                 ...voicevox,
-                apiKey: typeof voicevox.apiKey === 'string' ? voicevox.apiKey : "",
+                apiKey: typeof voicevox.apiKey === "string" ? voicevox.apiKey : "",
               };
             }
           }
         }
         return persistedState;
       },
-    }
-  )
+    },
+  ),
 );
 
 // 設定を取得するヘルパー関数
@@ -181,4 +177,4 @@ export const getVoicevoxConfig = (): VoicevoxConfig => {
 // Web Speech API設定を取得
 export const getWebSpeechConfig = (): SpeechSynthesisConfig => {
   return useVoiceSettingsStore.getState().settings.webspeech;
-}; 
+};

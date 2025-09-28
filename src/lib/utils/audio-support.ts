@@ -17,25 +17,18 @@ export function detectBrowserSupport(): BrowserSupport {
       SpeechRecognition?: new () => SpeechRecognition;
       webkitSpeechRecognition?: new () => SpeechRecognition;
     };
-    support.speechRecognition = !!(
-      win.SpeechRecognition || win.webkitSpeechRecognition
-    );
+    support.speechRecognition = !!(win.SpeechRecognition || win.webkitSpeechRecognition);
 
     // SpeechSynthesis API サポート検出
     support.speechSynthesis = !!(
-      window.speechSynthesis &&
-      typeof window.speechSynthesis.speak === "function"
+      window.speechSynthesis && typeof window.speechSynthesis.speak === "function"
     );
 
     // MediaRecorder API サポート検出
-    support.mediaRecorder = !!(
-      window.MediaRecorder && typeof window.MediaRecorder === "function"
-    );
+    support.mediaRecorder = !!(window.MediaRecorder && typeof window.MediaRecorder === "function");
 
     // getUserMedia API サポート検出
-    support.getUserMedia = !!(
-      navigator.mediaDevices && navigator.mediaDevices.getUserMedia
-    );
+    support.getUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   }
 
   return support;
@@ -53,7 +46,10 @@ export function getAudioCapabilities(): AudioCapabilities {
     mediaRecorder: support.mediaRecorder && support.getUserMedia,
     audioContext:
       typeof window !== "undefined" &&
-      !!(window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext),
+      !!(
+        window.AudioContext ||
+        (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      ),
   };
 }
 
@@ -76,7 +72,11 @@ export function getSpeechRecognition(): (new () => SpeechRecognition) | null {
 export function getAudioContext(): typeof AudioContext | null {
   if (typeof window === "undefined") return null;
 
-  return window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || null;
+  return (
+    window.AudioContext ||
+    (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext ||
+    null
+  );
 }
 
 /**
@@ -89,8 +89,7 @@ export function getBrowserLimitations(): {
 } {
   const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isFirefox = userAgent.includes("Firefox");
-  const isSafari =
-    userAgent.includes("Safari") && !userAgent.includes("Chrome");
+  const isSafari = userAgent.includes("Safari") && !userAgent.includes("Chrome");
   const isChrome = userAgent.includes("Chrome");
 
   return {
@@ -109,16 +108,12 @@ export function getBrowserLimitations(): {
  */
 export function getLocalizedErrorMessage(error: string): string {
   const errorMessages: Record<string, string> = {
-    "not-allowed":
-      "マイクへのアクセスが拒否されました。ブラウザの設定を確認してください。",
-    "not-found":
-      "マイクが見つかりません。マイクが接続されているか確認してください。",
+    "not-allowed": "マイクへのアクセスが拒否されました。ブラウザの設定を確認してください。",
+    "not-found": "マイクが見つかりません。マイクが接続されているか確認してください。",
     "not-supported":
       "お使いのブラウザは音声認識をサポートしていません。Chrome、Safari、Edgeをお試しください。",
-    network:
-      "ネットワークエラーが発生しました。インターネット接続を確認してください。",
-    "audio-capture":
-      "音声の録音に失敗しました。マイクが正常に動作しているか確認してください。",
+    network: "ネットワークエラーが発生しました。インターネット接続を確認してください。",
+    "audio-capture": "音声の録音に失敗しました。マイクが正常に動作しているか確認してください。",
     "no-speech": "音声が検出されませんでした。マイクに向かって話してください。",
     aborted: "音声認識が中断されました。",
     "service-not-allowed": "音声認識サービスが利用できません。",

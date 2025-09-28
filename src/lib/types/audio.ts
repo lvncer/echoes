@@ -87,10 +87,7 @@ export interface AudioEvents {
 }
 
 // 音声制御モード
-export type AudioControlMode =
-  | "push-to-talk"
-  | "voice-activation"
-  | "continuous";
+export type AudioControlMode = "push-to-talk" | "voice-activation" | "continuous";
 
 // ブラウザサポート状況
 export interface BrowserSupport {

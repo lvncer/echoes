@@ -9,10 +9,7 @@ import { SpeechRecognitionService } from "./speech-recognition";
 import { IntegratedSpeechService } from "./integrated-speech-service";
 import { AnimationController } from "./animation-controller";
 import { errorHandler } from "./error-handler";
-import type {
-  AudioConfig,
-  SpeechRecognitionResult,
-} from "../types/audio";
+import type { AudioConfig, SpeechRecognitionResult } from "../types/audio";
 
 export interface AudioChatConfig {
   audioInput: Partial<AudioConfig>;
@@ -45,12 +42,7 @@ export interface AudioChatCallbacks {
   onStatusChange?: (status: AudioChatStatus) => void;
 }
 
-export type AudioChatStatus =
-  | "idle"
-  | "listening"
-  | "processing"
-  | "speaking"
-  | "error";
+export type AudioChatStatus = "idle" | "listening" | "processing" | "speaking" | "error";
 
 export class AudioChatOrchestrator {
   private config: AudioChatConfig;
@@ -64,7 +56,7 @@ export class AudioChatOrchestrator {
     private speechSynthesis: IntegratedSpeechService,
     private animationController: AnimationController,
     config: AudioChatConfig,
-    callbacks: AudioChatCallbacks = {}
+    callbacks: AudioChatCallbacks = {},
   ) {
     this.config = config;
     this.callbacks = callbacks;
@@ -75,10 +67,7 @@ export class AudioChatOrchestrator {
   private setupEventHandlers(): void {
     this.speechRecognition.setEventListeners({
       onResult: (result: SpeechRecognitionResult) => {
-        this.callbacks.onTranscriptReceived?.(
-          result.transcript,
-          result.isFinal
-        );
+        this.callbacks.onTranscriptReceived?.(result.transcript, result.isFinal);
 
         if (result.isFinal && result.transcript.trim()) {
           this.handleFinalTranscript(result.transcript);
@@ -131,15 +120,10 @@ export class AudioChatOrchestrator {
         return true;
       }
 
-      const hasPermission = await this.audioInput.requestMicrophoneAccess(
-        this.config.audioInput
-      );
-      
+      const hasPermission = await this.audioInput.requestMicrophoneAccess(this.config.audioInput);
+
       if (!hasPermission) {
-        errorHandler.handleAudioError(
-          "PERMISSION_DENIED",
-          "マイクアクセスが拒否されました"
-        );
+        errorHandler.handleAudioError("PERMISSION_DENIED", "マイクアクセスが拒否されました");
         return false;
       }
 
@@ -150,7 +134,7 @@ export class AudioChatOrchestrator {
     } catch (error) {
       errorHandler.handleAudioError(
         "INITIALIZATION_FAILED",
-        `音声チャット初期化に失敗しました: ${error}`
+        `音声チャット初期化に失敗しました: ${error}`,
       );
       return false;
     }
@@ -197,7 +181,7 @@ export class AudioChatOrchestrator {
             if (messages.length > prevLength && lastMessage) {
               const isError =
                 /申し訳ありません|エラー|失敗|error|not available|unavailable|could not|できません|ありません/i.test(
-                  lastMessage.content
+                  lastMessage.content,
                 );
               if (
                 lastMessage.role === "assistant" &&
@@ -222,10 +206,7 @@ export class AudioChatOrchestrator {
 
       this.setStatus("idle");
     } catch (error) {
-      errorHandler.handleAIError(
-        "AI_RESPONSE_FAILED",
-        `AI応答の取得に失敗しました: ${error}`
-      );
+      errorHandler.handleAIError("AI_RESPONSE_FAILED", `AI応答の取得に失敗しました: ${error}`);
       this.setStatus("idle");
     }
   }
@@ -237,17 +218,14 @@ export class AudioChatOrchestrator {
       }
 
       await this.speechSynthesis.syncSettings();
-      
+
       if (this.animationController) {
         this.animationController.analyzeAndPlayEmotionAnimation(text);
       }
 
       await this.speechSynthesis.speak(text);
     } catch (error) {
-      errorHandler.handleAudioError(
-        "SPEECH_SYNTHESIS_FAILED",
-        `音声合成に失敗しました: ${error}`
-      );
+      errorHandler.handleAudioError("SPEECH_SYNTHESIS_FAILED", `音声合成に失敗しました: ${error}`);
     }
   }
 

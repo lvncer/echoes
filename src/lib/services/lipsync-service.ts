@@ -1,8 +1,5 @@
 import { blendShapeService } from "./blend-shape-service";
-import {
-  audioAnalysisService,
-  AudioAnalysisService,
-} from "./audio-analysis-service";
+import { audioAnalysisService, AudioAnalysisService } from "./audio-analysis-service";
 
 /**
  * リップシンク制御サービス
@@ -50,7 +47,6 @@ export class LipSyncService {
       // アニメーションループを開始
       this.isActive = true;
       this.startAnimationLoop();
-
     } catch (error) {
       this.isActive = false;
       throw error;
@@ -74,7 +70,6 @@ export class LipSyncService {
 
     // 口を閉じる
     this.resetMouth();
-
   }
 
   /**
@@ -87,13 +82,10 @@ export class LipSyncService {
     const adjustedVolume = volume * this.sensitivity;
 
     // 音量から口の開き具合を計算
-    this.targetMouthOpening =
-      AudioAnalysisService.volumeToMouthOpening(adjustedVolume);
+    this.targetMouthOpening = AudioAnalysisService.volumeToMouthOpening(adjustedVolume);
 
     // 音量から基本音素を推定
-    this.currentPhoneme =
-      AudioAnalysisService.volumeToBasicPhoneme(adjustedVolume);
-
+    this.currentPhoneme = AudioAnalysisService.volumeToBasicPhoneme(adjustedVolume);
   }
 
   /**
@@ -152,7 +144,6 @@ export class LipSyncService {
 
     // ブレンドシェイプを適用
     blendShapeService.setMultipleBlendShapes(blendShapeWeights);
-
   }
 
   /**

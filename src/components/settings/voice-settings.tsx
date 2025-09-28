@@ -2,13 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -28,10 +22,7 @@ import {
   Settings,
   RefreshCw,
 } from "lucide-react";
-import {
-  useVoiceSettingsStore,
-  type VoiceEngine,
-} from "@/lib/stores/voice-settings-store";
+import { useVoiceSettingsStore, type VoiceEngine } from "@/lib/stores/voice-settings-store";
 import { voicevoxService } from "@/lib/services/voicevox-service";
 import {
   integratedSpeechService,
@@ -55,17 +46,11 @@ export function VoiceSettings() {
 
   // 状態管理
   const [engineStatus, setEngineStatus] = useState<EngineStatus | null>(null);
-  const [voicevoxSpeakers, setVoicevoxSpeakers] = useState<VoicevoxSpeaker[]>(
-    []
-  );
-  const [webSpeechVoices, setWebSpeechVoices] = useState<
-    SpeechSynthesisVoice[]
-  >([]);
+  const [voicevoxSpeakers, setVoicevoxSpeakers] = useState<VoicevoxSpeaker[]>([]);
+  const [webSpeechVoices, setWebSpeechVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [isTestingSynthesis, setIsTestingSynthesis] = useState(false);
-  const [connectionTestResult, setConnectionTestResult] = useState<
-    string | null
-  >(null);
+  const [connectionTestResult, setConnectionTestResult] = useState<string | null>(null);
 
   /**
    * VOICEVOX話者読み込み
@@ -85,7 +70,7 @@ export function VoiceSettings() {
         // デフォルト話者の自動選択
         const currentSpeaker = settings.voicevox.speaker;
         const isCurrentSpeakerValid = speakers.some((speaker) =>
-          speaker.styles.some((style) => style.id === currentSpeaker)
+          speaker.styles.some((style) => style.id === currentSpeaker),
         );
 
         if (!isCurrentSpeakerValid && speakers.length > 0) {
@@ -96,7 +81,7 @@ export function VoiceSettings() {
             updateVoicevoxConfig({ speaker: firstStyle.id });
             if (showErrors) {
               setConnectionTestResult(
-                `VOICEVOX話者一覧を読み込み、デフォルト話者「${firstSpeaker.name} (${firstStyle.name})」を選択しました。`
+                `VOICEVOX話者一覧を読み込み、デフォルト話者「${firstSpeaker.name} (${firstStyle.name})」を選択しました。`,
               );
             }
           }
@@ -116,12 +101,10 @@ export function VoiceSettings() {
               error.message.includes("Failed to fetch")
             ) {
               setConnectionTestResult(
-                "VOICEVOX Web APIへの接続に失敗しました。APIキーを確認してください。"
+                "VOICEVOX Web APIへの接続に失敗しました。APIキーを確認してください。",
               );
             } else {
-              setConnectionTestResult(
-                `VOICEVOX話者一覧の取得に失敗: ${error.message}`
-              );
+              setConnectionTestResult(`VOICEVOX話者一覧の取得に失敗: ${error.message}`);
             }
           } else {
             setConnectionTestResult("VOICEVOX話者一覧の取得に失敗しました。");
@@ -130,7 +113,7 @@ export function VoiceSettings() {
         return false;
       }
     },
-    [setError, settings.voicevox.speaker, updateVoicevoxConfig]
+    [setError, settings.voicevox.speaker, updateVoicevoxConfig],
   );
 
   /**
@@ -250,9 +233,7 @@ export function VoiceSettings() {
       }
     } catch (error) {
       setConnectionTestResult(
-        `設定反映エラー: ${
-          error instanceof Error ? error.message : "不明なエラー"
-        }`
+        `設定反映エラー: ${error instanceof Error ? error.message : "不明なエラー"}`,
       );
     } finally {
       setIsTestingConnection(false);
@@ -271,9 +252,7 @@ export function VoiceSettings() {
       const result = await voicevoxService.testConnection();
 
       if (result.success) {
-        setConnectionTestResult(
-          "接続成功！VOICEVOXサーバーが正常に動作しています。"
-        );
+        setConnectionTestResult("接続成功！VOICEVOXサーバーが正常に動作しています。");
         // 話者リストを再読み込み
         await loadVoicevoxSpeakers();
         // エンジン状態を更新
@@ -283,10 +262,7 @@ export function VoiceSettings() {
         setConnectionTestResult(`接続失敗: ${errorMsg}`);
 
         // APIキー関連のエラーかチェック
-        if (
-          errorMsg.includes("APIキー") ||
-          errorMsg.includes("invalidApiKey")
-        ) {
+        if (errorMsg.includes("APIキー") || errorMsg.includes("invalidApiKey")) {
           setError("APIキーが無効です。正しいAPIキーを設定してください。");
         }
       }
@@ -320,17 +296,15 @@ export function VoiceSettings() {
         // 現在の話者情報を含むメッセージを表示
         if (settings.engine === "voicevox") {
           const currentSpeaker = voicevoxSpeakers.find((speaker) =>
-            speaker.styles.some(
-              (style) => style.id === settings.voicevox.speaker
-            )
+            speaker.styles.some((style) => style.id === settings.voicevox.speaker),
           );
           const currentStyle = currentSpeaker?.styles.find(
-            (style) => style.id === settings.voicevox.speaker
+            (style) => style.id === settings.voicevox.speaker,
           );
 
           if (currentSpeaker && currentStyle) {
             setConnectionTestResult(
-              `音声合成テスト成功！話者: ${currentSpeaker.name} (${currentStyle.name})`
+              `音声合成テスト成功！話者: ${currentSpeaker.name} (${currentStyle.name})`,
             );
           } else {
             setConnectionTestResult("音声合成テスト成功！");
@@ -339,15 +313,11 @@ export function VoiceSettings() {
           setConnectionTestResult("音声合成テスト成功！");
         }
       } else {
-        setConnectionTestResult(
-          "音声合成テストに失敗しました。話者設定を確認してください。"
-        );
+        setConnectionTestResult("音声合成テストに失敗しました。話者設定を確認してください。");
       }
     } catch (error) {
       setConnectionTestResult(
-        `音声合成エラー: ${
-          error instanceof Error ? error.message : "不明なエラー"
-        }`
+        `音声合成エラー: ${error instanceof Error ? error.message : "不明なエラー"}`,
       );
     } finally {
       setIsTestingSynthesis(false);
@@ -379,15 +349,13 @@ export function VoiceSettings() {
 
     // 選択された話者の情報を表示
     const selectedSpeaker = voicevoxSpeakers.find((speaker) =>
-      speaker.styles.some((style) => style.id === speakerIdNum)
+      speaker.styles.some((style) => style.id === speakerIdNum),
     );
-    const selectedStyle = selectedSpeaker?.styles.find(
-      (style) => style.id === speakerIdNum
-    );
+    const selectedStyle = selectedSpeaker?.styles.find((style) => style.id === speakerIdNum);
 
     if (selectedSpeaker && selectedStyle) {
       setConnectionTestResult(
-        `話者を「${selectedSpeaker.name} (${selectedStyle.name})」に変更しました。`
+        `話者を「${selectedSpeaker.name} (${selectedStyle.name})」に変更しました。`,
       );
     }
   };
@@ -413,11 +381,7 @@ export function VoiceSettings() {
       );
     } else {
       return (
-        <Badge
-          variant="outline"
-          className="text-red-600 border-red-600"
-          title={error}
-        >
+        <Badge variant="outline" className="text-red-600 border-red-600" title={error}>
           <AlertCircle className="w-3 h-3 mr-1" />
           利用不可
         </Badge>
@@ -473,22 +437,17 @@ export function VoiceSettings() {
                     onChange={() => handleEngineChange("webspeech")}
                     className="mr-2"
                   />
-                  <label
-                    htmlFor="engine-webspeech"
-                    className="font-medium text-white"
-                  >
+                  <label htmlFor="engine-webspeech" className="font-medium text-white">
                     Web Speech API
                   </label>
                 </div>
                 {engineStatus &&
                   getEngineStatusBadge(
                     engineStatus.webspeech.available,
-                    engineStatus.webspeech.error
+                    engineStatus.webspeech.error,
                   )}
               </div>
-              <p className="text-sm text-gray-400">
-                ブラウザ標準の音声合成（機械的な音声）
-              </p>
+              <p className="text-sm text-gray-400">ブラウザ標準の音声合成（機械的な音声）</p>
             </div>
 
             {/* VOICEVOX */}
@@ -503,36 +462,25 @@ export function VoiceSettings() {
                     onChange={() => handleEngineChange("voicevox")}
                     className="mr-2"
                   />
-                  <label
-                    htmlFor="engine-voicevox"
-                    className="font-medium text-white"
-                  >
+                  <label htmlFor="engine-voicevox" className="font-medium text-white">
                     VOICEVOX
                   </label>
                 </div>
                 {engineStatus &&
                   getEngineStatusBadge(
                     engineStatus.voicevox.available,
-                    engineStatus.voicevox.error
+                    engineStatus.voicevox.error,
                   )}
               </div>
-              <p className="text-sm text-gray-400">
-                高品質な日本語音声合成（Web API対応）
-              </p>
+              <p className="text-sm text-gray-400">高品質な日本語音声合成（Web API対応）</p>
               {engineStatus &&
                 !settings.voicevox.useWebApi &&
                 !engineStatus.voicevox.serverRunning && (
-                  <p className="text-xs text-amber-600">
-                    ⚠️ VOICEVOXサーバーが起動していません
-                  </p>
+                  <p className="text-xs text-amber-600">⚠️ VOICEVOXサーバーが起動していません</p>
                 )}
-              {engineStatus &&
-                settings.voicevox.useWebApi &&
-                !engineStatus.voicevox.available && (
-                  <p className="text-xs text-amber-600">
-                    ⚠️ APIキーが設定されていません
-                  </p>
-                )}
+              {engineStatus && settings.voicevox.useWebApi && !engineStatus.voicevox.available && (
+                <p className="text-xs text-amber-600">⚠️ APIキーが設定されていません</p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -543,9 +491,7 @@ export function VoiceSettings() {
         <Card className="bg-gray-800/50 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white">Web Speech API 設定</CardTitle>
-            <CardDescription className="text-gray-400">
-              ブラウザ標準音声の詳細設定
-            </CardDescription>
+            <CardDescription className="text-gray-400">ブラウザ標準音声の詳細設定</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* 音声選択 */}
@@ -555,9 +501,7 @@ export function VoiceSettings() {
                 value={
                   settings.webspeech.voice && webSpeechVoices.length > 0
                     ? webSpeechVoices
-                        .findIndex(
-                          (v) => v.name === settings.webspeech.voice?.name
-                        )
+                        .findIndex((v) => v.name === settings.webspeech.voice?.name)
                         .toString()
                     : ""
                 }
@@ -569,8 +513,7 @@ export function VoiceSettings() {
                 <SelectContent>
                   {webSpeechVoices.map((voice, index) => (
                     <SelectItem key={index} value={index.toString()}>
-                      {voice.name} ({voice.lang})
-                      {voice.default && " [デフォルト]"}
+                      {voice.name} ({voice.lang}){voice.default && " [デフォルト]"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -585,9 +528,7 @@ export function VoiceSettings() {
                 </label>
                 <Slider
                   value={[settings.webspeech.rate]}
-                  onValueChange={([value]) =>
-                    updateWebSpeechConfig({ rate: value })
-                  }
+                  onValueChange={([value]) => updateWebSpeechConfig({ rate: value })}
                   min={0.1}
                   max={2.0}
                   step={0.1}
@@ -599,9 +540,7 @@ export function VoiceSettings() {
                 </label>
                 <Slider
                   value={[settings.webspeech.pitch]}
-                  onValueChange={([value]) =>
-                    updateWebSpeechConfig({ pitch: value })
-                  }
+                  onValueChange={([value]) => updateWebSpeechConfig({ pitch: value })}
                   min={0.1}
                   max={2.0}
                   step={0.1}
@@ -613,9 +552,7 @@ export function VoiceSettings() {
                 </label>
                 <Slider
                   value={[settings.webspeech.volume]}
-                  onValueChange={([value]) =>
-                    updateWebSpeechConfig({ volume: value })
-                  }
+                  onValueChange={([value]) => updateWebSpeechConfig({ volume: value })}
                   min={0.0}
                   max={1.0}
                   step={0.1}
@@ -631,9 +568,7 @@ export function VoiceSettings() {
         <Card className="bg-gray-900/50 border-gray-900/50">
           <CardHeader>
             <CardTitle className="text-white">VOICEVOX 設定</CardTitle>
-            <CardDescription className="text-gray-400">
-              VOICEVOX音声合成の詳細設定
-            </CardDescription>
+            <CardDescription className="text-gray-400">VOICEVOX音声合成の詳細設定</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* API種別選択 */}
@@ -651,22 +586,16 @@ export function VoiceSettings() {
                       onChange={() =>
                         updateVoicevoxConfig({
                           useWebApi: true,
-                          serverUrl:
-                            "https://deprecatedapis.tts.quest/v2/voicevox",
+                          serverUrl: "https://deprecatedapis.tts.quest/v2/voicevox",
                         })
                       }
                       className="mr-2"
                     />
-                    <label
-                      htmlFor="voicevox-web-api"
-                      className="font-medium text-white"
-                    >
+                    <label htmlFor="voicevox-web-api" className="font-medium text-white">
                       Web API
                     </label>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    アプリ不要、即座に利用可能
-                  </p>
+                  <p className="text-xs text-gray-400">アプリ不要、即座に利用可能</p>
                 </div>
 
                 {/* ローカルAPI */}
@@ -685,10 +614,7 @@ export function VoiceSettings() {
                       }
                       className="mr-2"
                     />
-                    <label
-                      htmlFor="voicevox-local-api"
-                      className="font-medium text-white"
-                    >
+                    <label htmlFor="voicevox-local-api" className="font-medium text-white">
                       ローカルAPI
                     </label>
                   </div>
@@ -700,15 +626,11 @@ export function VoiceSettings() {
             {/* APIキー設定（Web API使用時のみ） */}
             {settings.voicevox.useWebApi && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white">
-                  APIキー
-                </label>
+                <label className="text-sm font-medium text-white">APIキー</label>
                 <input
                   type="password"
                   value={settings.voicevox.apiKey ?? ""}
-                  onChange={(e) =>
-                    updateVoicevoxConfig({ apiKey: e.target.value })
-                  }
+                  onChange={(e) => updateVoicevoxConfig({ apiKey: e.target.value })}
                   className="w-full px-3 py-2 border rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   placeholder="APIキーを入力してください"
                 />
@@ -731,16 +653,12 @@ export function VoiceSettings() {
 
             {/* サーバー接続設定 */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white">
-                サーバーURL
-              </label>
+              <label className="text-sm font-medium text-white">サーバーURL</label>
               <div className="flex space-x-2">
                 <input
                   type="text"
                   value={settings.voicevox.serverUrl ?? ""}
-                  onChange={(e) =>
-                    updateVoicevoxConfig({ serverUrl: e.target.value })
-                  }
+                  onChange={(e) => updateVoicevoxConfig({ serverUrl: e.target.value })}
                   className="flex-1 px-3 py-2 border rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   placeholder={
                     settings.voicevox.useWebApi
@@ -753,8 +671,7 @@ export function VoiceSettings() {
                   onClick={handleConnectionTest}
                   disabled={
                     isTestingConnection ||
-                    (settings.voicevox.useWebApi &&
-                      !(settings.voicevox.apiKey ?? "").trim())
+                    (settings.voicevox.useWebApi && !(settings.voicevox.apiKey ?? "").trim())
                   }
                   variant="outline"
                   className="border-blue-600/90 cursor-pointer text-white bg-blue-600/90 hover:text-white hover:bg-blue-800/90"
@@ -768,16 +685,11 @@ export function VoiceSettings() {
                 </Button>
               </div>
               {settings.voicevox.useWebApi && (
-                <p className="text-xs text-gray-400">
-                  Web API使用時はURL変更できません
-                </p>
+                <p className="text-xs text-gray-400">Web API使用時はURL変更できません</p>
               )}
-              {settings.voicevox.useWebApi &&
-                !(settings.voicevox.apiKey ?? "").trim() && (
-                  <p className="text-xs text-amber-400">
-                    ⚠️ APIキーが設定されていません
-                  </p>
-                )}
+              {settings.voicevox.useWebApi && !(settings.voicevox.apiKey ?? "").trim() && (
+                <p className="text-xs text-amber-400">⚠️ APIキーが設定されていません</p>
+              )}
             </div>
 
             {/* 話者選択 */}
@@ -795,13 +707,10 @@ export function VoiceSettings() {
                     <SelectContent>
                       {voicevoxSpeakers.map((speaker) =>
                         speaker.styles.map((style) => (
-                          <SelectItem
-                            key={style.id}
-                            value={style.id.toString()}
-                          >
+                          <SelectItem key={style.id} value={style.id.toString()}>
                             {speaker.name} ({style.name})
                           </SelectItem>
-                        ))
+                        )),
                       )}
                     </SelectContent>
                   </Select>
@@ -809,21 +718,16 @@ export function VoiceSettings() {
                   {/* 現在選択されている話者の情報を表示 */}
                   {(() => {
                     const currentSpeaker = voicevoxSpeakers.find((speaker) =>
-                      speaker.styles.some(
-                        (style) => style.id === settings.voicevox.speaker
-                      )
+                      speaker.styles.some((style) => style.id === settings.voicevox.speaker),
                     );
                     const currentStyle = currentSpeaker?.styles.find(
-                      (style) => style.id === settings.voicevox.speaker
+                      (style) => style.id === settings.voicevox.speaker,
                     );
 
                     if (currentSpeaker && currentStyle) {
                       return (
                         <div className="flex items-center space-x-2 text-xs">
-                          <Badge
-                            variant="outline"
-                            className="text-green-400 border-green-400"
-                          >
+                          <Badge variant="outline" className="text-green-400 border-green-400">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             選択中
                           </Badge>
@@ -844,8 +748,7 @@ export function VoiceSettings() {
                     </SelectTrigger>
                   </Select>
                   <p className="text-xs text-amber-400">
-                    ⚠️
-                    上記の「設定を反映」ボタンを押して話者一覧を読み込んでください
+                    ⚠️ 上記の「設定を反映」ボタンを押して話者一覧を読み込んでください
                   </p>
                 </div>
               )}
@@ -858,9 +761,7 @@ export function VoiceSettings() {
               </label>
               <Slider
                 value={[settings.voicevox.timeout]}
-                onValueChange={([value]) =>
-                  updateVoicevoxConfig({ timeout: value })
-                }
+                onValueChange={([value]) => updateVoicevoxConfig({ timeout: value })}
                 min={5000}
                 max={30000}
                 step={1000}
@@ -873,8 +774,7 @@ export function VoiceSettings() {
                 onClick={handleApplyVoicevoxSettings}
                 disabled={
                   isTestingConnection ||
-                  (settings.voicevox.useWebApi &&
-                    !(settings.voicevox.apiKey ?? "").trim())
+                  (settings.voicevox.useWebApi && !(settings.voicevox.apiKey ?? "").trim())
                 }
                 className="w-full cursor-pointer bg-blue-600/90 hover:bg-blue-800/90"
                 variant="default"
@@ -913,9 +813,7 @@ export function VoiceSettings() {
               type="checkbox"
               id="autoFallback"
               checked={settings.autoFallback}
-              onChange={(e) =>
-                updateGeneralSettings({ autoFallback: e.target.checked })
-              }
+              onChange={(e) => updateGeneralSettings({ autoFallback: e.target.checked })}
             />
             <label htmlFor="autoFallback" className="text-sm text-white">
               自動フォールバック（VOICEVOXエラー時にWeb Speech APIに切り替え）
@@ -927,9 +825,7 @@ export function VoiceSettings() {
               type="checkbox"
               id="showVoiceCredits"
               checked={settings.showVoiceCredits}
-              onChange={(e) =>
-                updateGeneralSettings({ showVoiceCredits: e.target.checked })
-              }
+              onChange={(e) => updateGeneralSettings({ showVoiceCredits: e.target.checked })}
             />
             <label htmlFor="showVoiceCredits" className="text-sm text-white">
               音声クレジット表示（コンソールにVOICEVOX話者名を表示）
@@ -981,9 +877,7 @@ export function VoiceSettings() {
           {connectionTestResult && (
             <div
               className={`p-1 rounded-md text-sm ${
-                connectionTestResult.includes("正常")
-                  ? "text-green-500"
-                  : "text-red-500"
+                connectionTestResult.includes("正常") ? "text-green-500" : "text-red-500"
               }`}
             >
               {connectionTestResult}
@@ -992,8 +886,7 @@ export function VoiceSettings() {
 
           {/* キャッシュ情報 */}
           <div className="text-xs text-gray-400">
-            音声キャッシュ:{" "}
-            {integratedSpeechService.getVoicevoxCacheInfo().size} /{" "}
+            音声キャッシュ: {integratedSpeechService.getVoicevoxCacheInfo().size} /{" "}
             {integratedSpeechService.getVoicevoxCacheInfo().maxSize} 件
           </div>
         </CardContent>
@@ -1006,20 +899,12 @@ export function VoiceSettings() {
         <Card className="bg-blue-900/30 border-blue-700/50">
           <CardContent className="pt-4">
             <div className="text-sm text-blue-300 space-y-2">
-              <p className="font-medium">
-                📝 VOICEVOX ローカルAPI使用時の注意事項：
-              </p>
+              <p className="font-medium">📝 VOICEVOX ローカルAPI使用時の注意事項：</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
                 <li>VOICEVOXアプリケーションを事前に起動してください</li>
-                <li>
-                  デフォルトポート（50021）で起動していることを確認してください
-                </li>
-                <li>
-                  初回使用時は話者データのダウンロードが必要な場合があります
-                </li>
-                <li>
-                  音声合成にはインターネット接続は不要です（ローカル処理）
-                </li>
+                <li>デフォルトポート（50021）で起動していることを確認してください</li>
+                <li>初回使用時は話者データのダウンロードが必要な場合があります</li>
+                <li>音声合成にはインターネット接続は不要です（ローカル処理）</li>
               </ul>
             </div>
           </CardContent>
