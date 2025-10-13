@@ -10,6 +10,7 @@ import { SettingsModal } from "@/components/settings/settings-modal";
 import { ChatHistoryModal } from "@/components/chat-history/chat-history-modal";
 import { MessageTemplatePanel } from "@/components/chat/message-template-panel";
 import { TextChatInput } from "@/components/chat/text-chat-input";
+import { InlineEnvInputs } from "@/components/chat/inline-env-inputs";
 import { integratedLipSyncService } from "@/lib/services/integrated-lipsync-service";
 import { useServices } from "@/lib/contexts/service-context";
 import {
@@ -348,8 +349,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* チャット履歴・テンプレート・設定ボタン - 右上 */}
+      {/* 環境入力・チャット履歴・テンプレート・設定ボタン - 右上 */}
       <div className="absolute top-8 right-8 z-30 flex gap-3">
+        {/* 右上に常時表示のインライン環境入力（VOICEVOX/APIキー） */}
+        <InlineEnvInputs />
         <Button
           variant="default"
           size="default"
